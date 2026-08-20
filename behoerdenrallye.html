@@ -35,16 +35,32 @@
   html,body{margin:0;padding:0;}
   body{
     background:
-      radial-gradient(circle at 15% 8%, rgba(176,139,61,0.09), transparent 40%),
-      radial-gradient(circle at 90% 85%, rgba(47,72,88,0.09), transparent 45%),
+      radial-gradient(circle at 15% 8%, rgba(176,139,61,0.10), transparent 40%),
+      radial-gradient(circle at 90% 85%, rgba(47,72,88,0.10), transparent 45%),
+      radial-gradient(circle at 50% 105%, rgba(163,49,31,0.06), transparent 55%),
+      radial-gradient(ellipse at 50% 50%, transparent 58%, rgba(43,38,32,0.06) 100%),
+      repeating-linear-gradient(to bottom, transparent 0 27px, rgba(43,38,32,0.028) 27px 28px),
+      repeating-linear-gradient(to right, transparent 0 27px, rgba(43,38,32,0.014) 27px 28px),
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E"),
       var(--paper);
+    background-attachment:fixed;
     color:var(--ink);
     font-family:'Source Serif 4', Georgia, serif;
     min-height:100vh;
     -webkit-font-smoothing:antialiased;
   }
-  #app{max-width:720px;margin:0 auto;padding:20px 16px 80px;}
+  #bgfx{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;}
+  #bgfx span{position:absolute; border-radius:50%; opacity:.14; animation:bgdrift 24s ease-in-out infinite;}
+  #bgfx span:nth-child(1){width:5px; height:5px; left:6%; top:14%; background:var(--stamp); animation-duration:23s;}
+  #bgfx span:nth-child(2){width:4px; height:4px; left:92%; top:10%; background:var(--gold); animation-duration:27s; animation-delay:-4s;}
+  #bgfx span:nth-child(3){width:6px; height:6px; left:85%; top:60%; background:var(--carbon); opacity:.10; animation-duration:31s; animation-delay:-9s;}
+  #bgfx span:nth-child(4){width:4px; height:4px; left:10%; top:70%; background:var(--teal); animation-duration:26s; animation-delay:-6s;}
+  #bgfx span:nth-child(5){width:5px; height:5px; left:48%; top:88%; background:var(--plum); animation-duration:29s; animation-delay:-13s;}
+  #bgfx span:nth-child(6){width:3px; height:3px; left:35%; top:6%; background:var(--ok); animation-duration:21s; animation-delay:-2s;}
+  #bgfx span:nth-child(7){width:4px; height:4px; left:70%; top:35%; background:var(--gold); opacity:.10; animation-duration:33s; animation-delay:-16s;}
+  @keyframes bgdrift{0%,100%{transform:translate(0,0);} 50%{transform:translate(16px,-24px);}}
+  @media (prefers-reduced-motion: reduce){ #bgfx span{animation:none;} }
+  #app{position:relative; z-index:1; max-width:720px;margin:0 auto;padding:20px 16px 80px;}
   :focus-visible{outline:2.5px solid var(--carbon); outline-offset:2px;}
   .screen{animation:screenIn .38s cubic-bezier(.2,.8,.3,1) both;}
   @keyframes screenIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
@@ -470,6 +486,34 @@
   @keyframes toastOut{from{opacity:1;} to{opacity:0;}}
   @media (prefers-reduced-motion: reduce){ .toast{animation:none;} .toast.fadeout{animation:none; opacity:0;} }
 
+  /* ---------- recovery / offline ---------- */
+  .recover-box{margin-top:16px; text-align:center;}
+  .recover-row{display:flex; gap:8px; justify-content:center; margin-top:8px; flex-wrap:wrap;}
+  .recover-row input{
+    font-family:'IBM Plex Mono',monospace; font-size:14px; letter-spacing:.06em;
+    padding:10px 12px; border:1.5px solid var(--paper-line); border-radius:2px;
+    background:var(--paper-dark); color:var(--ink); width:170px; max-width:100%;
+  }
+  .recover-row input:focus{outline:2px solid var(--carbon); outline-offset:1px;}
+  .offline-banner{
+    font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--warn);
+    background:rgba(176,103,42,0.1); border:1px solid var(--warn);
+    border-radius:3px; padding:8px 12px; margin-bottom:14px;
+  }
+
+  /* ---------- countdown ---------- */
+  .countdown-screen{
+    min-height:50vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; gap:6px;
+  }
+  .countdown-number{
+    font-family:'Special Elite',monospace; font-size:clamp(64px,22vw,150px);
+    color:var(--stamp); line-height:1; margin:6px 0;
+    animation:countpulse .8s cubic-bezier(.2,1.4,.4,1);
+  }
+  @keyframes countpulse{0%{transform:scale(2.2); opacity:0;} 60%{transform:scale(0.94); opacity:1;} 100%{transform:scale(1); opacity:1;}}
+  @media (prefers-reduced-motion: reduce){ .countdown-number{animation:none;} }
+
   /* ---------- finished ---------- */
   .finished-card{
     text-align:center; background:var(--paper-dark); border:1px solid var(--paper-line);
@@ -500,10 +544,16 @@
   </filter>
 </svg>
 
+<div id="bgfx" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+
 <div id="app"><div class="boot-screen"><span class="boot-icon">🖋️</span><div class="boot-text">Rallye-System wird initialisiert<span class="boot-dots"></span></div></div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 (function(){
+
+  var SUPABASE_URL = 'https://jcdjyquundoqcayyaxiz.supabase.co';
+  var SUPABASE_ANON_KEY = 'sb_publishable_71xpRj-FJXCHuMfJmUiixw_ErYDz_-a';
 
   var GROUPS = [
     {id:'gruppe-1', name:'Gruppe 1'},
@@ -590,9 +640,15 @@
   var state = {
     screen:'loading',
     nameInput:'',
+    recoveryInput:'',
     participant:null,
     groupsState:null,
-    selectedGroupForJoin:null,
+    groupRows:[],
+    participantRows:[],
+    groupProgress:{},
+    joiningGroupId:null,
+    offline:false,
+    countdownNumber:3,
     activeQuizIndex:null,
     quizSelectedOption:null,
     quizAnswered:false,
@@ -604,26 +660,89 @@
     return 'p_' + Math.random().toString(36).slice(2,10) + Date.now().toString(36);
   }
 
+  function genRecoveryCode(){
+    var chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // ohne 0/O/1/I/L zur besseren Lesbarkeit
+    var s = '';
+    for(var i=0;i<6;i++){ s += chars[Math.floor(Math.random()*chars.length)]; }
+    return s;
+  }
+
   function emptyGroupsState(){
     var g = {};
     GROUPS.forEach(function(gr){ g[gr.id] = {members:[], points:0}; });
     return g;
   }
 
-  async function loadGroupsState(){
-    try{
-      var raw = localStorage.getItem('behoerdenrallye:groups-state');
-      if(raw){ return JSON.parse(raw); }
-    }catch(e){ console.warn('Behördenrallye: groups-state konnte nicht gelesen werden.', e); }
-    var fresh = emptyGroupsState();
-    try{ localStorage.setItem('behoerdenrallye:groups-state', JSON.stringify(fresh)); }catch(e){ console.warn('Behördenrallye: groups-state konnte nicht gespeichert werden.', e); }
-    return fresh;
+  function countDone(progress){
+    var n = 0;
+    for(var k in (progress||{})){ if(progress[k]) n++; }
+    return n;
   }
 
-  async function saveGroupsState(gs){
-    try{ localStorage.setItem('behoerdenrallye:groups-state', JSON.stringify(gs)); }catch(e){
-      console.warn('Behördenrallye: groups-state konnte nicht gespeichert werden.', e);
-      showToast('Deine Punkte konnten gerade nicht gespeichert werden. Bitte Speicherplatz im Browser prüfen.');
+  function deriveGroupsState(groupRows, participantRows){
+    var gs = emptyGroupsState();
+    (participantRows||[]).forEach(function(p){
+      var g = gs[p.group_id];
+      if(g) g.members.push({id:p.id, name:p.name});
+    });
+    (groupRows||[]).forEach(function(row){
+      var g = gs[row.id];
+      if(g) g.points = countDone(row.progress) * POINTS_PER_STAGE;
+    });
+    return gs;
+  }
+
+  var sb = null;
+  function initSupabase(){
+    try{
+      if(window.supabase && window.supabase.createClient){
+        return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+    }catch(e){ console.warn('Behördenrallye: Supabase-Client konnte nicht erstellt werden.', e); }
+    return null;
+  }
+
+  function cacheRemoteState(remote){
+    try{ localStorage.setItem('behoerdenrallye:cache', JSON.stringify(remote)); }catch(e){ console.warn('Behördenrallye: Cache konnte nicht gespeichert werden.', e); }
+  }
+  function loadCachedRemoteState(){
+    try{ var raw = localStorage.getItem('behoerdenrallye:cache'); if(raw) return JSON.parse(raw); }catch(e){ console.warn('Behördenrallye: Cache konnte nicht gelesen werden.', e); }
+    return null;
+  }
+
+  async function fetchRemoteState(){
+    if(!sb) return null;
+    try{
+      var groupsRes = await sb.from('groups').select('id,progress');
+      var participantsRes = await sb.from('participants').select('id,name,group_id');
+      if(groupsRes.error || participantsRes.error){
+        console.warn('Behördenrallye: Laden von Supabase fehlgeschlagen.', groupsRes.error || participantsRes.error);
+        return null;
+      }
+      return { groups: groupsRes.data, participants: participantsRes.data };
+    }catch(e){
+      console.warn('Behördenrallye: Laden von Supabase fehlgeschlagen.', e);
+      return null;
+    }
+  }
+
+  async function refreshGroupsState(){
+    var remote = await fetchRemoteState();
+    if(remote){
+      state.groupRows = remote.groups || [];
+      state.participantRows = remote.participants || [];
+      state.offline = false;
+      cacheRemoteState(remote);
+    } else {
+      var cached = loadCachedRemoteState();
+      state.groupRows = cached ? cached.groups : [];
+      state.participantRows = cached ? cached.participants : [];
+      state.offline = true;
+    }
+    state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
+    if(state.participant){
+      var myRow = state.groupRows.filter(function(r){ return r.id === state.participant.groupId; })[0];
+      state.groupProgress = myRow ? (myRow.progress || {}) : (state.groupProgress || {});
     }
   }
 
@@ -638,42 +757,80 @@
   async function saveParticipant(p){
     try{ localStorage.setItem('behoerdenrallye:participant', JSON.stringify(p)); }catch(e){
       console.warn('Behördenrallye: participant konnte nicht gespeichert werden.', e);
-      showToast('Dein Fortschritt konnte gerade nicht gespeichert werden. Bitte Speicherplatz im Browser prüfen.');
+      showToast('Deine Anmeldung konnte auf diesem Gerät nicht zwischengespeichert werden.');
     }
   }
 
+  var recentlyCompletedByMe = {};
+
+  function subscribeRealtime(){
+    if(!sb || !sb.channel) return;
+    try{
+      sb.channel('public:groups')
+        .on('postgres_changes', {event:'*', schema:'public', table:'groups'}, handleRemoteGroupsChange)
+        .subscribe();
+      sb.channel('public:participants')
+        .on('postgres_changes', {event:'*', schema:'public', table:'participants'}, handleRemoteParticipantsChange)
+        .subscribe();
+    }catch(e){ console.warn('Behördenrallye: Live-Verbindung konnte nicht aufgebaut werden.', e); }
+  }
+
+  function handleRemoteGroupsChange(payload){
+    var row = payload.new;
+    if(!row || !row.id) return;
+    state.groupRows = (state.groupRows||[]).filter(function(r){ return r.id !== row.id; }).concat([row]);
+
+    if(state.participant && state.participant.groupId === row.id){
+      var oldProgress = state.groupProgress || {};
+      var newlyDone = Object.keys(row.progress||{}).filter(function(k){ return row.progress[k] && !oldProgress[k]; });
+      state.groupProgress = row.progress || {};
+      newlyDone.forEach(function(stageId){
+        if(recentlyCompletedByMe[stageId]) return;
+        var stage = STAGES.filter(function(s){ return s.id === stageId; })[0];
+        if(stage) showToast('⚡ Euer Team hat „' + stage.title + '" abgeschlossen!');
+      });
+    }
+
+    state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows});
+    if(state.screen==='map' || state.screen==='finished' || state.screen==='select-group'){ render(); }
+  }
+
+  function handleRemoteParticipantsChange(payload){
+    var row = payload.eventType === 'DELETE' ? payload.old : payload.new;
+    if(!row) return;
+    state.participantRows = (state.participantRows||[]).filter(function(r){ return r.id !== row.id; });
+    if(payload.eventType !== 'DELETE'){ state.participantRows = state.participantRows.concat([row]); }
+    state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows});
+    if(state.screen==='map' || state.screen==='finished' || state.screen==='select-group'){ render(); }
+  }
+
   async function init(){
-    state.groupsState = await loadGroupsState();
+    sb = initSupabase();
     var p = await loadParticipant();
+    await refreshGroupsState();
     if(p && p.groupId){
       state.participant = p;
+      var myRow = state.groupRows.filter(function(r){ return r.id === p.groupId; })[0];
+      state.groupProgress = myRow ? (myRow.progress || {}) : {};
       state.screen = 'map';
     } else {
       state.screen = 'intro';
     }
     render();
+    subscribeRealtime();
     startPolling();
   }
 
   function startPolling(){
     setInterval(async function(){
       if(document.hidden) return;
-      if(state.screen === 'map' || state.screen === 'finished'){
-        var gs = await loadGroupsState();
-        state.groupsState = gs;
-        renderIfBoardVisible();
+      if(state.screen === 'map' || state.screen === 'finished' || state.screen === 'select-group'){
+        await refreshGroupsState();
+        render();
       }
-    }, 6000);
-  }
-
-  function renderIfBoardVisible(){
-    var boardEl = document.getElementById('liveBoard');
-    if(boardEl){ boardEl.outerHTML = renderBoard(); }
-    var statusPoints = document.getElementById('myGroupPoints');
-    if(statusPoints && state.participant){
-      var g = state.groupsState[state.participant.groupId];
-      if(g) statusPoints.textContent = g.points + ' Punkte';
-    }
+    }, 15000);
   }
 
   function groupOccupancy(id){
@@ -689,32 +846,78 @@
     state.error = null;
     var name = state.nameInput.trim();
     if(!name){ state.error = 'Bitte gib zuerst deinen Namen ein.'; render(); return; }
-
-    var gs = await loadGroupsState();
-    var g = gs[groupId];
-    if(!g){ g = {members:[], points:0}; gs[groupId] = g; }
-    if(g.members.length >= CAPACITY){
-      state.groupsState = gs;
+    if(!sb){
+      state.error = 'Keine Verbindung zur Rallye-Datenbank. Bitte Internetverbindung prüfen und Seite neu laden.';
+      render();
+      return;
+    }
+    if(groupOccupancy(groupId) >= CAPACITY){
       state.error = 'Diese Gruppe ist gerade voll geworden. Wähle eine andere.';
       render();
       return;
     }
-    var id = uid();
-    g.members.push({id:id, name:name});
-    await saveGroupsState(gs);
-    state.groupsState = gs;
 
-    var participant = {id:id, name:name, groupId:groupId, progress:{}};
+    state.joiningGroupId = groupId;
+    render();
+
+    var id = uid();
+    var code = genRecoveryCode();
+    var insertRes;
+    try{
+      insertRes = await sb.from('participants').insert({id:id, name:name, group_id:groupId, recovery_code:code}).select().single();
+    }catch(e){
+      insertRes = { error: e };
+    }
+    state.joiningGroupId = null;
+
+    if(insertRes.error){
+      var msg = String((insertRes.error && insertRes.error.message) || '');
+      state.error = msg.indexOf('GROUP_FULL') !== -1
+        ? 'Diese Gruppe ist gerade voll geworden. Wähle eine andere.'
+        : 'Beitritt gerade nicht möglich. Bitte kurz erneut versuchen.';
+      console.warn('Behördenrallye: Beitritt fehlgeschlagen.', insertRes.error);
+      await refreshGroupsState();
+      render();
+      return;
+    }
+
+    var participant = {id:id, name:name, groupId:groupId, recoveryCode:code};
     await saveParticipant(participant);
     state.participant = participant;
+    await refreshGroupsState();
+    startCountdown();
+  }
+
+  async function handleRecover(){
+    state.error = null;
+    var code = (state.recoveryInput||'').trim().toUpperCase();
+    if(!code){ state.error = 'Bitte gib deinen Code ein.'; render(); return; }
+    if(!sb){ state.error = 'Keine Verbindung zur Rallye-Datenbank.'; render(); return; }
+    var res;
+    try{
+      res = await sb.from('participants').select('*').eq('recovery_code', code).maybeSingle();
+    }catch(e){
+      res = { error: e };
+    }
+    if(res.error || !res.data){
+      state.error = 'Code nicht gefunden. Bitte prüfen und erneut versuchen.';
+      render();
+      return;
+    }
+    var row = res.data;
+    var participant = {id:row.id, name:row.name, groupId:row.group_id, recoveryCode:row.recovery_code};
+    await saveParticipant(participant);
+    state.participant = participant;
+    await refreshGroupsState();
     state.screen = 'map';
     render();
   }
 
   function stageStatus(stageId, index){
     if(!state.participant) return 'locked';
-    if(state.participant.progress[stageId]) return 'done';
-    var firstUndone = STAGES.findIndex(function(s){ return !state.participant.progress[s.id]; });
+    var progress = state.groupProgress || {};
+    if(progress[stageId]) return 'done';
+    var firstUndone = STAGES.findIndex(function(s){ return !progress[s.id]; });
     return index === firstUndone ? 'current' : 'locked';
   }
 
@@ -741,19 +944,30 @@
     var stage = STAGES[state.activeQuizIndex];
     var isCorrect = optIndex === stage.correct;
 
-    if(isCorrect && !state.participant.progress[stage.id]){
-      state.participant.progress[stage.id] = true;
-      await saveParticipant(state.participant);
+    if(isCorrect && !(state.groupProgress && state.groupProgress[stage.id])){
+      state.groupProgress = Object.assign({}, state.groupProgress);
+      state.groupProgress[stage.id] = true;
+      recentlyCompletedByMe[stage.id] = Date.now();
 
-      var gs = await loadGroupsState();
-      var g = gs[state.participant.groupId];
-      if(g){ g.points = (g.points||0) + POINTS_PER_STAGE; }
-      await saveGroupsState(gs);
-      state.groupsState = gs;
+      if(sb){
+        try{
+          var res = await sb.rpc('complete_stage', {p_group_id: state.participant.groupId, p_stage_id: stage.id});
+          if(res.error){
+            console.warn('Behördenrallye: Mission konnte nicht mit dem Team synchronisiert werden.', res.error);
+            showToast('Deine Antwort wurde gewertet, ist aber gerade nicht mit dem Team synchronisiert.');
+          } else if(res.data){
+            state.groupProgress = res.data;
+          }
+        }catch(e){
+          console.warn('Behördenrallye: Mission konnte nicht mit dem Team synchronisiert werden.', e);
+          showToast('Deine Antwort wurde gewertet, ist aber gerade nicht mit dem Team synchronisiert.');
+        }
+      }
+      await refreshGroupsState();
 
       showStampFx();
 
-      var allDone = STAGES.every(function(s){ return state.participant.progress[s.id]; });
+      var allDone = STAGES.every(function(s){ return state.groupProgress[s.id]; });
       if(allDone){
         setTimeout(function(){ state.screen = 'finished'; state.activeQuizIndex = null; render(); }, 900);
       }
@@ -772,12 +986,134 @@
   }
 
   async function leaveGroup(){
-    if(!confirm('Neu anmelden? Dein bisheriger Fortschritt auf diesem Gerät geht verloren (dein Platz in der alten Gruppe bleibt belegt).')) return;
+    if(!confirm('Neu anmelden? Dein Name auf diesem Gerät geht verloren (dein Platz in der alten Gruppe bleibt belegt, ihr Team-Fortschritt bleibt erhalten). Mit deinem Code „'+((state.participant&&state.participant.recoveryCode)||'')+'" kannst du jederzeit zurückkehren.')) return;
     try{ localStorage.removeItem('behoerdenrallye:participant'); }catch(e){ console.warn('Behördenrallye: participant konnte nicht entfernt werden.', e); }
+    stopMusic();
     state.participant = null;
+    state.groupProgress = {};
     state.nameInput = '';
     state.screen = 'intro';
     render();
+  }
+
+  /* ---------------- Musik-Playlist (rein prozedural erzeugt, keine
+     externen Audiodateien / Lizenzfragen) ---------------- */
+  var audioCtx = null;
+  var masterGain = null;
+  var musicMuted = false;
+  try{ musicMuted = localStorage.getItem('behoerdenrallye:muted') === '1'; }catch(e){}
+  var trackToken = 0;
+  var currentTrackTimer = null;
+
+  var PLAYLIST = [
+    { name:'Amtsstunden-Shuffle', bpm:132, wave:'triangle', bass:'sine',
+      melody:[0,-1,4,-1,7,4,-1,9,0,-1,4,-1,7,9,7,4] },
+    { name:'Formular-Groove', bpm:118, wave:'square', bass:'sine',
+      melody:[0,4,-1,7,0,4,-1,9,2,-1,7,4,-1,2,0,-1] },
+    { name:'Stempel-Swing', bpm:150, wave:'sawtooth', bass:'triangle',
+      melody:[0,-1,2,4,-1,7,-1,4,0,-1,2,-1,4,7,9,7] }
+  ];
+
+  function ensureAudio(){
+    if(audioCtx) return audioCtx;
+    try{
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return null;
+      audioCtx = new AC();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = musicMuted ? 0 : 0.16;
+      masterGain.connect(audioCtx.destination);
+    }catch(e){ console.warn('Behördenrallye: Web Audio ist hier nicht verfügbar.', e); audioCtx = null; }
+    return audioCtx;
+  }
+
+  function noteFreq(semitoneOffset){
+    return 261.6 * Math.pow(2, semitoneOffset/12);
+  }
+
+  function pluck(freq, wave, duration, vol){
+    if(!audioCtx || !masterGain) return;
+    try{
+      var osc = audioCtx.createOscillator();
+      var g = audioCtx.createGain();
+      osc.type = wave || 'sine';
+      osc.frequency.value = freq;
+      var t0 = audioCtx.currentTime;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.linearRampToValueAtTime(vol, t0+0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, t0+duration);
+      osc.connect(g);
+      g.connect(masterGain);
+      osc.start(t0);
+      osc.stop(t0+duration+0.05);
+    }catch(e){ /* einzelner Ton fehlgeschlagen - Playlist läuft weiter */ }
+  }
+
+  function playTrack(track){
+    if(!audioCtx) return;
+    var myToken = ++trackToken;
+    var stepDur = 60/track.bpm/2;
+    var step = 0, loops = 0;
+
+    function scheduleStep(){
+      if(myToken !== trackToken) return;
+      var deg = track.melody[step % track.melody.length];
+      if(deg !== -1 && deg !== null){ pluck(noteFreq(deg), track.wave, stepDur*0.9, 0.5); }
+      if(step % 4 === 0){ pluck(noteFreq(track.melody[0] - 12), track.bass, stepDur*1.8, 0.32); }
+      step++;
+      if(step % track.melody.length === 0){
+        loops++;
+        if(loops >= 4){
+          currentTrackTimer = setTimeout(function(){ if(myToken===trackToken) playRandomTrack(); }, stepDur*1000);
+          return;
+        }
+      }
+      currentTrackTimer = setTimeout(scheduleStep, stepDur*1000);
+    }
+    scheduleStep();
+  }
+
+  function playRandomTrack(){
+    var ctx = ensureAudio();
+    if(!ctx) return;
+    if(ctx.state === 'suspended'){ ctx.resume().catch(function(){}); }
+    playTrack(PLAYLIST[Math.floor(Math.random()*PLAYLIST.length)]);
+  }
+
+  function stopMusic(){
+    trackToken++;
+    if(currentTrackTimer){ clearTimeout(currentTrackTimer); currentTrackTimer = null; }
+  }
+
+  function toggleMute(){
+    musicMuted = !musicMuted;
+    try{ localStorage.setItem('behoerdenrallye:muted', musicMuted?'1':'0'); }catch(e){}
+    if(musicMuted){
+      if(masterGain) masterGain.gain.value = 0;
+    } else {
+      ensureAudio();
+      if(masterGain) masterGain.gain.value = 0.16;
+      if(!currentTrackTimer){ playRandomTrack(); }
+    }
+    render();
+  }
+
+  function startCountdown(){
+    state.screen = 'countdown';
+    state.countdownNumber = 3;
+    render();
+    if(!musicMuted){ playRandomTrack(); }
+    var iv = setInterval(function(){
+      state.countdownNumber--;
+      if(state.countdownNumber < 0){
+        clearInterval(iv);
+        state.screen = 'map';
+        render();
+        if(state.participant){ showToast('🔑 Dein Code: ' + state.participant.recoveryCode + ' — merk ihn dir für ein anderes Gerät.'); }
+        return;
+      }
+      render();
+    }, 850);
   }
 
   var toastTimer = null;
@@ -897,17 +1233,32 @@
       '<div style="margin-top:18px;">'+
         '<button class="btn btn-primary btn-lg" id="toGroupsBtn">Team wählen &amp; starten →</button>'+
       '</div>'+
+    '</div>'+
+    '<div class="recover-box">'+
+      '<span class="eyebrow">Schon dabei?</span>'+
+      '<div class="recover-row">'+
+        '<input type="text" id="recoveryField" placeholder="Dein Code, z. B. AB3XZ9" value="'+esc(state.recoveryInput)+'" maxlength="6" style="text-transform:uppercase;">'+
+        '<button class="btn btn-ghost" id="recoverBtn">Fortschritt laden</button>'+
+      '</div>'+
     '</div>';
   }
 
+  function renderOfflineBanner(){
+    if(!state.offline) return '';
+    return '<p class="offline-banner">⚠ Keine Verbindung zur Live-Rangliste – zeige zwischengespeicherten Stand.</p>';
+  }
+
   function renderGroupSelect(){
+    var anyJoining = !!state.joiningGroupId;
     var cards = GROUPS.map(function(gr, i){
       var occ = groupOccupancy(gr.id);
       var pts = groupPoints(gr.id);
       var full = occ >= CAPACITY;
+      var isJoiningThis = state.joiningGroupId === gr.id;
       var pct = Math.min(100, Math.round(occ/CAPACITY*100));
       var fillClass = full ? 'full' : pct>=90 ? 'high' : pct>=50 ? 'mid' : '';
       var tab = tabClass(i);
+      var btnLabel = full ? 'Belegt' : isJoiningThis ? 'Wird angelegt…' : 'Dieser Gruppe beitreten';
       return ''+
       '<div class="group-card '+tab+(full?' full':'')+'">'+
         (full ? '<div class="full-stamp">VOLL</div>' : '')+
@@ -920,7 +1271,7 @@
           '<div class="capacity-text">'+occ+'/'+CAPACITY+'</div>'+
         '</div>'+
         '<div class="points-text">'+pts+' Punkte bisher</div>'+
-        '<button class="btn select-btn" data-join="'+gr.id+'" '+(full?'disabled':'')+'>'+(full?'Belegt':'Dieser Gruppe beitreten')+'</button>'+
+        '<button class="btn select-btn'+(isJoiningThis?' is-loading':'')+'" data-join="'+gr.id+'" '+((full||anyJoining)?'disabled':'')+'>'+btnLabel+'</button>'+
       '</div>';
     }).join('');
 
@@ -929,6 +1280,7 @@
     renderSteps(1)+
     '<div class="eyebrow" style="margin-bottom:6px;">Angemeldet als</div>'+
     '<h2 style="margin-bottom:14px;">'+esc(state.nameInput)+'</h2>'+
+    renderOfflineBanner()+
     (state.error ? '<p style="color:var(--stamp); font-size:14px;">'+esc(state.error)+'</p>' : '')+
     '<div class="group-grid">'+cards+'</div>'+
     '<div style="margin-top:18px;"><button class="btn btn-ghost" id="backToIntroBtn">← Name ändern</button></div>';
@@ -959,7 +1311,8 @@
     var groupIdx = GROUPS.findIndex(function(g){ return g.id === p.groupId; });
     var groupDef = GROUPS[groupIdx];
     var myPoints = groupPoints(p.groupId);
-    var doneCount = STAGES.filter(function(s){ return p.progress[s.id]; }).length;
+    var progress = state.groupProgress || {};
+    var doneCount = STAGES.filter(function(s){ return progress[s.id]; }).length;
     var donePct = Math.round(doneCount/STAGES.length*100);
 
     var cards = STAGES.map(function(s, i){
@@ -987,9 +1340,10 @@
 
     return ''+
     renderMasthead()+
+    renderOfflineBanner()+
     '<div class="progress-panel">'+
       '<div class="progress-head">'+
-        '<span class="eyebrow">Rallye-Fortschritt</span>'+
+        '<span class="eyebrow">Rallye-Fortschritt · ganzes Team</span>'+
         '<div class="who">Team: <b class="'+tabClass(groupIdx)+'" style="color:var(--tab)">'+esc(groupDef.name)+'</b></div>'+
       '</div>'+
       '<div class="progress-bar-track" role="progressbar" aria-valuenow="'+doneCount+'" aria-valuemin="0" aria-valuemax="'+STAGES.length+'" aria-label="Rallye-Fortschritt">'+
@@ -1000,17 +1354,19 @@
         '<div class="progress-meta">'+
           '<span class="stat-chip" id="myGroupPoints">★ '+myPoints+' Punkte</span>'+
           '<span class="stat-chip">🏆 '+esc(rankForPoints(myPoints))+'</span>'+
+          '<span class="stat-chip" title="Merk dir diesen Code, um auf einem anderen Gerät weiterzumachen">🔑 '+esc(p.recoveryCode||'')+'</span>'+
         '</div>'+
       '</div>'+
     '</div>'+
     '<div class="status-actions" style="margin-bottom:18px;">'+
       '<button class="btn btn-ghost" id="toggleBoardBtn">'+(state.boardOpen?'Rangliste ausblenden':'Rangliste anzeigen')+'</button>'+
+      '<button class="btn btn-ghost" id="muteBtn" aria-label="'+(musicMuted?'Musik einschalten':'Musik stummschalten')+'">'+(musicMuted?'🔇':'🔊')+'</button>'+
     '</div>'+
     (state.boardOpen ? renderBoard() : '')+
     '<div class="missions-head">'+
-      '<span class="eyebrow">'+esc(p.name)+'s Missionen</span>'+
-      '<h2>Deine Route</h2>'+
-      '<p class="muted" style="font-size:13.5px; margin:0;">Tippe auf die aktive Mission, um die Etappe zu bearbeiten.</p>'+
+      '<span class="eyebrow">Team '+esc(groupDef.name)+'s Missionen</span>'+
+      '<h2>Eure Route</h2>'+
+      '<p class="muted" style="font-size:13.5px; margin:0;">Jede Mission gilt fürs ganze Team – wer zuerst antwortet, entsperrt die nächste Etappe für alle.</p>'+
     '</div>'+
     '<div class="mission-grid">'+cards+'</div>'+
     '<footer class="foot"><button id="leaveBtn">Neu anmelden / Gerät wechseln</button></footer>';
@@ -1060,24 +1416,41 @@
     var myPoints = groupPoints(p.groupId);
     return ''+
     renderMasthead()+
+    renderOfflineBanner()+
     '<div class="finished-card">'+
       '<div class="stamp-mark">RALLYE ABGESCHLOSSEN</div>'+
       '<h2>Gut gemacht, '+esc(p.name)+'!</h2>'+
-      '<p>Du hast alle 7 Etappen für <b class="'+tabClass(groupIdx)+'" style="color:var(--tab)">'+esc(groupDef.name)+'</b> gestempelt und '+POINTS_PER_STAGE*7+' Punkte beigetragen.</p>'+
+      '<p>Euer Team <b class="'+tabClass(groupIdx)+'" style="color:var(--tab)">'+esc(groupDef.name)+'</b> hat alle 7 Etappen gestempelt und '+POINTS_PER_STAGE*7+' Punkte gesammelt.</p>'+
       '<div class="hero-stats" style="margin-top:4px;">'+
         '<span class="hero-stat">★ '+myPoints+' Punkte</span>'+
         '<span class="hero-stat">🏆 '+esc(rankForPoints(myPoints))+'</span>'+
       '</div>'+
-      '<button class="btn btn-ghost" id="toggleBoardBtn2" style="margin-top:6px;">'+(state.boardOpen?'Rangliste ausblenden':'Rangliste anzeigen')+'</button>'+
+      '<div class="status-actions" style="justify-content:center; margin-top:10px;">'+
+        '<button class="btn btn-ghost" id="toggleBoardBtn2">'+(state.boardOpen?'Rangliste ausblenden':'Rangliste anzeigen')+'</button>'+
+        '<button class="btn btn-ghost" id="muteBtn" aria-label="'+(musicMuted?'Musik einschalten':'Musik stummschalten')+'">'+(musicMuted?'🔇':'🔊')+'</button>'+
+      '</div>'+
     '</div>'+
     (state.boardOpen ? renderBoard() : '')+
     '<footer class="foot"><button id="leaveBtn2">Neu anmelden / Gerät wechseln</button></footer>';
+  }
+
+  function renderCountdown(){
+    var groupDef = GROUPS.filter(function(g){ return g.id === state.participant.groupId; })[0];
+    var n = state.countdownNumber;
+    var label = n > 0 ? String(n) : 'LOS!';
+    return ''+
+    '<div class="countdown-screen">'+
+      '<div class="eyebrow">Eure Mission beginnt in</div>'+
+      '<div class="countdown-number">'+label+'</div>'+
+      '<p class="muted">Team <b>'+esc(groupDef.name)+'</b> ist bereit.</p>'+
+    '</div>';
   }
 
   function render(){
     var html = '';
     if(state.screen === 'intro') html = renderIntro();
     else if(state.screen === 'select-group') html = renderGroupSelect();
+    else if(state.screen === 'countdown') html = renderCountdown();
     else if(state.screen === 'map') html = renderMap();
     else if(state.screen === 'finished') html = renderFinished();
     else html = '<div class="boot-screen"><span class="boot-icon">🖋️</span><div class="boot-text">Rallye-System wird initialisiert<span class="boot-dots"></span></div></div>';
@@ -1101,8 +1474,22 @@
     if(backBtn) backBtn.addEventListener('click', function(){ state.screen='intro'; state.error=null; render(); });
 
     document.querySelectorAll('[data-join]').forEach(function(btn){
-      btn.addEventListener('click', function(){ handleJoin(btn.getAttribute('data-join')); });
+      btn.addEventListener('click', function(){
+        ensureAudio(); // AudioContext muss synchron im Klick-Handler starten (Autoplay-Regeln)
+        handleJoin(btn.getAttribute('data-join'));
+      });
     });
+
+    var recoveryField = document.getElementById('recoveryField');
+    if(recoveryField){
+      recoveryField.addEventListener('input', function(e){ state.recoveryInput = e.target.value; });
+      recoveryField.addEventListener('keydown', function(e){ if(e.key==='Enter'){ handleRecover(); } });
+    }
+    var recoverBtn = document.getElementById('recoverBtn');
+    if(recoverBtn) recoverBtn.addEventListener('click', handleRecover);
+
+    var muteBtn = document.getElementById('muteBtn');
+    if(muteBtn) muteBtn.addEventListener('click', toggleMute);
 
     document.querySelectorAll('[data-stage]').forEach(function(btn){
       btn.addEventListener('click', function(){ openQuiz(parseInt(btn.getAttribute('data-stage'),10)); });
@@ -1111,7 +1498,7 @@
     var toggleBoardBtn = document.getElementById('toggleBoardBtn') || document.getElementById('toggleBoardBtn2');
     if(toggleBoardBtn) toggleBoardBtn.addEventListener('click', async function(){
       state.boardOpen = !state.boardOpen;
-      if(state.boardOpen){ state.groupsState = await loadGroupsState(); }
+      if(state.boardOpen){ await refreshGroupsState(); }
       render();
     });
 
