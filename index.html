@@ -19,8 +19,8 @@
     --gold:#B08B3D;
     --teal:#2B6E6A;
     --plum:#6B3F63;
-    --locked:#B7AF9C;
     --ok:#3E6B4F;
+    --gold-text:#6E5422;
     --warn:#B0672A;
     --panel:#241E19;
     --panel-line:#4A3F35;
@@ -67,6 +67,7 @@
     font-weight:400;
     letter-spacing:.01em;
     margin:0 0 6px;
+    text-wrap:balance;
   }
   h1{font-size:clamp(28px,6vw,40px); line-height:1.15;}
   h2{font-size:22px;}
@@ -83,6 +84,8 @@
     background:transparent;
     color:var(--ink);
     padding:12px 20px;
+    min-height:44px;
+    display:inline-flex; align-items:center; justify-content:center;
     border-radius:2px;
     transition:transform .14s ease, background .14s ease, color .14s ease, box-shadow .14s ease;
   }
@@ -112,6 +115,20 @@
     font-family:'IBM Plex Mono',monospace;
     font-size:11px; color:var(--ink-soft); text-align:right; line-height:1.6;
   }
+
+  /* ---------- onboarding steps ---------- */
+  .steps{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    margin-bottom:18px; flex-wrap:wrap;
+  }
+  .step{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--ink-soft); padding:5px 12px; border:1px solid var(--paper-line); border-radius:99px;
+    background:var(--paper-dark);
+  }
+  .step.active{color:var(--paper); background:var(--ink); border-color:var(--ink); font-weight:600;}
+  .step.done{color:var(--ok); border-color:var(--ok);}
+  .step-sep{color:var(--paper-line); font-size:12px;}
 
   /* ---------- hero (Startseite) ---------- */
   .hero{
@@ -228,7 +245,7 @@
   .capacity-fill.high{background:var(--warn);}
   .capacity-fill.full{background:var(--stamp);}
   .capacity-text{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); white-space:nowrap; font-variant-numeric:tabular-nums;}
-  .points-text{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--tab, var(--gold)); margin-top:4px; font-weight:600;}
+  .points-text{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--tab, var(--gold-text)); margin-top:4px; font-weight:600;}
   .group-card.full{opacity:.6;}
   .full-stamp{
     position:absolute; top:10px; right:10px;
@@ -308,7 +325,7 @@
   .mission-footer{font-family:'IBM Plex Mono',monospace; font-size:11.5px;}
 
   .mission-card.locked{opacity:.55;}
-  .mission-card.locked .mission-footer{color:var(--locked);}
+  .mission-card.locked .mission-footer{color:var(--ink-soft);}
 
   .mission-card.current{
     border-color:var(--stamp); cursor:pointer;
@@ -344,7 +361,7 @@
   }
   .board-row:last-child{border-bottom:none;}
   .board-rank{font-family:'IBM Plex Mono',monospace; color:var(--ink-soft); font-size:13px; font-variant-numeric:tabular-nums;}
-  .board-row.top .board-rank{color:var(--gold); font-weight:700;}
+  .board-row.top .board-rank{color:var(--gold-text); font-weight:700;}
   .board-name{font-family:'IBM Plex Mono',monospace; font-size:13.5px; display:flex; align-items:center; gap:8px;}
   .board-dot{width:9px; height:9px; border-radius:50%; background:var(--tab, var(--ink-soft)); flex:0 0 auto;}
   .board-bar-wrap{grid-column:1/-1; height:6px; background:var(--paper); border-radius:99px; overflow:hidden; margin-top:2px;}
@@ -389,8 +406,8 @@
   .feedback.wrong{background:#f6e5e1; color:#6b2216; border:1px solid var(--stamp);}
   .quiz-actions{margin-top:16px; display:flex; justify-content:flex-end; gap:10px;}
   .close-x{
-    position:absolute; top:12px; right:14px; background:none; border:none; font-size:20px;
-    color:var(--ink-soft); line-height:1;
+    position:absolute; top:4px; right:6px; background:none; border:none; font-size:20px;
+    color:var(--ink-soft); line-height:1; padding:12px; min-width:44px; min-height:44px;
   }
 
   /* stamp animation */
@@ -416,7 +433,7 @@
   .xp-pop{
     margin-top:10px; text-align:center;
     font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:18px;
-    color:var(--gold); opacity:0;
+    color:var(--gold-text); opacity:0;
     animation: xppop .6s ease .25s forwards;
   }
   @keyframes xppop{
@@ -857,9 +874,19 @@
     '</div>';
   }
 
+  function renderSteps(activeIndex){
+    var labels = ['Name', 'Team'];
+    return '<div class="steps">'+labels.map(function(label, i){
+      var cls = i === activeIndex ? 'active' : i < activeIndex ? 'done' : '';
+      var mark = i < activeIndex ? '✓ ' : (i+1)+' · ';
+      return '<span class="step '+cls+'">'+mark+label+'</span>'+(i < labels.length-1 ? '<span class="step-sep">→</span>' : '');
+    }).join('')+'</div>';
+  }
+
   function renderIntro(){
     return ''+
     renderHero()+
+    renderSteps(0)+
     '<div class="intro-card">'+
       '<p>Willkommen zur Behördenrallye! Trage deinen Namen ein, wähle deine Gruppe und arbeite dich Etappe für Etappe über deine Missionen – jede Station wartet mit einer Quizfrage. Richtige Antworten bringen deiner Gruppe Punkte für die Rangliste.</p>'+
       '<div class="field" style="margin-top:16px;">'+
@@ -899,6 +926,7 @@
 
     return ''+
     renderMasthead()+
+    renderSteps(1)+
     '<div class="eyebrow" style="margin-bottom:6px;">Angemeldet als</div>'+
     '<h2 style="margin-bottom:14px;">'+esc(state.nameInput)+'</h2>'+
     (state.error ? '<p style="color:var(--stamp); font-size:14px;">'+esc(state.error)+'</p>' : '')+
