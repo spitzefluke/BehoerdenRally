@@ -17,16 +17,27 @@
     --stamp-dark:#7E2417;
     --carbon:#2F4858;
     --gold:#B08B3D;
-    --locked:#B7AF9C;
+    --teal:#2B6E6A;
+    --plum:#6B3F63;
     --ok:#3E6B4F;
+    --gold-text:#6E5422;
+    --warn:#B0672A;
+    --panel:#241E19;
+    --panel-line:#4A3F35;
+    --panel-ink:#F2EAD9;
+    --panel-ink-soft:#C9BCA6;
     --card-shadow: 0 2px 0 rgba(43,38,32,0.08), 0 10px 24px -12px rgba(43,38,32,0.35);
+    --panel-shadow: 0 2px 0 rgba(0,0,0,0.25), 0 14px 32px -14px rgba(0,0,0,0.55);
+    --glow-stamp: 0 0 0 4px rgba(163,49,31,0.16), 0 0 22px -4px rgba(163,49,31,0.55);
+    --glow-gold: 0 0 0 3px rgba(176,139,61,0.18), 0 0 18px -4px rgba(176,139,61,0.5);
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
     background:
-      radial-gradient(circle at 15% 8%, rgba(176,139,61,0.07), transparent 40%),
-      radial-gradient(circle at 90% 85%, rgba(47,72,88,0.07), transparent 45%),
+      radial-gradient(circle at 15% 8%, rgba(176,139,61,0.09), transparent 40%),
+      radial-gradient(circle at 90% 85%, rgba(47,72,88,0.09), transparent 45%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E"),
       var(--paper);
     color:var(--ink);
     font-family:'Source Serif 4', Georgia, serif;
@@ -34,6 +45,16 @@
     -webkit-font-smoothing:antialiased;
   }
   #app{max-width:720px;margin:0 auto;padding:20px 16px 80px;}
+  :focus-visible{outline:2.5px solid var(--carbon); outline-offset:2px;}
+  .screen{animation:screenIn .38s cubic-bezier(.2,.8,.3,1) both;}
+  @keyframes screenIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+  @media (prefers-reduced-motion: reduce){ .screen{animation:none;} }
+  .tab-1{--tab:var(--stamp);}
+  .tab-2{--tab:var(--carbon);}
+  .tab-3{--tab:var(--gold);}
+  .tab-4{--tab:var(--ok);}
+  .tab-5{--tab:var(--teal);}
+  .tab-6{--tab:var(--plum);}
   .eyebrow{
     font-family:'IBM Plex Mono',monospace;
     font-size:11px;
@@ -46,6 +67,7 @@
     font-weight:400;
     letter-spacing:.01em;
     margin:0 0 6px;
+    text-wrap:balance;
   }
   h1{font-size:clamp(28px,6vw,40px); line-height:1.15;}
   h2{font-size:22px;}
@@ -62,18 +84,22 @@
     background:transparent;
     color:var(--ink);
     padding:12px 20px;
+    min-height:44px;
+    display:inline-flex; align-items:center; justify-content:center;
     border-radius:2px;
-    transition:transform .12s ease, background .12s ease, color .12s ease;
+    transition:transform .14s ease, background .14s ease, color .14s ease, box-shadow .14s ease;
   }
-  .btn:hover{background:var(--ink); color:var(--paper);}
-  .btn:active{transform:scale(.97);}
-  .btn:disabled{opacity:.35; cursor:not-allowed; pointer-events:none;}
+  .btn:hover{background:var(--ink); color:var(--paper); transform:translateY(-2px); box-shadow:0 6px 14px -6px rgba(43,38,32,0.45);}
+  .btn:active{transform:translateY(0) scale(.97); box-shadow:none;}
+  .btn:disabled{opacity:.35; cursor:not-allowed; pointer-events:none; transform:none; box-shadow:none;}
+  .btn.is-loading{opacity:.7; cursor:wait; pointer-events:none;}
   .btn-primary{
     background:var(--stamp); border-color:var(--stamp); color:var(--paper);
   }
-  .btn-primary:hover{background:var(--stamp-dark); border-color:var(--stamp-dark); color:var(--paper);}
+  .btn-primary:hover{background:var(--stamp-dark); border-color:var(--stamp-dark); color:var(--paper); box-shadow:var(--glow-stamp), 0 6px 14px -6px rgba(43,38,32,0.45);}
   .btn-ghost{border-color:var(--paper-line); color:var(--ink-soft);}
-  .btn-ghost:hover{background:var(--ink-soft); border-color:var(--ink-soft);}
+  .btn-ghost:hover{background:var(--ink-soft); border-color:var(--ink-soft); box-shadow:0 6px 14px -6px rgba(43,38,32,0.3);}
+  .btn-lg{padding:16px 30px; font-size:14.5px; letter-spacing:.08em;}
 
   /* ---------- header / masthead ---------- */
   .masthead{
@@ -82,11 +108,70 @@
     margin-bottom:22px;
     display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap;
   }
-  .masthead .stamp-icon{font-size:26px;}
+  .masthead .stamp-icon{font-size:26px; display:inline-block; animation:sway 5s ease-in-out infinite;}
+  @keyframes sway{0%,100%{transform:rotate(-4deg);} 50%{transform:rotate(4deg);}}
   .masthead-title{display:flex; align-items:center; gap:10px;}
   .masthead-meta{
     font-family:'IBM Plex Mono',monospace;
     font-size:11px; color:var(--ink-soft); text-align:right; line-height:1.6;
+  }
+
+  /* ---------- onboarding steps ---------- */
+  .steps{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    margin-bottom:18px; flex-wrap:wrap;
+  }
+  .step{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--ink-soft); padding:5px 12px; border:1px solid var(--paper-line); border-radius:99px;
+    background:var(--paper-dark);
+  }
+  .step.active{color:var(--paper); background:var(--ink); border-color:var(--ink); font-weight:600;}
+  .step.done{color:var(--ok); border-color:var(--ok);}
+  .step-sep{color:var(--paper-line); font-size:12px;}
+
+  /* ---------- hero (Startseite) ---------- */
+  .hero{
+    position:relative; text-align:center;
+    padding:38px 18px 30px;
+    margin-bottom:22px;
+    overflow:hidden;
+    border-radius:4px;
+  }
+  .hero-particles{position:absolute; inset:0; pointer-events:none; overflow:hidden;}
+  .hero-particles span{
+    position:absolute; border-radius:50%;
+    background:var(--stamp); opacity:.14;
+    animation:drift 14s ease-in-out infinite;
+  }
+  .hero-particles span:nth-child(1){width:10px;height:10px; left:8%; top:20%; background:var(--stamp); animation-duration:12s;}
+  .hero-particles span:nth-child(2){width:6px;height:6px; left:80%; top:15%; background:var(--gold); animation-duration:16s; animation-delay:-3s;}
+  .hero-particles span:nth-child(3){width:14px;height:14px; left:65%; top:70%; background:var(--carbon); opacity:.1; animation-duration:19s; animation-delay:-7s;}
+  .hero-particles span:nth-child(4){width:8px;height:8px; left:20%; top:75%; background:var(--teal); animation-duration:15s; animation-delay:-5s;}
+  .hero-particles span:nth-child(5){width:5px;height:5px; left:45%; top:12%; background:var(--plum); animation-duration:13s; animation-delay:-9s;}
+  @keyframes drift{
+    0%,100%{transform:translate(0,0);}
+    50%{transform:translate(8px,-14px);}
+  }
+  .hero-eyebrow{display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:10px;}
+  .hero-icon{font-size:30px; display:inline-block; animation:sway 5s ease-in-out infinite;}
+  .hero-title{
+    font-size:clamp(34px,8vw,54px); line-height:1.05; letter-spacing:.01em;
+    margin:0 0 10px;
+    text-shadow:2px 2px 0 rgba(163,49,31,0.12);
+  }
+  .hero-sub{max-width:46ch; margin:0 auto 22px; color:var(--ink-soft); font-size:15.5px;}
+  .hero-stats{
+    display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:22px;
+  }
+  .hero-stat{
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-soft);
+    border:1px solid var(--paper-line); border-radius:99px; padding:6px 14px;
+    background:var(--paper-dark);
+  }
+  .hero-stat b{color:var(--ink); font-weight:600;}
+  @media (prefers-reduced-motion: reduce){
+    .hero-particles span{animation:none;}
   }
 
   /* ---------- intro ---------- */
@@ -134,21 +219,34 @@
   .group-card::before{
     content:"";
     position:absolute; top:-8px; left:16px; width:46px; height:14px;
-    background:var(--paper-dark); border:1px solid var(--paper-line); border-bottom:none;
+    background:var(--tab, var(--paper-line)); border:1px solid var(--paper-line); border-bottom:none;
     border-radius:3px 3px 0 0;
+    opacity:.8;
   }
+  .group-card{border-top:2.5px solid var(--tab, var(--paper-line));}
   .group-card:not(.full):hover{transform:translateY(-2px); box-shadow:0 4px 0 rgba(43,38,32,0.1), 0 16px 28px -14px rgba(43,38,32,0.4);}
   .group-card button.select-btn{
     width:100%; margin-top:12px;
   }
-  .group-icon{font-size:22px;}
-  .group-name{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:14.5px; margin-top:6px;}
-  .capacity-row{display:flex; align-items:center; gap:8px; margin-top:10px;}
+  .group-head{display:flex; align-items:center; gap:10px;}
+  .group-badge{
+    flex:0 0 auto; width:38px; height:38px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Special Elite', monospace; font-size:16px;
+    border:2px solid var(--tab, var(--ink-soft)); color:var(--tab, var(--ink-soft));
+    background:var(--paper); transform:rotate(-3deg);
+  }
+  .group-name{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:14.5px;}
+  .group-name .eyebrow{display:block; margin-bottom:1px;}
+  .capacity-row{display:flex; align-items:center; gap:8px; margin-top:12px;}
   .capacity-bar{flex:1; height:7px; background:var(--paper); border:1px solid var(--paper-line); border-radius:99px; overflow:hidden;}
-  .capacity-fill{height:100%; background:var(--carbon);}
-  .capacity-text{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); white-space:nowrap;}
-  .points-text{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--gold); margin-top:4px;}
-  .group-card.full{opacity:.55;}
+  .capacity-fill{height:100%; background:var(--ok); transition:background .2s ease;}
+  .capacity-fill.mid{background:var(--gold);}
+  .capacity-fill.high{background:var(--warn);}
+  .capacity-fill.full{background:var(--stamp);}
+  .capacity-text{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); white-space:nowrap; font-variant-numeric:tabular-nums;}
+  .points-text{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--tab, var(--gold-text)); margin-top:4px; font-weight:600;}
+  .group-card.full{opacity:.6;}
   .full-stamp{
     position:absolute; top:10px; right:10px;
     border:2px solid var(--stamp); color:var(--stamp);
@@ -157,63 +255,99 @@
     opacity:.85;
   }
 
-  /* ---------- laufzettel / map ---------- */
-  .status-bar{
+  /* ---------- progress panel / map ---------- */
+  .progress-panel{
+    background:var(--panel); color:var(--panel-ink);
+    border-radius:6px; padding:18px 18px 16px;
+    margin-bottom:20px; box-shadow:var(--panel-shadow);
+    position:relative; overflow:hidden;
+  }
+  .progress-panel::before{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(circle at 85% -10%, rgba(176,139,61,0.18), transparent 55%);
+  }
+  .progress-head{
     display:flex; justify-content:space-between; align-items:center; gap:10px;
-    background:var(--paper-dark); border:1px solid var(--paper-line); border-radius:3px;
-    padding:12px 14px; margin-bottom:20px; flex-wrap:wrap;
+    flex-wrap:wrap; margin-bottom:12px; position:relative;
   }
-  .status-bar .who{font-family:'IBM Plex Mono',monospace; font-size:12.5px;}
-  .status-bar .who b{color:var(--carbon);}
-  .status-actions{display:flex; gap:8px; align-items:center;}
+  .progress-head .eyebrow{color:var(--panel-ink-soft);}
+  .progress-head .who{font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--panel-ink-soft);}
+  .progress-head .who b{font-weight:700;}
+  .progress-bar-track{
+    height:12px; border-radius:99px; background:rgba(255,255,255,0.08);
+    overflow:hidden; position:relative; border:1px solid var(--panel-line);
+  }
+  .progress-bar-fill{
+    height:100%; border-radius:99px;
+    background:linear-gradient(90deg, var(--stamp), var(--gold));
+    transition:width .5s cubic-bezier(.2,.8,.3,1);
+  }
+  .progress-stats{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:10px; flex-wrap:wrap; gap:8px; position:relative;
+  }
+  .progress-fraction{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--panel-ink-soft);}
+  .progress-meta{display:flex; gap:8px; flex-wrap:wrap;}
+  .stat-chip{
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px;
+    border:1px solid var(--panel-line); border-radius:99px; padding:5px 12px;
+    background:rgba(255,255,255,0.05); color:var(--panel-ink);
+    display:inline-flex; align-items:center; gap:5px;
+  }
+  .status-actions{display:flex; gap:8px; align-items:center; position:relative;}
 
-  .laufzettel{
-    background:var(--paper-dark);
-    border:1px solid var(--paper-line);
-    border-radius:3px;
-    padding:22px 18px 26px;
-    position:relative;
+  .missions-head{text-align:center; margin-bottom:16px;}
+  .missions-head .eyebrow{display:block; margin-bottom:2px;}
+
+  .mission-grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+    gap:14px;
+  }
+  .mission-card{
+    position:relative; text-align:left; width:100%;
+    background:var(--paper-dark); border:1.5px solid var(--paper-line);
+    border-radius:5px; padding:15px 15px 14px;
     box-shadow:var(--card-shadow);
+    transition:transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+    animation:cardIn .36s ease both;
+    animation-delay:calc(var(--i, 0) * 45ms);
   }
-  .laufzettel::before{
-    content:"";
-    position:absolute; inset:8px;
-    border:1px dashed var(--paper-line);
-    pointer-events:none;
+  @keyframes cardIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+  @media (prefers-reduced-motion: reduce){ .mission-card{animation:none;} }
+  .mission-num{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.12em;
+    color:var(--ink-soft); text-transform:uppercase;
   }
-  .laufzettel-head{text-align:center; margin-bottom:6px;}
-  .laufzettel-head .eyebrow{display:block; margin-bottom:2px;}
+  .mission-card-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;}
+  .mission-state-icon{font-size:16px; line-height:1;}
+  .mission-org{font-size:12.5px; color:var(--ink-soft); margin-bottom:4px;}
+  .mission-title{font-family:'Special Elite',monospace; font-size:15px; line-height:1.35; margin-bottom:12px;}
+  .mission-footer{font-family:'IBM Plex Mono',monospace; font-size:11.5px;}
 
-  .stage-list{margin-top:22px; position:relative; padding-left:0;}
-  .stage-line{
-    position:absolute; left:27px; top:8px; bottom:8px; width:2px;
-    background:repeating-linear-gradient(to bottom, var(--paper-line) 0 6px, transparent 6px 12px);
-  }
-  .stage-item{
-    display:flex; gap:14px; align-items:flex-start;
-    padding:12px 6px; position:relative; border-radius:3px;
-    background:transparent; border:none; width:100%; text-align:left;
-  }
-  .stage-node{
-    flex:0 0 auto; width:56px; height:56px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    font-size:22px; position:relative; z-index:1;
-    border:2px solid var(--locked); background:var(--paper);
-    color:var(--locked);
-  }
-  .stage-item.done .stage-node{border-color:var(--ok); color:var(--ok); background:#e9f0ea;}
-  .stage-item.current .stage-node{border-color:var(--stamp); color:var(--stamp); background:#f7e9e5; box-shadow:0 0 0 4px rgba(163,49,31,0.12);}
-  .stage-item.locked .stage-node{opacity:.55;}
-  .stage-info{padding-top:6px; flex:1;}
-  .stage-title{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:14px;}
-  .stage-amt{font-size:12px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace;}
-  .stage-item.locked .stage-title, .stage-item.locked .stage-amt{color:var(--locked);}
-  .stage-cta{margin-top:6px;}
-  .checkmark{font-family:'Special Elite',monospace; font-size:11px; color:var(--ok);}
+  .mission-card.locked{opacity:.55;}
+  .mission-card.locked .mission-footer{color:var(--ink-soft);}
 
-  button.stage-item{cursor:default;}
-  button.stage-item.current{cursor:pointer;}
-  button.stage-item.current:hover .stage-node{transform:scale(1.05);}
+  .mission-card.current{
+    border-color:var(--stamp); cursor:pointer;
+    box-shadow:var(--glow-stamp), var(--card-shadow);
+    animation:pulse-border 2.4s ease-in-out infinite;
+  }
+  .mission-card.current .mission-footer{color:var(--stamp); font-weight:600;}
+  .mission-card.current:hover{transform:translateY(-3px);}
+  @keyframes pulse-border{
+    0%,100%{box-shadow:var(--glow-stamp), var(--card-shadow);}
+    50%{box-shadow:0 0 0 6px rgba(163,49,31,0.1), 0 0 26px -2px rgba(163,49,31,0.6), var(--card-shadow);}
+  }
+
+  .mission-card.done{border-color:var(--ok); background:#eaf1ec;}
+  .mission-card.done .mission-footer{color:var(--ok); font-weight:600;}
+
+  button.mission-card{font-family:inherit;}
+  div.mission-card{cursor:default;}
+
+  @media (prefers-reduced-motion: reduce){
+    .mission-card.current{animation:none;}
+  }
 
   /* ---------- leaderboard ---------- */
   .board{
@@ -226,19 +360,24 @@
     padding:8px 0; border-bottom:1px solid var(--paper-line);
   }
   .board-row:last-child{border-bottom:none;}
-  .board-rank{font-family:'IBM Plex Mono',monospace; color:var(--ink-soft); font-size:13px;}
-  .board-name{font-family:'IBM Plex Mono',monospace; font-size:13.5px; display:flex; align-items:center; gap:6px;}
+  .board-rank{font-family:'IBM Plex Mono',monospace; color:var(--ink-soft); font-size:13px; font-variant-numeric:tabular-nums;}
+  .board-row.top .board-rank{color:var(--gold-text); font-weight:700;}
+  .board-name{font-family:'IBM Plex Mono',monospace; font-size:13.5px; display:flex; align-items:center; gap:8px;}
+  .board-dot{width:9px; height:9px; border-radius:50%; background:var(--tab, var(--ink-soft)); flex:0 0 auto;}
   .board-bar-wrap{grid-column:1/-1; height:6px; background:var(--paper); border-radius:99px; overflow:hidden; margin-top:2px;}
-  .board-bar{height:100%; background:var(--gold);}
-  .board-points{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13.5px; color:var(--carbon);}
+  .board-bar{height:100%; background:var(--tab, var(--gold));}
+  .board-points{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13.5px; color:var(--carbon); font-variant-numeric:tabular-nums;}
   .board-row.mine .board-name{color:var(--stamp);}
+  .board-row.mine{background:rgba(163,49,31,0.06); margin:0 -10px; padding:8px 10px; border-radius:3px;}
 
   /* ---------- quiz modal ---------- */
   .overlay{
     position:fixed; inset:0; background:rgba(43,38,32,0.55);
     display:flex; align-items:flex-end; justify-content:center; z-index:50;
     padding:0;
+    animation:overlayFade .2s ease both;
   }
+  @keyframes overlayFade{from{opacity:0;} to{opacity:1;}}
   @media(min-width:640px){ .overlay{align-items:center; padding:20px;} }
   .quiz-card{
     background:var(--paper); width:100%; max-width:520px;
@@ -246,8 +385,11 @@
     max-height:88vh; overflow-y:auto;
     box-shadow:0 -10px 40px rgba(0,0,0,0.3);
     position:relative;
+    animation:modalIn .26s cubic-bezier(.2,.8,.3,1) both;
   }
+  @keyframes modalIn{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:translateY(0);}}
   @media(min-width:640px){ .quiz-card{border-radius:6px;} }
+  @media (prefers-reduced-motion: reduce){ .overlay, .quiz-card{animation:none;} }
   .quiz-amt{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.08em;}
   .quiz-question{font-family:'Special Elite',monospace; font-size:19px; line-height:1.4; margin:8px 0 18px;}
   .option{
@@ -264,8 +406,8 @@
   .feedback.wrong{background:#f6e5e1; color:#6b2216; border:1px solid var(--stamp);}
   .quiz-actions{margin-top:16px; display:flex; justify-content:flex-end; gap:10px;}
   .close-x{
-    position:absolute; top:12px; right:14px; background:none; border:none; font-size:20px;
-    color:var(--ink-soft); line-height:1;
+    position:absolute; top:4px; right:6px; background:none; border:none; font-size:20px;
+    color:var(--ink-soft); line-height:1; padding:12px; min-width:44px; min-height:44px;
   }
 
   /* stamp animation */
@@ -288,6 +430,45 @@
     100%{transform:rotate(-10deg) scale(1); opacity:1;}
   }
   .stamp-fx.fadeout .stamp-mark{ transition:opacity .4s ease; opacity:0; }
+  .xp-pop{
+    margin-top:10px; text-align:center;
+    font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:18px;
+    color:var(--gold-text); opacity:0;
+    animation: xppop .6s ease .25s forwards;
+  }
+  @keyframes xppop{
+    0%{opacity:0; transform:translateY(6px);}
+    100%{opacity:1; transform:translateY(0);}
+  }
+
+  /* ---------- loading ---------- */
+  .boot-screen{
+    padding:90px 0 70px; text-align:center;
+    font-family:'IBM Plex Mono',monospace; color:var(--ink-soft);
+  }
+  .boot-icon{font-size:30px; display:inline-block; margin-bottom:14px; animation:sway 5s ease-in-out infinite;}
+  .boot-text{font-size:12.5px; letter-spacing:.06em; text-transform:uppercase;}
+  .boot-dots::after{content:''; animation:bootdots 1.2s steps(4,end) infinite;}
+  @keyframes bootdots{0%{content:'';} 25%{content:'.';} 50%{content:'..';} 75%{content:'...';} 100%{content:'';}}
+  @media (prefers-reduced-motion: reduce){
+    .boot-icon{animation:none;}
+    .boot-dots::after{animation:none; content:'...';}
+  }
+
+  /* ---------- toast (Easter Eggs & Hinweise) ---------- */
+  .toast{
+    position:fixed; left:50%; bottom:22px; transform:translateX(-50%) translateY(0);
+    max-width:min(92vw,420px); z-index:70;
+    background:var(--panel); color:var(--panel-ink);
+    border:1px solid var(--panel-line); border-radius:6px;
+    padding:12px 16px; box-shadow:var(--panel-shadow);
+    font-size:14px; line-height:1.4; text-align:center;
+    animation:toastIn .3s cubic-bezier(.2,.8,.3,1) both;
+  }
+  .toast.fadeout{animation:toastOut .3s ease both;}
+  @keyframes toastIn{from{opacity:0; transform:translateX(-50%) translateY(14px);} to{opacity:1; transform:translateX(-50%) translateY(0);}}
+  @keyframes toastOut{from{opacity:1;} to{opacity:0;}}
+  @media (prefers-reduced-motion: reduce){ .toast{animation:none;} .toast.fadeout{animation:none; opacity:0;} }
 
   /* ---------- finished ---------- */
   .finished-card{
@@ -302,11 +483,11 @@
   footer.foot{margin-top:30px; text-align:center;}
   footer.foot button{font-size:11px; color:var(--ink-soft); background:none; border:none; text-decoration:underline; padding:4px;}
 
-  .loading{padding:60px 0; text-align:center; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; font-size:13px;}
-
   @media (prefers-reduced-motion: reduce){
     .stamp-fx .stamp-mark{animation:none; opacity:1; transform:rotate(-10deg) scale(1);}
-    .group-card, .stage-item.current .stage-node{transition:none;}
+    .group-card, .mission-card{transition:none;}
+    .stamp-icon, .hero-icon{animation:none;}
+    .xp-pop{animation:none; opacity:1;}
   }
 </style>
 </head>
@@ -319,24 +500,39 @@
   </filter>
 </svg>
 
-<div id="app"><div class="loading">Formular wird geladen …</div></div>
+<div id="app"><div class="boot-screen"><span class="boot-icon">🖋️</span><div class="boot-text">Rallye-System wird initialisiert<span class="boot-dots"></span></div></div></div>
 
 <script>
 (function(){
 
   var GROUPS = [
-    {id:'buergeramt', name:'Bürgeramt', icon:'🪪'},
-    {id:'finanzamt', name:'Finanzamt', icon:'💶'},
-    {id:'standesamt', name:'Standesamt', icon:'💍'},
-    {id:'ordnungsamt', name:'Ordnungsamt', icon:'🚦'},
-    {id:'auslaenderbehoerde', name:'Ausländerbehörde', icon:'🛂'},
-    {id:'jugendamt', name:'Jugendamt', icon:'🧸'},
-    {id:'bauamt', name:'Bauamt', icon:'🏗️'},
-    {id:'sozialamt', name:'Sozialamt', icon:'🤝'},
-    {id:'gesundheitsamt', name:'Gesundheitsamt', icon:'🩺'}
+    {id:'gruppe-1', name:'Gruppe 1'},
+    {id:'gruppe-2', name:'Gruppe 2'},
+    {id:'gruppe-3', name:'Gruppe 3'},
+    {id:'gruppe-4', name:'Gruppe 4'},
+    {id:'gruppe-5', name:'Gruppe 5'},
+    {id:'gruppe-6', name:'Gruppe 6'},
+    {id:'gruppe-7', name:'Gruppe 7'},
+    {id:'gruppe-8', name:'Gruppe 8'},
+    {id:'gruppe-9', name:'Gruppe 9'}
   ];
   var CAPACITY = 10;
   var POINTS_PER_STAGE = 10;
+
+  function tabClass(index){ return 'tab-' + ((index % 6) + 1); }
+
+  var RANKS = [
+    {min:0, label:'Antragsteller:in'},
+    {min:10, label:'Amts-Praktikant:in'},
+    {min:30, label:'Sachbearbeiter:in'},
+    {min:50, label:'Amtsleitung'},
+    {min:70, label:'Amts-Champion'}
+  ];
+  function rankForPoints(points){
+    var r = RANKS[0];
+    for(var i=0;i<RANKS.length;i++){ if(points >= RANKS[i].min) r = RANKS[i]; }
+    return r.label;
+  }
 
   var STAGES = [
     {
@@ -418,26 +614,32 @@
     try{
       var raw = localStorage.getItem('behoerdenrallye:groups-state');
       if(raw){ return JSON.parse(raw); }
-    }catch(e){}
+    }catch(e){ console.warn('Behördenrallye: groups-state konnte nicht gelesen werden.', e); }
     var fresh = emptyGroupsState();
-    try{ localStorage.setItem('behoerdenrallye:groups-state', JSON.stringify(fresh)); }catch(e){}
+    try{ localStorage.setItem('behoerdenrallye:groups-state', JSON.stringify(fresh)); }catch(e){ console.warn('Behördenrallye: groups-state konnte nicht gespeichert werden.', e); }
     return fresh;
   }
 
   async function saveGroupsState(gs){
-    try{ localStorage.setItem('behoerdenrallye:groups-state', JSON.stringify(gs)); }catch(e){}
+    try{ localStorage.setItem('behoerdenrallye:groups-state', JSON.stringify(gs)); }catch(e){
+      console.warn('Behördenrallye: groups-state konnte nicht gespeichert werden.', e);
+      showToast('Deine Punkte konnten gerade nicht gespeichert werden. Bitte Speicherplatz im Browser prüfen.');
+    }
   }
 
   async function loadParticipant(){
     try{
       var raw = localStorage.getItem('behoerdenrallye:participant');
       if(raw){ return JSON.parse(raw); }
-    }catch(e){}
+    }catch(e){ console.warn('Behördenrallye: participant konnte nicht gelesen werden.', e); }
     return null;
   }
 
   async function saveParticipant(p){
-    try{ localStorage.setItem('behoerdenrallye:participant', JSON.stringify(p)); }catch(e){}
+    try{ localStorage.setItem('behoerdenrallye:participant', JSON.stringify(p)); }catch(e){
+      console.warn('Behördenrallye: participant konnte nicht gespeichert werden.', e);
+      showToast('Dein Fortschritt konnte gerade nicht gespeichert werden. Bitte Speicherplatz im Browser prüfen.');
+    }
   }
 
   async function init(){
@@ -455,6 +657,7 @@
 
   function startPolling(){
     setInterval(async function(){
+      if(document.hidden) return;
       if(state.screen === 'map' || state.screen === 'finished'){
         var gs = await loadGroupsState();
         state.groupsState = gs;
@@ -560,21 +763,83 @@
   function showStampFx(){
     var fx = document.createElement('div');
     fx.className = 'stamp-fx';
-    fx.innerHTML = '<div class="stamp-mark">GENEHMIGT</div>';
+    fx.innerHTML = '<div><div class="stamp-mark">GENEHMIGT</div><div class="xp-pop">+'+POINTS_PER_STAGE+' XP</div></div>';
     document.body.appendChild(fx);
     setTimeout(function(){
       fx.classList.add('fadeout');
       setTimeout(function(){ fx.remove(); }, 420);
-    }, 900);
+    }, 1100);
   }
 
   async function leaveGroup(){
     if(!confirm('Neu anmelden? Dein bisheriger Fortschritt auf diesem Gerät geht verloren (dein Platz in der alten Gruppe bleibt belegt).')) return;
-    try{ localStorage.removeItem('behoerdenrallye:participant'); }catch(e){}
+    try{ localStorage.removeItem('behoerdenrallye:participant'); }catch(e){ console.warn('Behördenrallye: participant konnte nicht entfernt werden.', e); }
     state.participant = null;
     state.nameInput = '';
     state.screen = 'intro';
     render();
+  }
+
+  var toastTimer = null;
+  function showToast(text){
+    var old = document.getElementById('toast');
+    if(old) old.remove();
+    if(toastTimer) clearTimeout(toastTimer);
+    var t = document.createElement('div');
+    t.id = 'toast';
+    t.className = 'toast';
+    t.setAttribute('role','status');
+    t.setAttribute('aria-live','polite');
+    t.textContent = text;
+    document.body.appendChild(t);
+    toastTimer = setTimeout(function(){
+      t.classList.add('fadeout');
+      setTimeout(function(){ t.remove(); }, 320);
+    }, 3400);
+  }
+
+  /* ---------------- Easter Eggs ----------------
+     Rein kosmetisch, blockieren keine bestehende Funktion. */
+  var EASTER_MESSAGES = [
+    '📋 Antrag auf Sofortbearbeitung wurde abgelehnt. Bitte in 6–8 Wochen erneut versuchen.',
+    '🖨️ Der Drucker im Nebenzimmer ist zuständig. Bitte dort anfragen.',
+    '🐌 Ihr Vorgang wurde archiviert. Aktenzeichen: XY-ungelöst-0815.'
+  ];
+  var eggKeyBuffer = '';
+  function handleEasterKeydown(e){
+    if(e.ctrlKey || e.metaKey || e.altKey) return;
+    var k = (e.key || '').toLowerCase();
+    if(k.length !== 1) { eggKeyBuffer=''; return; }
+    eggKeyBuffer = (eggKeyBuffer + k).slice(-3);
+    if(eggKeyBuffer === 'amt'){
+      eggKeyBuffer = '';
+      showToast(EASTER_MESSAGES[Math.floor(Math.random()*EASTER_MESSAGES.length)]);
+    }
+  }
+
+  var stampClickCount = 0;
+  var stampClickTimer = null;
+  function handleStampIconClick(){
+    stampClickCount++;
+    clearTimeout(stampClickTimer);
+    stampClickTimer = setTimeout(function(){ stampClickCount = 0; }, 2500);
+    if(stampClickCount >= 5){
+      stampClickCount = 0;
+      showToast('🕵️ Geheime Prüfstelle aktiviert: Ihre Geduld wurde amtlich als „vorbildlich" eingestuft.');
+    }
+  }
+
+  var FORM_ALTS = [
+    'Formular Nr. 09b · Anlage zu Anlage 3',
+    'Formular Nr. 09-Ü · Überarbeitung der Überarbeitung',
+    'Formular Nr. 09 · jetzt in dreifacher Ausfertigung'
+  ];
+  function handleEyebrowClick(e){
+    var el = e.currentTarget;
+    if(!el.dataset.original) el.dataset.original = el.getAttribute('title') || el.textContent;
+    el.textContent = FORM_ALTS[Math.floor(Math.random()*FORM_ALTS.length)];
+    clearTimeout(el._resetTimer);
+    el._resetTimer = setTimeout(function(){ el.textContent = el.dataset.original; }, 4000);
   }
 
   /* ---------------- render helpers ---------------- */
@@ -587,51 +852,81 @@
     return ''+
     '<div class="masthead">'+
       '<div class="masthead-title">'+
-        '<span class="stamp-icon">🖋️</span>'+
-        '<div><span class="eyebrow">Formular Nr. 09 / Amtliche Rallye</span><h1>Behördenrallye</h1></div>'+
+        '<span class="stamp-icon egg-stamp" title="🖋️">🖋️</span>'+
+        '<div><span class="eyebrow egg-eyebrow" title="Formular Nr. 09 / Amtliche Rallye">Formular Nr. 09 / Amtliche Rallye</span><h1>Behördenrallye</h1></div>'+
       '</div>'+
-      '<div class="masthead-meta">9 Ämter · je 10 Plätze<br>7 Etappen · 70 Punkte max.</div>'+
+      '<div class="masthead-meta">9 Gruppen · je 10 Plätze<br>7 Etappen · 70 Punkte max.</div>'+
     '</div>';
+  }
+
+  function renderHero(){
+    return ''+
+    '<div class="hero">'+
+      '<div class="hero-particles"><span></span><span></span><span></span><span></span><span></span></div>'+
+      '<div class="hero-eyebrow"><span class="hero-icon egg-stamp">🖋️</span><span class="eyebrow egg-eyebrow" title="Formular Nr. 09 · Amtliche Mission">Formular Nr. 09 · Amtliche Mission</span></div>'+
+      '<h1 class="hero-title">BEHÖRDENRALLYE</h1>'+
+      '<p class="hero-sub">9 Teams. 7 Behörden-Missionen. Eine Rangliste. Trage dich ein und leg direkt mit der ersten Etappe los.</p>'+
+      '<div class="hero-stats">'+
+        '<span class="hero-stat"><b>9</b> Teams</span>'+
+        '<span class="hero-stat"><b>7</b> Missionen</span>'+
+        '<span class="hero-stat"><b>'+(POINTS_PER_STAGE*7)+'</b> XP max.</span>'+
+      '</div>'+
+    '</div>';
+  }
+
+  function renderSteps(activeIndex){
+    var labels = ['Name', 'Team'];
+    return '<div class="steps">'+labels.map(function(label, i){
+      var cls = i === activeIndex ? 'active' : i < activeIndex ? 'done' : '';
+      var mark = i < activeIndex ? '✓ ' : (i+1)+' · ';
+      return '<span class="step '+cls+'">'+mark+label+'</span>'+(i < labels.length-1 ? '<span class="step-sep">→</span>' : '');
+    }).join('')+'</div>';
   }
 
   function renderIntro(){
     return ''+
-    renderMasthead()+
+    renderHero()+
+    renderSteps(0)+
     '<div class="intro-card">'+
-      '<p>Willkommen zur Behördenrallye! Trage deinen Namen ein, wähle dein Amt und arbeite dich Etappe für Etappe über deinen Laufzettel – jede Station wartet mit einer Quizfrage. Richtige Antworten bringen deinem Amt Punkte für die Rangliste.</p>'+
+      '<p>Willkommen zur Behördenrallye! Trage deinen Namen ein, wähle deine Gruppe und arbeite dich Etappe für Etappe über deine Missionen – jede Station wartet mit einer Quizfrage. Richtige Antworten bringen deiner Gruppe Punkte für die Rangliste.</p>'+
       '<div class="field" style="margin-top:16px;">'+
         '<label for="nameField">Dein Name</label>'+
         '<input type="text" id="nameField" placeholder="z. B. Max Mustermann" value="'+esc(state.nameInput)+'">'+
       '</div>'+
       (state.error ? '<p style="color:var(--stamp); font-size:14px; margin-top:10px;">'+esc(state.error)+'</p>' : '')+
       '<div style="margin-top:18px;">'+
-        '<button class="btn btn-primary" id="toGroupsBtn">Amt auswählen →</button>'+
+        '<button class="btn btn-primary btn-lg" id="toGroupsBtn">Team wählen &amp; starten →</button>'+
       '</div>'+
     '</div>';
   }
 
   function renderGroupSelect(){
-    var cards = GROUPS.map(function(gr){
+    var cards = GROUPS.map(function(gr, i){
       var occ = groupOccupancy(gr.id);
       var pts = groupPoints(gr.id);
       var full = occ >= CAPACITY;
       var pct = Math.min(100, Math.round(occ/CAPACITY*100));
+      var fillClass = full ? 'full' : pct>=90 ? 'high' : pct>=50 ? 'mid' : '';
+      var tab = tabClass(i);
       return ''+
-      '<div class="group-card'+(full?' full':'')+'">'+
+      '<div class="group-card '+tab+(full?' full':'')+'">'+
         (full ? '<div class="full-stamp">VOLL</div>' : '')+
-        '<div class="group-icon">'+gr.icon+'</div>'+
-        '<div class="group-name">'+esc(gr.name)+'</div>'+
+        '<div class="group-head">'+
+          '<div class="group-badge">'+(i+1)+'</div>'+
+          '<div class="group-name"><span class="eyebrow">Team</span>'+esc(gr.name)+'</div>'+
+        '</div>'+
         '<div class="capacity-row">'+
-          '<div class="capacity-bar"><div class="capacity-fill" style="width:'+pct+'%"></div></div>'+
+          '<div class="capacity-bar"><div class="capacity-fill '+fillClass+'" style="width:'+pct+'%"></div></div>'+
           '<div class="capacity-text">'+occ+'/'+CAPACITY+'</div>'+
         '</div>'+
         '<div class="points-text">'+pts+' Punkte bisher</div>'+
-        '<button class="btn select-btn" data-join="'+gr.id+'" '+(full?'disabled':'')+'>'+(full?'Belegt':'Diesem Amt beitreten')+'</button>'+
+        '<button class="btn select-btn" data-join="'+gr.id+'" '+(full?'disabled':'')+'>'+(full?'Belegt':'Dieser Gruppe beitreten')+'</button>'+
       '</div>';
     }).join('');
 
     return ''+
     renderMasthead()+
+    renderSteps(1)+
     '<div class="eyebrow" style="margin-bottom:6px;">Angemeldet als</div>'+
     '<h2 style="margin-bottom:14px;">'+esc(state.nameInput)+'</h2>'+
     (state.error ? '<p style="color:var(--stamp); font-size:14px;">'+esc(state.error)+'</p>' : '')+
@@ -640,7 +935,7 @@
   }
 
   function renderBoard(){
-    var rows = GROUPS.map(function(gr){ return {id:gr.id, name:gr.name, icon:gr.icon, points:groupPoints(gr.id)}; });
+    var rows = GROUPS.map(function(gr, i){ return {id:gr.id, name:gr.name, tab:tabClass(i), points:groupPoints(gr.id)}; });
     rows.sort(function(a,b){ return b.points - a.points; });
     var maxPts = Math.max(1, rows[0].points);
     var mine = state.participant ? state.participant.groupId : null;
@@ -648,9 +943,9 @@
     var rowsHtml = rows.map(function(r, i){
       var pct = Math.round(r.points / maxPts * 100);
       return ''+
-      '<div class="board-row'+(r.id===mine?' mine':'')+'">'+
+      '<div class="board-row '+r.tab+(i<3?' top':'')+(r.id===mine?' mine':'')+'">'+
         '<div class="board-rank">'+(i+1)+'.</div>'+
-        '<div class="board-name">'+r.icon+' '+esc(r.name)+(r.id===mine?' <span style="font-size:10px;">(du)</span>':'')+'</div>'+
+        '<div class="board-name"><span class="board-dot"></span>'+esc(r.name)+(r.id===mine?' <span style="font-size:10px;">(du)</span>':'')+'</div>'+
         '<div class="board-points">'+r.points+'</div>'+
         '<div class="board-bar-wrap"><div class="board-bar" style="width:'+pct+'%"></div></div>'+
       '</div>';
@@ -661,46 +956,63 @@
 
   function renderMap(){
     var p = state.participant;
-    var groupDef = GROUPS.filter(function(g){ return g.id === p.groupId; })[0];
+    var groupIdx = GROUPS.findIndex(function(g){ return g.id === p.groupId; });
+    var groupDef = GROUPS[groupIdx];
     var myPoints = groupPoints(p.groupId);
+    var doneCount = STAGES.filter(function(s){ return p.progress[s.id]; }).length;
+    var donePct = Math.round(doneCount/STAGES.length*100);
 
-    var stageLine = '<div class="stage-line"></div>';
-    var items = STAGES.map(function(s, i){
+    var cards = STAGES.map(function(s, i){
       var status = stageStatus(s.id, i);
       var tag = status === 'current' ? 'button' : 'div';
       var clickAttr = status === 'current' ? ' data-stage="'+i+'"' : '';
-      var nodeContent = status === 'done' ? '✓' : s.icon;
-      var sub = status === 'done' ? '<span class="checkmark">GEPRÜFT &amp; GESTEMPELT</span>' :
-                status === 'current' ? '<span class="stage-cta">Etappe starten →</span>' :
-                '<span style="font-size:12px;">gesperrt</span>';
+      var stateIcon = status === 'done' ? '✓' : status === 'current' ? '⚡' : '🔒';
+      var footer = status === 'done' ? 'GEPRÜFT &amp; GESTEMPELT · +'+POINTS_PER_STAGE+' XP' :
+                status === 'current' ? 'MISSION STARTEN →' :
+                'Gesperrt';
+      var ariaLabel = status === 'current' ? ' aria-label="Mission '+(i+1)+' starten: '+esc(s.title)+'"' :
+                       status === 'done' ? ' aria-label="Mission '+(i+1)+' abgeschlossen: '+esc(s.title)+'"' :
+                       ' aria-label="Mission '+(i+1)+' gesperrt: '+esc(s.title)+'"';
       return ''+
-      '<'+tag+' class="stage-item '+status+'"'+clickAttr+'>'+
-        '<div class="stage-node">'+nodeContent+'</div>'+
-        '<div class="stage-info">'+
-          '<div class="stage-title">'+(i+1)+'. '+esc(s.title)+'</div>'+
-          '<div class="stage-amt">'+esc(s.amt)+'</div>'+
-          sub+
+      '<'+tag+' class="mission-card '+status+'" style="--i:'+i+'"'+clickAttr+ariaLabel+'>'+
+        '<div class="mission-card-head">'+
+          '<span class="mission-num">Mission '+String(i+1).padStart(2,'0')+'</span>'+
+          '<span class="mission-state-icon" aria-hidden="true">'+stateIcon+'</span>'+
         '</div>'+
+        '<div class="mission-org">'+s.icon+' '+esc(s.amt)+'</div>'+
+        '<div class="mission-title">'+esc(s.title)+'</div>'+
+        '<div class="mission-footer">'+footer+'</div>'+
       '</'+tag+'>';
     }).join('');
 
     return ''+
     renderMasthead()+
-    '<div class="status-bar">'+
-      '<div class="who">Amt: <b>'+groupDef.icon+' '+esc(groupDef.name)+'</b> · <span id="myGroupPoints">'+myPoints+' Punkte</span></div>'+
-      '<div class="status-actions">'+
-        '<button class="btn btn-ghost" id="toggleBoardBtn">'+(state.boardOpen?'Rangliste ausblenden':'Rangliste anzeigen')+'</button>'+
+    '<div class="progress-panel">'+
+      '<div class="progress-head">'+
+        '<span class="eyebrow">Rallye-Fortschritt</span>'+
+        '<div class="who">Team: <b class="'+tabClass(groupIdx)+'" style="color:var(--tab)">'+esc(groupDef.name)+'</b></div>'+
       '</div>'+
+      '<div class="progress-bar-track" role="progressbar" aria-valuenow="'+doneCount+'" aria-valuemin="0" aria-valuemax="'+STAGES.length+'" aria-label="Rallye-Fortschritt">'+
+        '<div class="progress-bar-fill" style="width:'+donePct+'%"></div>'+
+      '</div>'+
+      '<div class="progress-stats">'+
+        '<span class="progress-fraction">'+doneCount+' / '+STAGES.length+' Missionen erledigt</span>'+
+        '<div class="progress-meta">'+
+          '<span class="stat-chip" id="myGroupPoints">★ '+myPoints+' Punkte</span>'+
+          '<span class="stat-chip">🏆 '+esc(rankForPoints(myPoints))+'</span>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="status-actions" style="margin-bottom:18px;">'+
+      '<button class="btn btn-ghost" id="toggleBoardBtn">'+(state.boardOpen?'Rangliste ausblenden':'Rangliste anzeigen')+'</button>'+
     '</div>'+
     (state.boardOpen ? renderBoard() : '')+
-    '<div class="laufzettel">'+
-      '<div class="laufzettel-head">'+
-        '<span class="eyebrow">Laufzettel</span>'+
-        '<h2>'+esc(p.name)+'s Route</h2>'+
-        '<p class="muted" style="font-size:13.5px; margin:0;">Klicke auf die aktuelle Station, um die Etappe zu bearbeiten.</p>'+
-      '</div>'+
-      '<div class="stage-list">'+stageLine+items+'</div>'+
+    '<div class="missions-head">'+
+      '<span class="eyebrow">'+esc(p.name)+'s Missionen</span>'+
+      '<h2>Deine Route</h2>'+
+      '<p class="muted" style="font-size:13.5px; margin:0;">Tippe auf die aktive Mission, um die Etappe zu bearbeiten.</p>'+
     '</div>'+
+    '<div class="mission-grid">'+cards+'</div>'+
     '<footer class="foot"><button id="leaveBtn">Neu anmelden / Gerät wechseln</button></footer>';
   }
 
@@ -730,10 +1042,10 @@
 
     return ''+
     '<div class="overlay" id="quizOverlay">'+
-      '<div class="quiz-card">'+
-        '<button class="close-x" id="quizCloseBtn">✕</button>'+
+      '<div class="quiz-card" role="dialog" aria-modal="true" aria-labelledby="quizQuestion">'+
+        '<button class="close-x" id="quizCloseBtn" aria-label="Quiz schließen">✕</button>'+
         '<div class="quiz-amt">'+s.icon+' Station '+(i+1)+' · '+esc(s.amt)+'</div>'+
-        '<div class="quiz-question">'+esc(s.question)+'</div>'+
+        '<div class="quiz-question" id="quizQuestion">'+esc(s.question)+'</div>'+
         '<div class="options">'+optsHtml+'</div>'+
         feedback+
         '<div class="quiz-actions">'+actionBtn+'</div>'+
@@ -743,15 +1055,19 @@
 
   function renderFinished(){
     var p = state.participant;
-    var groupDef = GROUPS.filter(function(g){ return g.id === p.groupId; })[0];
+    var groupIdx = GROUPS.findIndex(function(g){ return g.id === p.groupId; });
+    var groupDef = GROUPS[groupIdx];
     var myPoints = groupPoints(p.groupId);
     return ''+
     renderMasthead()+
     '<div class="finished-card">'+
       '<div class="stamp-mark">RALLYE ABGESCHLOSSEN</div>'+
       '<h2>Gut gemacht, '+esc(p.name)+'!</h2>'+
-      '<p>Du hast alle 7 Etappen für <b>'+groupDef.icon+' '+esc(groupDef.name)+'</b> gestempelt und '+POINTS_PER_STAGE*7+' Punkte beigetragen.</p>'+
-      '<p class="muted" style="font-size:13.5px;">Aktueller Stand deines Amts: '+myPoints+' Punkte.</p>'+
+      '<p>Du hast alle 7 Etappen für <b class="'+tabClass(groupIdx)+'" style="color:var(--tab)">'+esc(groupDef.name)+'</b> gestempelt und '+POINTS_PER_STAGE*7+' Punkte beigetragen.</p>'+
+      '<div class="hero-stats" style="margin-top:4px;">'+
+        '<span class="hero-stat">★ '+myPoints+' Punkte</span>'+
+        '<span class="hero-stat">🏆 '+esc(rankForPoints(myPoints))+'</span>'+
+      '</div>'+
       '<button class="btn btn-ghost" id="toggleBoardBtn2" style="margin-top:6px;">'+(state.boardOpen?'Rangliste ausblenden':'Rangliste anzeigen')+'</button>'+
     '</div>'+
     (state.boardOpen ? renderBoard() : '')+
@@ -764,13 +1080,11 @@
     else if(state.screen === 'select-group') html = renderGroupSelect();
     else if(state.screen === 'map') html = renderMap();
     else if(state.screen === 'finished') html = renderFinished();
-    else html = '<div class="loading">Formular wird geladen …</div>';
+    else html = '<div class="boot-screen"><span class="boot-icon">🖋️</span><div class="boot-text">Rallye-System wird initialisiert<span class="boot-dots"></span></div></div>';
 
-    if(state.activeQuizIndex !== null){
-      html += renderQuiz();
-    }
+    var quizHtml = state.activeQuizIndex !== null ? renderQuiz() : '';
 
-    app.innerHTML = html;
+    app.innerHTML = '<div class="screen">'+html+'</div>'+quizHtml;
     attachListeners();
   }
 
@@ -808,6 +1122,13 @@
       btn.addEventListener('click', function(){ selectOption(parseInt(btn.getAttribute('data-opt'),10)); });
     });
 
+    document.querySelectorAll('.egg-stamp').forEach(function(el){
+      el.addEventListener('click', handleStampIconClick);
+    });
+    document.querySelectorAll('.egg-eyebrow').forEach(function(el){
+      el.addEventListener('click', handleEyebrowClick);
+    });
+
     var quizClose = document.getElementById('quizCloseBtn');
     if(quizClose) quizClose.addEventListener('click', closeQuiz);
     var quizOverlay = document.getElementById('quizOverlay');
@@ -824,6 +1145,11 @@
     state.screen = 'select-group';
     render();
   }
+
+  document.addEventListener('keydown', function(e){
+    handleEasterKeydown(e);
+    if(e.key === 'Escape' && state.activeQuizIndex !== null){ closeQuiz(); }
+  });
 
   init();
 })();
