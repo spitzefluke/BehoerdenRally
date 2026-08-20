@@ -17,16 +17,20 @@
     --stamp-dark:#7E2417;
     --carbon:#2F4858;
     --gold:#B08B3D;
+    --teal:#2B6E6A;
+    --plum:#6B3F63;
     --locked:#B7AF9C;
     --ok:#3E6B4F;
+    --warn:#B0672A;
     --card-shadow: 0 2px 0 rgba(43,38,32,0.08), 0 10px 24px -12px rgba(43,38,32,0.35);
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
     background:
-      radial-gradient(circle at 15% 8%, rgba(176,139,61,0.07), transparent 40%),
-      radial-gradient(circle at 90% 85%, rgba(47,72,88,0.07), transparent 45%),
+      radial-gradient(circle at 15% 8%, rgba(176,139,61,0.09), transparent 40%),
+      radial-gradient(circle at 90% 85%, rgba(47,72,88,0.09), transparent 45%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E"),
       var(--paper);
     color:var(--ink);
     font-family:'Source Serif 4', Georgia, serif;
@@ -34,6 +38,13 @@
     -webkit-font-smoothing:antialiased;
   }
   #app{max-width:720px;margin:0 auto;padding:20px 16px 80px;}
+  :focus-visible{outline:2.5px solid var(--carbon); outline-offset:2px;}
+  .tab-1{--tab:var(--stamp);}
+  .tab-2{--tab:var(--carbon);}
+  .tab-3{--tab:var(--gold);}
+  .tab-4{--tab:var(--ok);}
+  .tab-5{--tab:var(--teal);}
+  .tab-6{--tab:var(--plum);}
   .eyebrow{
     font-family:'IBM Plex Mono',monospace;
     font-size:11px;
@@ -82,7 +93,8 @@
     margin-bottom:22px;
     display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap;
   }
-  .masthead .stamp-icon{font-size:26px;}
+  .masthead .stamp-icon{font-size:26px; display:inline-block; animation:sway 5s ease-in-out infinite;}
+  @keyframes sway{0%,100%{transform:rotate(-4deg);} 50%{transform:rotate(4deg);}}
   .masthead-title{display:flex; align-items:center; gap:10px;}
   .masthead-meta{
     font-family:'IBM Plex Mono',monospace;
@@ -134,21 +146,34 @@
   .group-card::before{
     content:"";
     position:absolute; top:-8px; left:16px; width:46px; height:14px;
-    background:var(--paper-dark); border:1px solid var(--paper-line); border-bottom:none;
+    background:var(--tab, var(--paper-line)); border:1px solid var(--paper-line); border-bottom:none;
     border-radius:3px 3px 0 0;
+    opacity:.8;
   }
+  .group-card{border-top:2.5px solid var(--tab, var(--paper-line));}
   .group-card:not(.full):hover{transform:translateY(-2px); box-shadow:0 4px 0 rgba(43,38,32,0.1), 0 16px 28px -14px rgba(43,38,32,0.4);}
   .group-card button.select-btn{
     width:100%; margin-top:12px;
   }
-  .group-icon{font-size:22px;}
-  .group-name{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:14.5px; margin-top:6px;}
-  .capacity-row{display:flex; align-items:center; gap:8px; margin-top:10px;}
+  .group-head{display:flex; align-items:center; gap:10px;}
+  .group-badge{
+    flex:0 0 auto; width:38px; height:38px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Special Elite', monospace; font-size:16px;
+    border:2px solid var(--tab, var(--ink-soft)); color:var(--tab, var(--ink-soft));
+    background:var(--paper); transform:rotate(-3deg);
+  }
+  .group-name{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:14.5px;}
+  .group-name .eyebrow{display:block; margin-bottom:1px;}
+  .capacity-row{display:flex; align-items:center; gap:8px; margin-top:12px;}
   .capacity-bar{flex:1; height:7px; background:var(--paper); border:1px solid var(--paper-line); border-radius:99px; overflow:hidden;}
-  .capacity-fill{height:100%; background:var(--carbon);}
-  .capacity-text{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); white-space:nowrap;}
-  .points-text{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--gold); margin-top:4px;}
-  .group-card.full{opacity:.55;}
+  .capacity-fill{height:100%; background:var(--ok); transition:background .2s ease;}
+  .capacity-fill.mid{background:var(--gold);}
+  .capacity-fill.high{background:var(--warn);}
+  .capacity-fill.full{background:var(--stamp);}
+  .capacity-text{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); white-space:nowrap; font-variant-numeric:tabular-nums;}
+  .points-text{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--tab, var(--gold)); margin-top:4px; font-weight:600;}
+  .group-card.full{opacity:.6;}
   .full-stamp{
     position:absolute; top:10px; right:10px;
     border:2px solid var(--stamp); color:var(--stamp);
@@ -226,12 +251,15 @@
     padding:8px 0; border-bottom:1px solid var(--paper-line);
   }
   .board-row:last-child{border-bottom:none;}
-  .board-rank{font-family:'IBM Plex Mono',monospace; color:var(--ink-soft); font-size:13px;}
-  .board-name{font-family:'IBM Plex Mono',monospace; font-size:13.5px; display:flex; align-items:center; gap:6px;}
+  .board-rank{font-family:'IBM Plex Mono',monospace; color:var(--ink-soft); font-size:13px; font-variant-numeric:tabular-nums;}
+  .board-row.top .board-rank{color:var(--gold); font-weight:700;}
+  .board-name{font-family:'IBM Plex Mono',monospace; font-size:13.5px; display:flex; align-items:center; gap:8px;}
+  .board-dot{width:9px; height:9px; border-radius:50%; background:var(--tab, var(--ink-soft)); flex:0 0 auto;}
   .board-bar-wrap{grid-column:1/-1; height:6px; background:var(--paper); border-radius:99px; overflow:hidden; margin-top:2px;}
-  .board-bar{height:100%; background:var(--gold);}
-  .board-points{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13.5px; color:var(--carbon);}
+  .board-bar{height:100%; background:var(--tab, var(--gold));}
+  .board-points{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13.5px; color:var(--carbon); font-variant-numeric:tabular-nums;}
   .board-row.mine .board-name{color:var(--stamp);}
+  .board-row.mine{background:rgba(163,49,31,0.06); margin:0 -10px; padding:8px 10px; border-radius:3px;}
 
   /* ---------- quiz modal ---------- */
   .overlay{
@@ -325,18 +353,20 @@
 (function(){
 
   var GROUPS = [
-    {id:'buergeramt', name:'Bürgeramt', icon:'🪪'},
-    {id:'finanzamt', name:'Finanzamt', icon:'💶'},
-    {id:'standesamt', name:'Standesamt', icon:'💍'},
-    {id:'ordnungsamt', name:'Ordnungsamt', icon:'🚦'},
-    {id:'auslaenderbehoerde', name:'Ausländerbehörde', icon:'🛂'},
-    {id:'jugendamt', name:'Jugendamt', icon:'🧸'},
-    {id:'bauamt', name:'Bauamt', icon:'🏗️'},
-    {id:'sozialamt', name:'Sozialamt', icon:'🤝'},
-    {id:'gesundheitsamt', name:'Gesundheitsamt', icon:'🩺'}
+    {id:'gruppe-1', name:'Gruppe 1'},
+    {id:'gruppe-2', name:'Gruppe 2'},
+    {id:'gruppe-3', name:'Gruppe 3'},
+    {id:'gruppe-4', name:'Gruppe 4'},
+    {id:'gruppe-5', name:'Gruppe 5'},
+    {id:'gruppe-6', name:'Gruppe 6'},
+    {id:'gruppe-7', name:'Gruppe 7'},
+    {id:'gruppe-8', name:'Gruppe 8'},
+    {id:'gruppe-9', name:'Gruppe 9'}
   ];
   var CAPACITY = 10;
   var POINTS_PER_STAGE = 10;
+
+  function tabClass(index){ return 'tab-' + ((index % 6) + 1); }
 
   var STAGES = [
     {
@@ -590,7 +620,7 @@
         '<span class="stamp-icon">🖋️</span>'+
         '<div><span class="eyebrow">Formular Nr. 09 / Amtliche Rallye</span><h1>Behördenrallye</h1></div>'+
       '</div>'+
-      '<div class="masthead-meta">9 Ämter · je 10 Plätze<br>7 Etappen · 70 Punkte max.</div>'+
+      '<div class="masthead-meta">9 Gruppen · je 10 Plätze<br>7 Etappen · 70 Punkte max.</div>'+
     '</div>';
   }
 
@@ -598,35 +628,39 @@
     return ''+
     renderMasthead()+
     '<div class="intro-card">'+
-      '<p>Willkommen zur Behördenrallye! Trage deinen Namen ein, wähle dein Amt und arbeite dich Etappe für Etappe über deinen Laufzettel – jede Station wartet mit einer Quizfrage. Richtige Antworten bringen deinem Amt Punkte für die Rangliste.</p>'+
+      '<p>Willkommen zur Behördenrallye! Trage deinen Namen ein, wähle deine Gruppe und arbeite dich Etappe für Etappe über deinen Laufzettel – jede Station wartet mit einer Quizfrage. Richtige Antworten bringen deiner Gruppe Punkte für die Rangliste.</p>'+
       '<div class="field" style="margin-top:16px;">'+
         '<label for="nameField">Dein Name</label>'+
         '<input type="text" id="nameField" placeholder="z. B. Max Mustermann" value="'+esc(state.nameInput)+'">'+
       '</div>'+
       (state.error ? '<p style="color:var(--stamp); font-size:14px; margin-top:10px;">'+esc(state.error)+'</p>' : '')+
       '<div style="margin-top:18px;">'+
-        '<button class="btn btn-primary" id="toGroupsBtn">Amt auswählen →</button>'+
+        '<button class="btn btn-primary" id="toGroupsBtn">Gruppe auswählen →</button>'+
       '</div>'+
     '</div>';
   }
 
   function renderGroupSelect(){
-    var cards = GROUPS.map(function(gr){
+    var cards = GROUPS.map(function(gr, i){
       var occ = groupOccupancy(gr.id);
       var pts = groupPoints(gr.id);
       var full = occ >= CAPACITY;
       var pct = Math.min(100, Math.round(occ/CAPACITY*100));
+      var fillClass = full ? 'full' : pct>=90 ? 'high' : pct>=50 ? 'mid' : '';
+      var tab = tabClass(i);
       return ''+
-      '<div class="group-card'+(full?' full':'')+'">'+
+      '<div class="group-card '+tab+(full?' full':'')+'">'+
         (full ? '<div class="full-stamp">VOLL</div>' : '')+
-        '<div class="group-icon">'+gr.icon+'</div>'+
-        '<div class="group-name">'+esc(gr.name)+'</div>'+
+        '<div class="group-head">'+
+          '<div class="group-badge">'+(i+1)+'</div>'+
+          '<div class="group-name"><span class="eyebrow">Team</span>'+esc(gr.name)+'</div>'+
+        '</div>'+
         '<div class="capacity-row">'+
-          '<div class="capacity-bar"><div class="capacity-fill" style="width:'+pct+'%"></div></div>'+
+          '<div class="capacity-bar"><div class="capacity-fill '+fillClass+'" style="width:'+pct+'%"></div></div>'+
           '<div class="capacity-text">'+occ+'/'+CAPACITY+'</div>'+
         '</div>'+
         '<div class="points-text">'+pts+' Punkte bisher</div>'+
-        '<button class="btn select-btn" data-join="'+gr.id+'" '+(full?'disabled':'')+'>'+(full?'Belegt':'Diesem Amt beitreten')+'</button>'+
+        '<button class="btn select-btn" data-join="'+gr.id+'" '+(full?'disabled':'')+'>'+(full?'Belegt':'Dieser Gruppe beitreten')+'</button>'+
       '</div>';
     }).join('');
 
@@ -640,7 +674,7 @@
   }
 
   function renderBoard(){
-    var rows = GROUPS.map(function(gr){ return {id:gr.id, name:gr.name, icon:gr.icon, points:groupPoints(gr.id)}; });
+    var rows = GROUPS.map(function(gr, i){ return {id:gr.id, name:gr.name, tab:tabClass(i), points:groupPoints(gr.id)}; });
     rows.sort(function(a,b){ return b.points - a.points; });
     var maxPts = Math.max(1, rows[0].points);
     var mine = state.participant ? state.participant.groupId : null;
@@ -648,9 +682,9 @@
     var rowsHtml = rows.map(function(r, i){
       var pct = Math.round(r.points / maxPts * 100);
       return ''+
-      '<div class="board-row'+(r.id===mine?' mine':'')+'">'+
+      '<div class="board-row '+r.tab+(i<3?' top':'')+(r.id===mine?' mine':'')+'">'+
         '<div class="board-rank">'+(i+1)+'.</div>'+
-        '<div class="board-name">'+r.icon+' '+esc(r.name)+(r.id===mine?' <span style="font-size:10px;">(du)</span>':'')+'</div>'+
+        '<div class="board-name"><span class="board-dot"></span>'+esc(r.name)+(r.id===mine?' <span style="font-size:10px;">(du)</span>':'')+'</div>'+
         '<div class="board-points">'+r.points+'</div>'+
         '<div class="board-bar-wrap"><div class="board-bar" style="width:'+pct+'%"></div></div>'+
       '</div>';
@@ -661,7 +695,8 @@
 
   function renderMap(){
     var p = state.participant;
-    var groupDef = GROUPS.filter(function(g){ return g.id === p.groupId; })[0];
+    var groupIdx = GROUPS.findIndex(function(g){ return g.id === p.groupId; });
+    var groupDef = GROUPS[groupIdx];
     var myPoints = groupPoints(p.groupId);
 
     var stageLine = '<div class="stage-line"></div>';
@@ -687,7 +722,7 @@
     return ''+
     renderMasthead()+
     '<div class="status-bar">'+
-      '<div class="who">Amt: <b>'+groupDef.icon+' '+esc(groupDef.name)+'</b> · <span id="myGroupPoints">'+myPoints+' Punkte</span></div>'+
+      '<div class="who">Gruppe: <b class="'+tabClass(groupIdx)+'" style="color:var(--tab)">'+esc(groupDef.name)+'</b> · <span id="myGroupPoints">'+myPoints+' Punkte</span></div>'+
       '<div class="status-actions">'+
         '<button class="btn btn-ghost" id="toggleBoardBtn">'+(state.boardOpen?'Rangliste ausblenden':'Rangliste anzeigen')+'</button>'+
       '</div>'+
@@ -743,15 +778,16 @@
 
   function renderFinished(){
     var p = state.participant;
-    var groupDef = GROUPS.filter(function(g){ return g.id === p.groupId; })[0];
+    var groupIdx = GROUPS.findIndex(function(g){ return g.id === p.groupId; });
+    var groupDef = GROUPS[groupIdx];
     var myPoints = groupPoints(p.groupId);
     return ''+
     renderMasthead()+
     '<div class="finished-card">'+
       '<div class="stamp-mark">RALLYE ABGESCHLOSSEN</div>'+
       '<h2>Gut gemacht, '+esc(p.name)+'!</h2>'+
-      '<p>Du hast alle 7 Etappen für <b>'+groupDef.icon+' '+esc(groupDef.name)+'</b> gestempelt und '+POINTS_PER_STAGE*7+' Punkte beigetragen.</p>'+
-      '<p class="muted" style="font-size:13.5px;">Aktueller Stand deines Amts: '+myPoints+' Punkte.</p>'+
+      '<p>Du hast alle 7 Etappen für <b class="'+tabClass(groupIdx)+'" style="color:var(--tab)">'+esc(groupDef.name)+'</b> gestempelt und '+POINTS_PER_STAGE*7+' Punkte beigetragen.</p>'+
+      '<p class="muted" style="font-size:13.5px;">Aktueller Stand deiner Gruppe: '+myPoints+' Punkte.</p>'+
       '<button class="btn btn-ghost" id="toggleBoardBtn2" style="margin-top:6px;">'+(state.boardOpen?'Rangliste ausblenden':'Rangliste anzeigen')+'</button>'+
     '</div>'+
     (state.boardOpen ? renderBoard() : '')+
