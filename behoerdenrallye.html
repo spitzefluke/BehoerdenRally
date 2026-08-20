@@ -22,7 +22,14 @@
     --locked:#B7AF9C;
     --ok:#3E6B4F;
     --warn:#B0672A;
+    --panel:#241E19;
+    --panel-line:#4A3F35;
+    --panel-ink:#F2EAD9;
+    --panel-ink-soft:#C9BCA6;
     --card-shadow: 0 2px 0 rgba(43,38,32,0.08), 0 10px 24px -12px rgba(43,38,32,0.35);
+    --panel-shadow: 0 2px 0 rgba(0,0,0,0.25), 0 14px 32px -14px rgba(0,0,0,0.55);
+    --glow-stamp: 0 0 0 4px rgba(163,49,31,0.16), 0 0 22px -4px rgba(163,49,31,0.55);
+    --glow-gold: 0 0 0 3px rgba(176,139,61,0.18), 0 0 18px -4px rgba(176,139,61,0.5);
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -74,17 +81,19 @@
     color:var(--ink);
     padding:12px 20px;
     border-radius:2px;
-    transition:transform .12s ease, background .12s ease, color .12s ease;
+    transition:transform .14s ease, background .14s ease, color .14s ease, box-shadow .14s ease;
   }
-  .btn:hover{background:var(--ink); color:var(--paper);}
-  .btn:active{transform:scale(.97);}
-  .btn:disabled{opacity:.35; cursor:not-allowed; pointer-events:none;}
+  .btn:hover{background:var(--ink); color:var(--paper); transform:translateY(-2px); box-shadow:0 6px 14px -6px rgba(43,38,32,0.45);}
+  .btn:active{transform:translateY(0) scale(.97); box-shadow:none;}
+  .btn:disabled{opacity:.35; cursor:not-allowed; pointer-events:none; transform:none; box-shadow:none;}
+  .btn.is-loading{opacity:.7; cursor:wait; pointer-events:none;}
   .btn-primary{
     background:var(--stamp); border-color:var(--stamp); color:var(--paper);
   }
-  .btn-primary:hover{background:var(--stamp-dark); border-color:var(--stamp-dark); color:var(--paper);}
+  .btn-primary:hover{background:var(--stamp-dark); border-color:var(--stamp-dark); color:var(--paper); box-shadow:var(--glow-stamp), 0 6px 14px -6px rgba(43,38,32,0.45);}
   .btn-ghost{border-color:var(--paper-line); color:var(--ink-soft);}
-  .btn-ghost:hover{background:var(--ink-soft); border-color:var(--ink-soft);}
+  .btn-ghost:hover{background:var(--ink-soft); border-color:var(--ink-soft); box-shadow:0 6px 14px -6px rgba(43,38,32,0.3);}
+  .btn-lg{padding:16px 30px; font-size:14.5px; letter-spacing:.08em;}
 
   /* ---------- header / masthead ---------- */
   .masthead{
@@ -99,6 +108,50 @@
   .masthead-meta{
     font-family:'IBM Plex Mono',monospace;
     font-size:11px; color:var(--ink-soft); text-align:right; line-height:1.6;
+  }
+
+  /* ---------- hero (Startseite) ---------- */
+  .hero{
+    position:relative; text-align:center;
+    padding:38px 18px 30px;
+    margin-bottom:22px;
+    overflow:hidden;
+    border-radius:4px;
+  }
+  .hero-particles{position:absolute; inset:0; pointer-events:none; overflow:hidden;}
+  .hero-particles span{
+    position:absolute; border-radius:50%;
+    background:var(--stamp); opacity:.14;
+    animation:drift 14s ease-in-out infinite;
+  }
+  .hero-particles span:nth-child(1){width:10px;height:10px; left:8%; top:20%; background:var(--stamp); animation-duration:12s;}
+  .hero-particles span:nth-child(2){width:6px;height:6px; left:80%; top:15%; background:var(--gold); animation-duration:16s; animation-delay:-3s;}
+  .hero-particles span:nth-child(3){width:14px;height:14px; left:65%; top:70%; background:var(--carbon); opacity:.1; animation-duration:19s; animation-delay:-7s;}
+  .hero-particles span:nth-child(4){width:8px;height:8px; left:20%; top:75%; background:var(--teal); animation-duration:15s; animation-delay:-5s;}
+  .hero-particles span:nth-child(5){width:5px;height:5px; left:45%; top:12%; background:var(--plum); animation-duration:13s; animation-delay:-9s;}
+  @keyframes drift{
+    0%,100%{transform:translate(0,0);}
+    50%{transform:translate(8px,-14px);}
+  }
+  .hero-eyebrow{display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:10px;}
+  .hero-icon{font-size:30px; display:inline-block; animation:sway 5s ease-in-out infinite;}
+  .hero-title{
+    font-size:clamp(34px,8vw,54px); line-height:1.05; letter-spacing:.01em;
+    margin:0 0 10px;
+    text-shadow:2px 2px 0 rgba(163,49,31,0.12);
+  }
+  .hero-sub{max-width:46ch; margin:0 auto 22px; color:var(--ink-soft); font-size:15.5px;}
+  .hero-stats{
+    display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:22px;
+  }
+  .hero-stat{
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-soft);
+    border:1px solid var(--paper-line); border-radius:99px; padding:6px 14px;
+    background:var(--paper-dark);
+  }
+  .hero-stat b{color:var(--ink); font-weight:600;}
+  @media (prefers-reduced-motion: reduce){
+    .hero-particles span{animation:none;}
   }
 
   /* ---------- intro ---------- */
@@ -182,63 +235,95 @@
     opacity:.85;
   }
 
-  /* ---------- laufzettel / map ---------- */
-  .status-bar{
+  /* ---------- progress panel / map ---------- */
+  .progress-panel{
+    background:var(--panel); color:var(--panel-ink);
+    border-radius:6px; padding:18px 18px 16px;
+    margin-bottom:20px; box-shadow:var(--panel-shadow);
+    position:relative; overflow:hidden;
+  }
+  .progress-panel::before{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(circle at 85% -10%, rgba(176,139,61,0.18), transparent 55%);
+  }
+  .progress-head{
     display:flex; justify-content:space-between; align-items:center; gap:10px;
-    background:var(--paper-dark); border:1px solid var(--paper-line); border-radius:3px;
-    padding:12px 14px; margin-bottom:20px; flex-wrap:wrap;
+    flex-wrap:wrap; margin-bottom:12px; position:relative;
   }
-  .status-bar .who{font-family:'IBM Plex Mono',monospace; font-size:12.5px;}
-  .status-bar .who b{color:var(--carbon);}
-  .status-actions{display:flex; gap:8px; align-items:center;}
+  .progress-head .eyebrow{color:var(--panel-ink-soft);}
+  .progress-head .who{font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--panel-ink-soft);}
+  .progress-head .who b{font-weight:700;}
+  .progress-bar-track{
+    height:12px; border-radius:99px; background:rgba(255,255,255,0.08);
+    overflow:hidden; position:relative; border:1px solid var(--panel-line);
+  }
+  .progress-bar-fill{
+    height:100%; border-radius:99px;
+    background:linear-gradient(90deg, var(--stamp), var(--gold));
+    transition:width .5s cubic-bezier(.2,.8,.3,1);
+  }
+  .progress-stats{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:10px; flex-wrap:wrap; gap:8px; position:relative;
+  }
+  .progress-fraction{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--panel-ink-soft);}
+  .progress-meta{display:flex; gap:8px; flex-wrap:wrap;}
+  .stat-chip{
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px;
+    border:1px solid var(--panel-line); border-radius:99px; padding:5px 12px;
+    background:rgba(255,255,255,0.05); color:var(--panel-ink);
+    display:inline-flex; align-items:center; gap:5px;
+  }
+  .status-actions{display:flex; gap:8px; align-items:center; position:relative;}
 
-  .laufzettel{
-    background:var(--paper-dark);
-    border:1px solid var(--paper-line);
-    border-radius:3px;
-    padding:22px 18px 26px;
-    position:relative;
+  .missions-head{text-align:center; margin-bottom:16px;}
+  .missions-head .eyebrow{display:block; margin-bottom:2px;}
+
+  .mission-grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+    gap:14px;
+  }
+  .mission-card{
+    position:relative; text-align:left; width:100%;
+    background:var(--paper-dark); border:1.5px solid var(--paper-line);
+    border-radius:5px; padding:15px 15px 14px;
     box-shadow:var(--card-shadow);
+    transition:transform .14s ease, box-shadow .14s ease, border-color .14s ease;
   }
-  .laufzettel::before{
-    content:"";
-    position:absolute; inset:8px;
-    border:1px dashed var(--paper-line);
-    pointer-events:none;
+  .mission-num{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.12em;
+    color:var(--ink-soft); text-transform:uppercase;
   }
-  .laufzettel-head{text-align:center; margin-bottom:6px;}
-  .laufzettel-head .eyebrow{display:block; margin-bottom:2px;}
+  .mission-card-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;}
+  .mission-state-icon{font-size:16px; line-height:1;}
+  .mission-org{font-size:12.5px; color:var(--ink-soft); margin-bottom:4px;}
+  .mission-title{font-family:'Special Elite',monospace; font-size:15px; line-height:1.35; margin-bottom:12px;}
+  .mission-footer{font-family:'IBM Plex Mono',monospace; font-size:11.5px;}
 
-  .stage-list{margin-top:22px; position:relative; padding-left:0;}
-  .stage-line{
-    position:absolute; left:27px; top:8px; bottom:8px; width:2px;
-    background:repeating-linear-gradient(to bottom, var(--paper-line) 0 6px, transparent 6px 12px);
-  }
-  .stage-item{
-    display:flex; gap:14px; align-items:flex-start;
-    padding:12px 6px; position:relative; border-radius:3px;
-    background:transparent; border:none; width:100%; text-align:left;
-  }
-  .stage-node{
-    flex:0 0 auto; width:56px; height:56px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    font-size:22px; position:relative; z-index:1;
-    border:2px solid var(--locked); background:var(--paper);
-    color:var(--locked);
-  }
-  .stage-item.done .stage-node{border-color:var(--ok); color:var(--ok); background:#e9f0ea;}
-  .stage-item.current .stage-node{border-color:var(--stamp); color:var(--stamp); background:#f7e9e5; box-shadow:0 0 0 4px rgba(163,49,31,0.12);}
-  .stage-item.locked .stage-node{opacity:.55;}
-  .stage-info{padding-top:6px; flex:1;}
-  .stage-title{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:14px;}
-  .stage-amt{font-size:12px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace;}
-  .stage-item.locked .stage-title, .stage-item.locked .stage-amt{color:var(--locked);}
-  .stage-cta{margin-top:6px;}
-  .checkmark{font-family:'Special Elite',monospace; font-size:11px; color:var(--ok);}
+  .mission-card.locked{opacity:.55;}
+  .mission-card.locked .mission-footer{color:var(--locked);}
 
-  button.stage-item{cursor:default;}
-  button.stage-item.current{cursor:pointer;}
-  button.stage-item.current:hover .stage-node{transform:scale(1.05);}
+  .mission-card.current{
+    border-color:var(--stamp); cursor:pointer;
+    box-shadow:var(--glow-stamp), var(--card-shadow);
+    animation:pulse-border 2.4s ease-in-out infinite;
+  }
+  .mission-card.current .mission-footer{color:var(--stamp); font-weight:600;}
+  .mission-card.current:hover{transform:translateY(-3px);}
+  @keyframes pulse-border{
+    0%,100%{box-shadow:var(--glow-stamp), var(--card-shadow);}
+    50%{box-shadow:0 0 0 6px rgba(163,49,31,0.1), 0 0 26px -2px rgba(163,49,31,0.6), var(--card-shadow);}
+  }
+
+  .mission-card.done{border-color:var(--ok); background:#eaf1ec;}
+  .mission-card.done .mission-footer{color:var(--ok); font-weight:600;}
+
+  button.mission-card{font-family:inherit;}
+  div.mission-card{cursor:default;}
+
+  @media (prefers-reduced-motion: reduce){
+    .mission-card.current{animation:none;}
+  }
 
   /* ---------- leaderboard ---------- */
   .board{
@@ -316,6 +401,30 @@
     100%{transform:rotate(-10deg) scale(1); opacity:1;}
   }
   .stamp-fx.fadeout .stamp-mark{ transition:opacity .4s ease; opacity:0; }
+  .xp-pop{
+    margin-top:10px; text-align:center;
+    font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:18px;
+    color:var(--gold); opacity:0;
+    animation: xppop .6s ease .25s forwards;
+  }
+  @keyframes xppop{
+    0%{opacity:0; transform:translateY(6px);}
+    100%{opacity:1; transform:translateY(0);}
+  }
+
+  /* ---------- loading ---------- */
+  .boot-screen{
+    padding:90px 0 70px; text-align:center;
+    font-family:'IBM Plex Mono',monospace; color:var(--ink-soft);
+  }
+  .boot-icon{font-size:30px; display:inline-block; margin-bottom:14px; animation:sway 5s ease-in-out infinite;}
+  .boot-text{font-size:12.5px; letter-spacing:.06em; text-transform:uppercase;}
+  .boot-dots::after{content:''; animation:bootdots 1.2s steps(4,end) infinite;}
+  @keyframes bootdots{0%{content:'';} 25%{content:'.';} 50%{content:'..';} 75%{content:'...';} 100%{content:'';}}
+  @media (prefers-reduced-motion: reduce){
+    .boot-icon{animation:none;}
+    .boot-dots::after{animation:none; content:'...';}
+  }
 
   /* ---------- finished ---------- */
   .finished-card{
@@ -330,11 +439,11 @@
   footer.foot{margin-top:30px; text-align:center;}
   footer.foot button{font-size:11px; color:var(--ink-soft); background:none; border:none; text-decoration:underline; padding:4px;}
 
-  .loading{padding:60px 0; text-align:center; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; font-size:13px;}
-
   @media (prefers-reduced-motion: reduce){
     .stamp-fx .stamp-mark{animation:none; opacity:1; transform:rotate(-10deg) scale(1);}
-    .group-card, .stage-item.current .stage-node{transition:none;}
+    .group-card, .mission-card{transition:none;}
+    .stamp-icon, .hero-icon{animation:none;}
+    .xp-pop{animation:none; opacity:1;}
   }
 </style>
 </head>
@@ -347,7 +456,7 @@
   </filter>
 </svg>
 
-<div id="app"><div class="loading">Formular wird geladen …</div></div>
+<div id="app"><div class="boot-screen"><span class="boot-icon">🖋️</span><div class="boot-text">Rallye-System wird initialisiert<span class="boot-dots"></span></div></div></div>
 
 <script>
 (function(){
@@ -367,6 +476,19 @@
   var POINTS_PER_STAGE = 10;
 
   function tabClass(index){ return 'tab-' + ((index % 6) + 1); }
+
+  var RANKS = [
+    {min:0, label:'Antragsteller:in'},
+    {min:10, label:'Amts-Praktikant:in'},
+    {min:30, label:'Sachbearbeiter:in'},
+    {min:50, label:'Amtsleitung'},
+    {min:70, label:'Amts-Champion'}
+  ];
+  function rankForPoints(points){
+    var r = RANKS[0];
+    for(var i=0;i<RANKS.length;i++){ if(points >= RANKS[i].min) r = RANKS[i]; }
+    return r.label;
+  }
 
   var STAGES = [
     {
@@ -590,12 +712,12 @@
   function showStampFx(){
     var fx = document.createElement('div');
     fx.className = 'stamp-fx';
-    fx.innerHTML = '<div class="stamp-mark">GENEHMIGT</div>';
+    fx.innerHTML = '<div><div class="stamp-mark">GENEHMIGT</div><div class="xp-pop">+'+POINTS_PER_STAGE+' XP</div></div>';
     document.body.appendChild(fx);
     setTimeout(function(){
       fx.classList.add('fadeout');
       setTimeout(function(){ fx.remove(); }, 420);
-    }, 900);
+    }, 1100);
   }
 
   async function leaveGroup(){
@@ -624,18 +746,33 @@
     '</div>';
   }
 
+  function renderHero(){
+    return ''+
+    '<div class="hero">'+
+      '<div class="hero-particles"><span></span><span></span><span></span><span></span><span></span></div>'+
+      '<div class="hero-eyebrow"><span class="hero-icon">🖋️</span><span class="eyebrow">Formular Nr. 09 · Amtliche Mission</span></div>'+
+      '<h1 class="hero-title">BEHÖRDENRALLYE</h1>'+
+      '<p class="hero-sub">9 Teams. 7 Behörden-Missionen. Eine Rangliste. Trage dich ein und leg direkt mit der ersten Etappe los.</p>'+
+      '<div class="hero-stats">'+
+        '<span class="hero-stat"><b>9</b> Teams</span>'+
+        '<span class="hero-stat"><b>7</b> Missionen</span>'+
+        '<span class="hero-stat"><b>'+(POINTS_PER_STAGE*7)+'</b> XP max.</span>'+
+      '</div>'+
+    '</div>';
+  }
+
   function renderIntro(){
     return ''+
-    renderMasthead()+
+    renderHero()+
     '<div class="intro-card">'+
-      '<p>Willkommen zur Behördenrallye! Trage deinen Namen ein, wähle deine Gruppe und arbeite dich Etappe für Etappe über deinen Laufzettel – jede Station wartet mit einer Quizfrage. Richtige Antworten bringen deiner Gruppe Punkte für die Rangliste.</p>'+
+      '<p>Willkommen zur Behördenrallye! Trage deinen Namen ein, wähle deine Gruppe und arbeite dich Etappe für Etappe über deine Missionen – jede Station wartet mit einer Quizfrage. Richtige Antworten bringen deiner Gruppe Punkte für die Rangliste.</p>'+
       '<div class="field" style="margin-top:16px;">'+
         '<label for="nameField">Dein Name</label>'+
         '<input type="text" id="nameField" placeholder="z. B. Max Mustermann" value="'+esc(state.nameInput)+'">'+
       '</div>'+
       (state.error ? '<p style="color:var(--stamp); font-size:14px; margin-top:10px;">'+esc(state.error)+'</p>' : '')+
       '<div style="margin-top:18px;">'+
-        '<button class="btn btn-primary" id="toGroupsBtn">Gruppe auswählen →</button>'+
+        '<button class="btn btn-primary btn-lg" id="toGroupsBtn">Team wählen &amp; starten →</button>'+
       '</div>'+
     '</div>';
   }
@@ -698,44 +835,55 @@
     var groupIdx = GROUPS.findIndex(function(g){ return g.id === p.groupId; });
     var groupDef = GROUPS[groupIdx];
     var myPoints = groupPoints(p.groupId);
+    var doneCount = STAGES.filter(function(s){ return p.progress[s.id]; }).length;
+    var donePct = Math.round(doneCount/STAGES.length*100);
 
-    var stageLine = '<div class="stage-line"></div>';
-    var items = STAGES.map(function(s, i){
+    var cards = STAGES.map(function(s, i){
       var status = stageStatus(s.id, i);
       var tag = status === 'current' ? 'button' : 'div';
       var clickAttr = status === 'current' ? ' data-stage="'+i+'"' : '';
-      var nodeContent = status === 'done' ? '✓' : s.icon;
-      var sub = status === 'done' ? '<span class="checkmark">GEPRÜFT &amp; GESTEMPELT</span>' :
-                status === 'current' ? '<span class="stage-cta">Etappe starten →</span>' :
-                '<span style="font-size:12px;">gesperrt</span>';
+      var stateIcon = status === 'done' ? '✓' : status === 'current' ? '⚡' : '🔒';
+      var footer = status === 'done' ? 'GEPRÜFT &amp; GESTEMPELT · +'+POINTS_PER_STAGE+' XP' :
+                status === 'current' ? 'MISSION STARTEN →' :
+                'Gesperrt';
       return ''+
-      '<'+tag+' class="stage-item '+status+'"'+clickAttr+'>'+
-        '<div class="stage-node">'+nodeContent+'</div>'+
-        '<div class="stage-info">'+
-          '<div class="stage-title">'+(i+1)+'. '+esc(s.title)+'</div>'+
-          '<div class="stage-amt">'+esc(s.amt)+'</div>'+
-          sub+
+      '<'+tag+' class="mission-card '+status+'"'+clickAttr+'>'+
+        '<div class="mission-card-head">'+
+          '<span class="mission-num">Mission '+String(i+1).padStart(2,'0')+'</span>'+
+          '<span class="mission-state-icon">'+stateIcon+'</span>'+
         '</div>'+
+        '<div class="mission-org">'+s.icon+' '+esc(s.amt)+'</div>'+
+        '<div class="mission-title">'+esc(s.title)+'</div>'+
+        '<div class="mission-footer">'+footer+'</div>'+
       '</'+tag+'>';
     }).join('');
 
     return ''+
     renderMasthead()+
-    '<div class="status-bar">'+
-      '<div class="who">Gruppe: <b class="'+tabClass(groupIdx)+'" style="color:var(--tab)">'+esc(groupDef.name)+'</b> · <span id="myGroupPoints">'+myPoints+' Punkte</span></div>'+
-      '<div class="status-actions">'+
-        '<button class="btn btn-ghost" id="toggleBoardBtn">'+(state.boardOpen?'Rangliste ausblenden':'Rangliste anzeigen')+'</button>'+
+    '<div class="progress-panel">'+
+      '<div class="progress-head">'+
+        '<span class="eyebrow">Rallye-Fortschritt</span>'+
+        '<div class="who">Team: <b class="'+tabClass(groupIdx)+'" style="color:var(--tab)">'+esc(groupDef.name)+'</b></div>'+
       '</div>'+
+      '<div class="progress-bar-track"><div class="progress-bar-fill" style="width:'+donePct+'%"></div></div>'+
+      '<div class="progress-stats">'+
+        '<span class="progress-fraction">'+doneCount+' / '+STAGES.length+' Missionen erledigt</span>'+
+        '<div class="progress-meta">'+
+          '<span class="stat-chip" id="myGroupPoints">★ '+myPoints+' Punkte</span>'+
+          '<span class="stat-chip">🏆 '+esc(rankForPoints(myPoints))+'</span>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="status-actions" style="margin-bottom:18px;">'+
+      '<button class="btn btn-ghost" id="toggleBoardBtn">'+(state.boardOpen?'Rangliste ausblenden':'Rangliste anzeigen')+'</button>'+
     '</div>'+
     (state.boardOpen ? renderBoard() : '')+
-    '<div class="laufzettel">'+
-      '<div class="laufzettel-head">'+
-        '<span class="eyebrow">Laufzettel</span>'+
-        '<h2>'+esc(p.name)+'s Route</h2>'+
-        '<p class="muted" style="font-size:13.5px; margin:0;">Klicke auf die aktuelle Station, um die Etappe zu bearbeiten.</p>'+
-      '</div>'+
-      '<div class="stage-list">'+stageLine+items+'</div>'+
+    '<div class="missions-head">'+
+      '<span class="eyebrow">'+esc(p.name)+'s Missionen</span>'+
+      '<h2>Deine Route</h2>'+
+      '<p class="muted" style="font-size:13.5px; margin:0;">Tippe auf die aktive Mission, um die Etappe zu bearbeiten.</p>'+
     '</div>'+
+    '<div class="mission-grid">'+cards+'</div>'+
     '<footer class="foot"><button id="leaveBtn">Neu anmelden / Gerät wechseln</button></footer>';
   }
 
@@ -787,7 +935,10 @@
       '<div class="stamp-mark">RALLYE ABGESCHLOSSEN</div>'+
       '<h2>Gut gemacht, '+esc(p.name)+'!</h2>'+
       '<p>Du hast alle 7 Etappen für <b class="'+tabClass(groupIdx)+'" style="color:var(--tab)">'+esc(groupDef.name)+'</b> gestempelt und '+POINTS_PER_STAGE*7+' Punkte beigetragen.</p>'+
-      '<p class="muted" style="font-size:13.5px;">Aktueller Stand deiner Gruppe: '+myPoints+' Punkte.</p>'+
+      '<div class="hero-stats" style="margin-top:4px;">'+
+        '<span class="hero-stat">★ '+myPoints+' Punkte</span>'+
+        '<span class="hero-stat">🏆 '+esc(rankForPoints(myPoints))+'</span>'+
+      '</div>'+
       '<button class="btn btn-ghost" id="toggleBoardBtn2" style="margin-top:6px;">'+(state.boardOpen?'Rangliste ausblenden':'Rangliste anzeigen')+'</button>'+
     '</div>'+
     (state.boardOpen ? renderBoard() : '')+
@@ -800,7 +951,7 @@
     else if(state.screen === 'select-group') html = renderGroupSelect();
     else if(state.screen === 'map') html = renderMap();
     else if(state.screen === 'finished') html = renderFinished();
-    else html = '<div class="loading">Formular wird geladen …</div>';
+    else html = '<div class="boot-screen"><span class="boot-icon">🖋️</span><div class="boot-text">Rallye-System wird initialisiert<span class="boot-dots"></span></div></div>';
 
     if(state.activeQuizIndex !== null){
       html += renderQuiz();
