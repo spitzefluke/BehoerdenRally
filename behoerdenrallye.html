@@ -46,6 +46,9 @@
   }
   #app{max-width:720px;margin:0 auto;padding:20px 16px 80px;}
   :focus-visible{outline:2.5px solid var(--carbon); outline-offset:2px;}
+  .screen{animation:screenIn .38s cubic-bezier(.2,.8,.3,1) both;}
+  @keyframes screenIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+  @media (prefers-reduced-motion: reduce){ .screen{animation:none;} }
   .tab-1{--tab:var(--stamp);}
   .tab-2{--tab:var(--carbon);}
   .tab-3{--tab:var(--gold);}
@@ -289,7 +292,11 @@
     border-radius:5px; padding:15px 15px 14px;
     box-shadow:var(--card-shadow);
     transition:transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+    animation:cardIn .36s ease both;
+    animation-delay:calc(var(--i, 0) * 45ms);
   }
+  @keyframes cardIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+  @media (prefers-reduced-motion: reduce){ .mission-card{animation:none;} }
   .mission-num{
     font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.12em;
     color:var(--ink-soft); text-transform:uppercase;
@@ -351,7 +358,9 @@
     position:fixed; inset:0; background:rgba(43,38,32,0.55);
     display:flex; align-items:flex-end; justify-content:center; z-index:50;
     padding:0;
+    animation:overlayFade .2s ease both;
   }
+  @keyframes overlayFade{from{opacity:0;} to{opacity:1;}}
   @media(min-width:640px){ .overlay{align-items:center; padding:20px;} }
   .quiz-card{
     background:var(--paper); width:100%; max-width:520px;
@@ -359,8 +368,11 @@
     max-height:88vh; overflow-y:auto;
     box-shadow:0 -10px 40px rgba(0,0,0,0.3);
     position:relative;
+    animation:modalIn .26s cubic-bezier(.2,.8,.3,1) both;
   }
+  @keyframes modalIn{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:translateY(0);}}
   @media(min-width:640px){ .quiz-card{border-radius:6px;} }
+  @media (prefers-reduced-motion: reduce){ .overlay, .quiz-card{animation:none;} }
   .quiz-amt{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.08em;}
   .quiz-question{font-family:'Special Elite',monospace; font-size:19px; line-height:1.4; margin:8px 0 18px;}
   .option{
@@ -425,6 +437,21 @@
     .boot-icon{animation:none;}
     .boot-dots::after{animation:none; content:'...';}
   }
+
+  /* ---------- toast (Easter Eggs & Hinweise) ---------- */
+  .toast{
+    position:fixed; left:50%; bottom:22px; transform:translateX(-50%) translateY(0);
+    max-width:min(92vw,420px); z-index:70;
+    background:var(--panel); color:var(--panel-ink);
+    border:1px solid var(--panel-line); border-radius:6px;
+    padding:12px 16px; box-shadow:var(--panel-shadow);
+    font-size:14px; line-height:1.4; text-align:center;
+    animation:toastIn .3s cubic-bezier(.2,.8,.3,1) both;
+  }
+  .toast.fadeout{animation:toastOut .3s ease both;}
+  @keyframes toastIn{from{opacity:0; transform:translateX(-50%) translateY(14px);} to{opacity:1; transform:translateX(-50%) translateY(0);}}
+  @keyframes toastOut{from{opacity:1;} to{opacity:0;}}
+  @media (prefers-reduced-motion: reduce){ .toast{animation:none;} .toast.fadeout{animation:none; opacity:0;} }
 
   /* ---------- finished ---------- */
   .finished-card{
@@ -570,26 +597,32 @@
     try{
       var raw = localStorage.getItem('behoerdenrallye:groups-state');
       if(raw){ return JSON.parse(raw); }
-    }catch(e){}
+    }catch(e){ console.warn('Behördenrallye: groups-state konnte nicht gelesen werden.', e); }
     var fresh = emptyGroupsState();
-    try{ localStorage.setItem('behoerdenrallye:groups-state', JSON.stringify(fresh)); }catch(e){}
+    try{ localStorage.setItem('behoerdenrallye:groups-state', JSON.stringify(fresh)); }catch(e){ console.warn('Behördenrallye: groups-state konnte nicht gespeichert werden.', e); }
     return fresh;
   }
 
   async function saveGroupsState(gs){
-    try{ localStorage.setItem('behoerdenrallye:groups-state', JSON.stringify(gs)); }catch(e){}
+    try{ localStorage.setItem('behoerdenrallye:groups-state', JSON.stringify(gs)); }catch(e){
+      console.warn('Behördenrallye: groups-state konnte nicht gespeichert werden.', e);
+      showToast('Deine Punkte konnten gerade nicht gespeichert werden. Bitte Speicherplatz im Browser prüfen.');
+    }
   }
 
   async function loadParticipant(){
     try{
       var raw = localStorage.getItem('behoerdenrallye:participant');
       if(raw){ return JSON.parse(raw); }
-    }catch(e){}
+    }catch(e){ console.warn('Behördenrallye: participant konnte nicht gelesen werden.', e); }
     return null;
   }
 
   async function saveParticipant(p){
-    try{ localStorage.setItem('behoerdenrallye:participant', JSON.stringify(p)); }catch(e){}
+    try{ localStorage.setItem('behoerdenrallye:participant', JSON.stringify(p)); }catch(e){
+      console.warn('Behördenrallye: participant konnte nicht gespeichert werden.', e);
+      showToast('Dein Fortschritt konnte gerade nicht gespeichert werden. Bitte Speicherplatz im Browser prüfen.');
+    }
   }
 
   async function init(){
@@ -607,6 +640,7 @@
 
   function startPolling(){
     setInterval(async function(){
+      if(document.hidden) return;
       if(state.screen === 'map' || state.screen === 'finished'){
         var gs = await loadGroupsState();
         state.groupsState = gs;
@@ -722,11 +756,73 @@
 
   async function leaveGroup(){
     if(!confirm('Neu anmelden? Dein bisheriger Fortschritt auf diesem Gerät geht verloren (dein Platz in der alten Gruppe bleibt belegt).')) return;
-    try{ localStorage.removeItem('behoerdenrallye:participant'); }catch(e){}
+    try{ localStorage.removeItem('behoerdenrallye:participant'); }catch(e){ console.warn('Behördenrallye: participant konnte nicht entfernt werden.', e); }
     state.participant = null;
     state.nameInput = '';
     state.screen = 'intro';
     render();
+  }
+
+  var toastTimer = null;
+  function showToast(text){
+    var old = document.getElementById('toast');
+    if(old) old.remove();
+    if(toastTimer) clearTimeout(toastTimer);
+    var t = document.createElement('div');
+    t.id = 'toast';
+    t.className = 'toast';
+    t.setAttribute('role','status');
+    t.setAttribute('aria-live','polite');
+    t.textContent = text;
+    document.body.appendChild(t);
+    toastTimer = setTimeout(function(){
+      t.classList.add('fadeout');
+      setTimeout(function(){ t.remove(); }, 320);
+    }, 3400);
+  }
+
+  /* ---------------- Easter Eggs ----------------
+     Rein kosmetisch, blockieren keine bestehende Funktion. */
+  var EASTER_MESSAGES = [
+    '📋 Antrag auf Sofortbearbeitung wurde abgelehnt. Bitte in 6–8 Wochen erneut versuchen.',
+    '🖨️ Der Drucker im Nebenzimmer ist zuständig. Bitte dort anfragen.',
+    '🐌 Ihr Vorgang wurde archiviert. Aktenzeichen: XY-ungelöst-0815.'
+  ];
+  var eggKeyBuffer = '';
+  function handleEasterKeydown(e){
+    if(e.ctrlKey || e.metaKey || e.altKey) return;
+    var k = (e.key || '').toLowerCase();
+    if(k.length !== 1) { eggKeyBuffer=''; return; }
+    eggKeyBuffer = (eggKeyBuffer + k).slice(-3);
+    if(eggKeyBuffer === 'amt'){
+      eggKeyBuffer = '';
+      showToast(EASTER_MESSAGES[Math.floor(Math.random()*EASTER_MESSAGES.length)]);
+    }
+  }
+
+  var stampClickCount = 0;
+  var stampClickTimer = null;
+  function handleStampIconClick(){
+    stampClickCount++;
+    clearTimeout(stampClickTimer);
+    stampClickTimer = setTimeout(function(){ stampClickCount = 0; }, 2500);
+    if(stampClickCount >= 5){
+      stampClickCount = 0;
+      showToast('🕵️ Geheime Prüfstelle aktiviert: Ihre Geduld wurde amtlich als „vorbildlich" eingestuft.');
+    }
+  }
+
+  var FORM_ALTS = [
+    'Formular Nr. 09b · Anlage zu Anlage 3',
+    'Formular Nr. 09-Ü · Überarbeitung der Überarbeitung',
+    'Formular Nr. 09 · jetzt in dreifacher Ausfertigung'
+  ];
+  function handleEyebrowClick(e){
+    var el = e.currentTarget;
+    if(!el.dataset.original) el.dataset.original = el.getAttribute('title') || el.textContent;
+    el.textContent = FORM_ALTS[Math.floor(Math.random()*FORM_ALTS.length)];
+    clearTimeout(el._resetTimer);
+    el._resetTimer = setTimeout(function(){ el.textContent = el.dataset.original; }, 4000);
   }
 
   /* ---------------- render helpers ---------------- */
@@ -739,8 +835,8 @@
     return ''+
     '<div class="masthead">'+
       '<div class="masthead-title">'+
-        '<span class="stamp-icon">🖋️</span>'+
-        '<div><span class="eyebrow">Formular Nr. 09 / Amtliche Rallye</span><h1>Behördenrallye</h1></div>'+
+        '<span class="stamp-icon egg-stamp" title="🖋️">🖋️</span>'+
+        '<div><span class="eyebrow egg-eyebrow" title="Formular Nr. 09 / Amtliche Rallye">Formular Nr. 09 / Amtliche Rallye</span><h1>Behördenrallye</h1></div>'+
       '</div>'+
       '<div class="masthead-meta">9 Gruppen · je 10 Plätze<br>7 Etappen · 70 Punkte max.</div>'+
     '</div>';
@@ -750,7 +846,7 @@
     return ''+
     '<div class="hero">'+
       '<div class="hero-particles"><span></span><span></span><span></span><span></span><span></span></div>'+
-      '<div class="hero-eyebrow"><span class="hero-icon">🖋️</span><span class="eyebrow">Formular Nr. 09 · Amtliche Mission</span></div>'+
+      '<div class="hero-eyebrow"><span class="hero-icon egg-stamp">🖋️</span><span class="eyebrow egg-eyebrow" title="Formular Nr. 09 · Amtliche Mission">Formular Nr. 09 · Amtliche Mission</span></div>'+
       '<h1 class="hero-title">BEHÖRDENRALLYE</h1>'+
       '<p class="hero-sub">9 Teams. 7 Behörden-Missionen. Eine Rangliste. Trage dich ein und leg direkt mit der ersten Etappe los.</p>'+
       '<div class="hero-stats">'+
@@ -846,11 +942,14 @@
       var footer = status === 'done' ? 'GEPRÜFT &amp; GESTEMPELT · +'+POINTS_PER_STAGE+' XP' :
                 status === 'current' ? 'MISSION STARTEN →' :
                 'Gesperrt';
+      var ariaLabel = status === 'current' ? ' aria-label="Mission '+(i+1)+' starten: '+esc(s.title)+'"' :
+                       status === 'done' ? ' aria-label="Mission '+(i+1)+' abgeschlossen: '+esc(s.title)+'"' :
+                       ' aria-label="Mission '+(i+1)+' gesperrt: '+esc(s.title)+'"';
       return ''+
-      '<'+tag+' class="mission-card '+status+'"'+clickAttr+'>'+
+      '<'+tag+' class="mission-card '+status+'" style="--i:'+i+'"'+clickAttr+ariaLabel+'>'+
         '<div class="mission-card-head">'+
           '<span class="mission-num">Mission '+String(i+1).padStart(2,'0')+'</span>'+
-          '<span class="mission-state-icon">'+stateIcon+'</span>'+
+          '<span class="mission-state-icon" aria-hidden="true">'+stateIcon+'</span>'+
         '</div>'+
         '<div class="mission-org">'+s.icon+' '+esc(s.amt)+'</div>'+
         '<div class="mission-title">'+esc(s.title)+'</div>'+
@@ -865,7 +964,9 @@
         '<span class="eyebrow">Rallye-Fortschritt</span>'+
         '<div class="who">Team: <b class="'+tabClass(groupIdx)+'" style="color:var(--tab)">'+esc(groupDef.name)+'</b></div>'+
       '</div>'+
-      '<div class="progress-bar-track"><div class="progress-bar-fill" style="width:'+donePct+'%"></div></div>'+
+      '<div class="progress-bar-track" role="progressbar" aria-valuenow="'+doneCount+'" aria-valuemin="0" aria-valuemax="'+STAGES.length+'" aria-label="Rallye-Fortschritt">'+
+        '<div class="progress-bar-fill" style="width:'+donePct+'%"></div>'+
+      '</div>'+
       '<div class="progress-stats">'+
         '<span class="progress-fraction">'+doneCount+' / '+STAGES.length+' Missionen erledigt</span>'+
         '<div class="progress-meta">'+
@@ -913,10 +1014,10 @@
 
     return ''+
     '<div class="overlay" id="quizOverlay">'+
-      '<div class="quiz-card">'+
-        '<button class="close-x" id="quizCloseBtn">✕</button>'+
+      '<div class="quiz-card" role="dialog" aria-modal="true" aria-labelledby="quizQuestion">'+
+        '<button class="close-x" id="quizCloseBtn" aria-label="Quiz schließen">✕</button>'+
         '<div class="quiz-amt">'+s.icon+' Station '+(i+1)+' · '+esc(s.amt)+'</div>'+
-        '<div class="quiz-question">'+esc(s.question)+'</div>'+
+        '<div class="quiz-question" id="quizQuestion">'+esc(s.question)+'</div>'+
         '<div class="options">'+optsHtml+'</div>'+
         feedback+
         '<div class="quiz-actions">'+actionBtn+'</div>'+
@@ -953,11 +1054,9 @@
     else if(state.screen === 'finished') html = renderFinished();
     else html = '<div class="boot-screen"><span class="boot-icon">🖋️</span><div class="boot-text">Rallye-System wird initialisiert<span class="boot-dots"></span></div></div>';
 
-    if(state.activeQuizIndex !== null){
-      html += renderQuiz();
-    }
+    var quizHtml = state.activeQuizIndex !== null ? renderQuiz() : '';
 
-    app.innerHTML = html;
+    app.innerHTML = '<div class="screen">'+html+'</div>'+quizHtml;
     attachListeners();
   }
 
@@ -995,6 +1094,13 @@
       btn.addEventListener('click', function(){ selectOption(parseInt(btn.getAttribute('data-opt'),10)); });
     });
 
+    document.querySelectorAll('.egg-stamp').forEach(function(el){
+      el.addEventListener('click', handleStampIconClick);
+    });
+    document.querySelectorAll('.egg-eyebrow').forEach(function(el){
+      el.addEventListener('click', handleEyebrowClick);
+    });
+
     var quizClose = document.getElementById('quizCloseBtn');
     if(quizClose) quizClose.addEventListener('click', closeQuiz);
     var quizOverlay = document.getElementById('quizOverlay');
@@ -1011,6 +1117,11 @@
     state.screen = 'select-group';
     render();
   }
+
+  document.addEventListener('keydown', function(e){
+    handleEasterKeydown(e);
+    if(e.key === 'Escape' && state.activeQuizIndex !== null){ closeQuiz(); }
+  });
 
   init();
 })();
