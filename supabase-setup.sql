@@ -106,5 +106,22 @@ create policy "participants public insert"
 grant execute on function public.complete_stage(text, text, integer) to anon;
 
 -- Realtime aktivieren, damit alle Geräte Änderungen sofort sehen.
-alter publication supabase_realtime add table public.groups;
-alter publication supabase_realtime add table public.participants;
+-- (in ein DO-Block verpackt, weil "ALTER PUBLICATION ... ADD TABLE" beim
+-- erneuten Ausführen sonst mit "already member of publication" fehlschlägt
+-- und dabei das gesamte Skript inkl. der obigen Funktions-Änderung
+-- zurückrollt)
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'groups'
+  ) then
+    alter publication supabase_realtime add table public.groups;
+  end if;
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'participants'
+  ) then
+    alter publication supabase_realtime add table public.participants;
+  end if;
+end $$;
