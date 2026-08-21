@@ -78,38 +78,57 @@
   a, button{font-family:inherit;}
   button{cursor:pointer;}
 
-  /* ---------- buttons ---------- */
+  /* ---------- buttons (Uiverse.io by Spacious74) ---------- */
   .btn{
     cursor:pointer;
     font-family:'IBM Plex Sans', sans-serif;
     font-weight:600;
     font-size:14px;
     border:none;
-    border-radius:var(--radius);
-    padding:0;
+    border-radius:16px;
+    padding:2px;
     min-height:44px;
     display:inline-flex; align-items:stretch; justify-content:center;
     position:relative; overflow:hidden;
-    background:var(--navy);
-    transition:background .15s ease;
+    background:radial-gradient(circle 80px at 80% -10%, #ffffff, #181b1b);
+    transition:transform .16s ease;
   }
-  .btn::after{content:none;}
-  .btn .blob{display:none;}
+  .btn::after{
+    content:"";
+    position:absolute; width:65%; height:60%;
+    border-radius:120px; top:0; right:0;
+    box-shadow:0 0 20px #ffffff38;
+    z-index:0; pointer-events:none;
+  }
+  .btn .blob{
+    position:absolute; width:70px; max-width:40%; height:100%;
+    border-radius:16px; bottom:0; left:0;
+    background:radial-gradient(circle 60px at 0% 100%, #3fe9ff, #0000ff80, transparent);
+    box-shadow:-10px 10px 30px #0051ff2d;
+    pointer-events:none;
+  }
   .btn .inner{
     width:100%;
     padding:11px 20px;
-    border-radius:var(--radius);
+    border-radius:14px;
     color:#fff;
     display:inline-flex; align-items:center; justify-content:center; gap:8px;
-    z-index:1; position:relative;
-    background:none;
+    z-index:3; position:relative;
+    background:radial-gradient(circle 80px at 80% -50%, #777777, #0f1111);
   }
-  .btn .inner::before{content:none;}
-  .btn:hover{background:var(--navy-soft);}
-  .btn:active{background:var(--navy);}
-  .btn:disabled{opacity:.45; cursor:not-allowed; pointer-events:none;}
+  .btn .inner::before{
+    content:"";
+    position:absolute; inset:0; border-radius:14px;
+    background:radial-gradient(circle 60px at 0% 100%, #00e1ff1a, #0000ff11, transparent);
+    pointer-events:none;
+  }
+  .btn:hover{transform:translateY(-2px);}
+  .btn:active{transform:translateY(0) scale(.98);}
+  .btn:disabled{opacity:.45; cursor:not-allowed; pointer-events:none; transform:none;}
   .btn.is-loading{opacity:.75; cursor:wait; pointer-events:none;}
   .btn-lg .inner{padding:15px 28px; font-size:15px;}
+  .btn.menu-btn{width:44px; flex:0 0 auto;}
+  .btn.menu-btn .inner{width:44px; height:44px; padding:0;}
   @media (prefers-reduced-motion: reduce){ .btn{transition:none;} }
 
   /* ---------- header / topbar ---------- */
@@ -140,13 +159,6 @@
     display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
     overflow:hidden; text-overflow:ellipsis; min-width:0; max-width:44vw;
   }
-  .menu-btn{
-    width:44px; height:44px; border-radius:var(--radius); border:1.5px solid var(--border);
-    background:var(--surface); color:var(--navy); flex:0 0 auto;
-    display:flex; align-items:center; justify-content:center;
-    transition:background .16s ease, border-color .16s ease;
-  }
-  .menu-btn:hover{background:var(--blue-light); border-color:var(--blue);}
   .menu-panel{
     position:absolute; top:52px; right:0; z-index:41;
     background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
@@ -1482,7 +1494,7 @@
       '<span class="brand"><span class="brand-mark egg-stamp">BR</span><span class="brand-word">Behörden<b>Rallye</b></span></span>'+
       '<div class="topbar-right">'+
         (groupDef ? '<span class="topbar-pill">'+esc(groupDef.name)+' · '+myPoints+' P.</span>' : '')+
-        (state.participant ? '<button type="button" class="menu-btn" id="menuBtn" aria-haspopup="true" aria-expanded="'+(state.menuOpen?'true':'false')+'" aria-label="Menü öffnen">'+icon('menu')+'</button>' : '')+
+        (state.participant ? '<button type="button" class="btn menu-btn" id="menuBtn" aria-haspopup="true" aria-expanded="'+(state.menuOpen?'true':'false')+'" aria-label="Menü öffnen"><span class="blob"></span><span class="inner">'+icon('menu')+'</span></button>' : '')+
         (state.participant && state.menuOpen ? renderMenuPanel() : '')+
       '</div>'+
     '</div>';
