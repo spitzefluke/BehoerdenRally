@@ -464,7 +464,9 @@
     width:34px; height:34px; background:var(--locked-bg); color:var(--text-muted);
     font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:700; border-radius:var(--radius-sm);
   }
-  .board-row.top .board-rank{background:var(--navy); color:#fff;}
+  .board-row.place-1 .board-rank{background:#E8B923; color:var(--navy);}
+  .board-row.place-2 .board-rank{background:#C3C9D1; color:var(--navy);}
+  .board-row.place-3 .board-rank{background:#D08A4C; color:var(--navy);}
   .board-name{
     min-width:0; display:flex; align-items:center; gap:9px;
     color:var(--navy); font-family:'IBM Plex Sans',sans-serif; font-size:14px; font-weight:600;
@@ -1644,7 +1646,7 @@
     var rowsHtml = rows.map(function(r, i){
       var pct = Math.round(r.points / maxPts * 100);
       return ''+
-      '<div class="board-row '+r.tab+(i===0?' top':'')+(r.id===mine?' mine':'')+'">'+
+      '<div class="board-row '+r.tab+(i<3?' place-'+(i+1):'')+(r.id===mine?' mine':'')+'">'+
         '<div class="board-rank">'+String(i+1).padStart(2,'0')+'</div>'+
         '<div class="board-name"><span class="board-dot"></span><span>'+esc(r.name)+'</span>'+(r.id===mine?' <span class="du-badge">Du</span>':'')+'</div>'+
         '<div class="board-points">'+r.points+'</div>'+
