@@ -247,11 +247,21 @@
   .hero-particles span:nth-child(4){width:7px;height:7px; left:20%; top:75%; background:var(--tab-3); animation-duration:15s; animation-delay:-5s;}
   .hero-particles span:nth-child(5){width:5px;height:5px; left:45%; top:12%; background:var(--tab-6); animation-duration:13s; animation-delay:-9s;}
   @keyframes drift{0%,100%{transform:translate(0,0);} 50%{transform:translate(8px,-14px);}}
+  .hero-inner{position:relative; display:flex; flex-direction:column; align-items:center; gap:18px;}
+  .hero-logo{width:104px; height:auto; flex:0 0 auto; filter:drop-shadow(0 4px 10px rgba(14,42,67,.18));}
+  .hero-text{min-width:0;}
   .hero-eyebrow{display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;}
   .hero-title{font-size:clamp(32px,7.5vw,50px); line-height:1.05; letter-spacing:-.02em; margin:0 0 10px; color:var(--navy);}
   .hero-title b{color:var(--primary);}
   .hero-sub{max-width:46ch; margin:0 auto 22px; color:var(--text-muted); font-size:15.5px;}
   .hero-stats{display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:8px;}
+  @media (min-width:600px){
+    .hero-inner{flex-direction:row; align-items:center; text-align:left;}
+    .hero-logo{width:128px;}
+    .hero-eyebrow{justify-content:flex-start;}
+    .hero-sub{margin:0 0 22px;}
+    .hero-stats{justify-content:flex-start;}
+  }
   .hero-stat{
     font-family:'IBM Plex Mono',monospace; font-size:11.5px; font-weight:600; color:var(--navy);
     border:1px solid var(--border); border-radius:99px; padding:6px 14px;
@@ -1239,13 +1249,18 @@
     return ''+
     '<div class="hero">'+
       '<div class="hero-particles"><span></span><span></span><span></span><span></span><span></span></div>'+
-      '<div class="hero-eyebrow"><span class="eyebrow egg-eyebrow">Inoffizielles Fanprojekt · keine amtliche Website</span></div>'+
-      '<h1 class="hero-title">Willkommen bei Behörden<b>Rallye</b></h1>'+
-      '<p class="hero-sub">Dein digitales Behörden-Abenteuer beginnt hier. Team wählen, Fallakten bearbeiten, gemeinsam die Rallye abschließen.</p>'+
-      '<div class="hero-stats">'+
-        '<span class="hero-stat"><b>9</b> Teams</span>'+
-        '<span class="hero-stat"><b>7</b> Fallakten</span>'+
-        '<span class="hero-stat"><b>'+(POINTS_PER_STAGE*7)+'</b> XP max.</span>'+
+      '<div class="hero-inner">'+
+        '<img class="hero-logo" src="assets/logo-hamburg.png" alt="Hamburg-inspiriertes Wappen-Icon">'+
+        '<div class="hero-text">'+
+          '<div class="hero-eyebrow"><span class="eyebrow egg-eyebrow">Inoffizielles Fanprojekt · keine amtliche Website</span></div>'+
+          '<h1 class="hero-title">Willkommen bei Behörden<b>Rallye</b></h1>'+
+          '<p class="hero-sub">Dein digitales Behörden-Abenteuer beginnt hier. Team wählen, Fallakten bearbeiten, gemeinsam die Rallye abschließen.</p>'+
+          '<div class="hero-stats">'+
+            '<span class="hero-stat"><b>9</b> Teams</span>'+
+            '<span class="hero-stat"><b>7</b> Fallakten</span>'+
+            '<span class="hero-stat"><b>'+(POINTS_PER_STAGE*7)+'</b> XP max.</span>'+
+          '</div>'+
+        '</div>'+
       '</div>'+
     '</div>';
   }
