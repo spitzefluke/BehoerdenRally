@@ -40,6 +40,10 @@
     --card-shadow: 0 2px 8px rgba(14,42,67,0.08);
     --card-shadow-hover: 0 4px 14px rgba(14,42,67,0.12);
     --panel-shadow: 0 4px 16px rgba(14,42,67,0.16);
+    --bgfx-yellow:#F4D614;
+    --bgfx-pink:#E1095C;
+    --bgfx-purple:#7E6AA9;
+    --bgfx-green:#84AF22;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -50,6 +54,32 @@
     min-height:100vh;
     -webkit-font-smoothing:antialiased;
   }
+  /* ---------- shooting-stars background (Uiverse.io by marsella_3472: concept + ZAF colours kept,
+     re-implemented with real elements + transform instead of animating background-position across
+     36 gradient layers - the original measured ~1.6fps in this project's perf harness, the same
+     background-position-on-many-gradients trap the rain background hit earlier. ---------- */
+  #starfx{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; background:#000;}
+  #starfx span{
+    position:absolute; top:-25vh; width:2.5px;
+    border-radius:3px;
+    background:linear-gradient(to bottom, transparent, var(--star-color, var(--bgfx-purple)) 80%, var(--star-color, var(--bgfx-purple)));
+    opacity:.85;
+    transform:rotate(45deg);
+    animation-name:starfall; animation-timing-function:linear; animation-iteration-count:infinite;
+    will-change:transform;
+  }
+  #starfx span::after{
+    content:""; position:absolute; left:50%; bottom:-1px; width:5px; height:5px;
+    transform:translateX(-50%); border-radius:50%;
+    background:var(--star-color, var(--bgfx-purple));
+    box-shadow:0 0 6px 1px var(--star-color, var(--bgfx-purple));
+  }
+  @keyframes starfall{
+    from{ transform:rotate(45deg) translateY(0); }
+    to{ transform:rotate(45deg) translateY(145vh); }
+  }
+  @media (prefers-reduced-motion: reduce){ #starfx span{animation:none; opacity:.4;} }
+
   #app{position:relative; z-index:1; max-width:760px;margin:0 auto;padding:24px 16px 80px;}
   :focus-visible{outline:2.5px solid var(--focus); outline-offset:2px; border-radius:4px;}
   .icon{display:inline-flex; align-items:center; justify-content:center; line-height:0; flex:0 0 auto;}
@@ -185,7 +215,7 @@
   }
   .step.active{color:#fff; background:var(--navy); border-color:var(--navy);}
   .step.done{color:var(--success); border-color:var(--success);}
-  .step-sep{color:var(--text-muted); font-size:12px;}
+  .step-sep{color:rgba(255,255,255,.4); font-size:12px;}
 
   /* ---------- hero (Startseite) ---------- */
   .hero{
@@ -367,8 +397,12 @@
   }
   .status-actions{display:flex; gap:8px; align-items:center; position:relative; flex-wrap:wrap;}
 
+  .page-lead .eyebrow{color:rgba(255,255,255,.6);}
+  .page-lead h1{color:#fff;}
   .missions-head{text-align:center; margin-bottom:16px;}
-  .missions-head .eyebrow{display:block; margin-bottom:2px;}
+  .missions-head .eyebrow{display:block; margin-bottom:2px; color:rgba(255,255,255,.6);}
+  .missions-head h2{color:#fff;}
+  .missions-head .muted{color:rgba(255,255,255,.55);}
 
   /* ---------- mission cards ("Fallakten") ---------- */
   .mission-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px;}
@@ -550,6 +584,7 @@
 
   /* ---------- recovery / offline ---------- */
   .recover-box{margin-top:16px; text-align:center;}
+  .recover-box .eyebrow{color:rgba(255,255,255,.6);}
   .recover-row{display:flex; gap:8px; justify-content:center; margin-top:8px; flex-wrap:wrap;}
   .recover-row input{
     font-family:'IBM Plex Mono',monospace; font-size:14px; letter-spacing:.05em;
@@ -591,8 +626,8 @@
   }
 
   footer.foot{margin-top:30px; text-align:center;}
-  footer.foot button{font-size:12.5px; color:var(--text-muted); background:none; border:none; text-decoration:underline; padding:10px; min-height:44px;}
-  .site-disclaimer{margin-top:36px; text-align:center; font-size:11.5px; color:var(--text-muted); line-height:1.5; padding:0 12px;}
+  footer.foot button{font-size:12.5px; color:rgba(255,255,255,.6); background:none; border:none; text-decoration:underline; padding:10px; min-height:44px;}
+  .site-disclaimer{margin-top:36px; text-align:center; font-size:11.5px; color:rgba(255,255,255,.45); line-height:1.5; padding:0 12px;}
 
   @media (prefers-reduced-motion: reduce){
     .stamp-fx .stamp-mark{animation:none; opacity:1; transform:rotate(-8deg) scale(1);}
@@ -604,6 +639,8 @@
 </style>
 </head>
 <body>
+
+<div id="starfx" aria-hidden="true"><span style="left:29.0%; height:70px; animation-duration:4.2s; animation-delay:-2.8s; --star-color:var(--bgfx-yellow);"></span><span style="left:81.2%; height:130px; animation-duration:3.9s; animation-delay:-3.3s; --star-color:var(--bgfx-pink);"></span><span style="left:17.5%; height:85px; animation-duration:3.9s; animation-delay:-4.7s; --star-color:var(--bgfx-purple);"></span><span style="left:4.5%; height:70px; animation-duration:5.4s; animation-delay:-1.4s; --star-color:var(--bgfx-green);"></span><span style="left:94.5%; height:70px; animation-duration:6.3s; animation-delay:-3.3s; --star-color:var(--bgfx-yellow);"></span><span style="left:55.6%; height:70px; animation-duration:5.3s; animation-delay:-0.2s; --star-color:var(--bgfx-pink);"></span><span style="left:53.4%; height:130px; animation-duration:4.1s; animation-delay:-4.6s; --star-color:var(--bgfx-purple);"></span><span style="left:7.4%; height:85px; animation-duration:4.9s; animation-delay:-1.5s; --star-color:var(--bgfx-green);"></span><span style="left:5.8%; height:70px; animation-duration:6.1s; animation-delay:-6.5s; --star-color:var(--bgfx-yellow);"></span><span style="left:52.5%; height:85px; animation-duration:3.8s; animation-delay:-7.5s; --star-color:var(--bgfx-pink);"></span><span style="left:47.1%; height:110px; animation-duration:5.9s; animation-delay:-1.8s; --star-color:var(--bgfx-purple);"></span><span style="left:56.5%; height:85px; animation-duration:5.5s; animation-delay:-5.6s; --star-color:var(--bgfx-green);"></span><span style="left:68.4%; height:130px; animation-duration:4.6s; animation-delay:-3.4s; --star-color:var(--bgfx-yellow);"></span><span style="left:47.0%; height:130px; animation-duration:5.0s; animation-delay:-4.4s; --star-color:var(--bgfx-pink);"></span><span style="left:97.9%; height:100px; animation-duration:4.0s; animation-delay:-4.7s; --star-color:var(--bgfx-purple);"></span><span style="left:11.0%; height:70px; animation-duration:5.7s; animation-delay:-7.7s; --star-color:var(--bgfx-green);"></span><span style="left:75.3%; height:100px; animation-duration:6.1s; animation-delay:-1.0s; --star-color:var(--bgfx-yellow);"></span><span style="left:30.7%; height:110px; animation-duration:5.1s; animation-delay:-4.0s; --star-color:var(--bgfx-pink);"></span><span style="left:2.2%; height:70px; animation-duration:3.9s; animation-delay:-5.8s; --star-color:var(--bgfx-purple);"></span><span style="left:1.4%; height:110px; animation-duration:6.7s; animation-delay:-2.8s; --star-color:var(--bgfx-green);"></span><span style="left:24.9%; height:70px; animation-duration:5.2s; animation-delay:-2.7s; --star-color:var(--bgfx-yellow);"></span><span style="left:93.8%; height:110px; animation-duration:5.1s; animation-delay:-3.1s; --star-color:var(--bgfx-pink);"></span><span style="left:1.2%; height:85px; animation-duration:7.0s; animation-delay:-7.0s; --star-color:var(--bgfx-purple);"></span><span style="left:36.8%; height:85px; animation-duration:7.6s; animation-delay:-4.0s; --star-color:var(--bgfx-green);"></span><span style="left:42.2%; height:110px; animation-duration:6.0s; animation-delay:-0.9s; --star-color:var(--bgfx-yellow);"></span><span style="left:85.7%; height:100px; animation-duration:4.8s; animation-delay:-4.7s; --star-color:var(--bgfx-pink);"></span></div>
 
 <header id="topbar" class="topbar"></header>
 
