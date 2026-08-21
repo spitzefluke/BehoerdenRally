@@ -268,35 +268,6 @@
   .hero-stat b{color:var(--primary); font-weight:700;}
   @media (prefers-reduced-motion: reduce){ .hero-particles span{animation:none;} }
 
-  /* ---------- hero voltage-glow (Uiverse.io by Pradeepsaranbishnoi, adapted to a card + ZAF colours) ---------- */
-  .hero-spark{position:absolute; inset:-6px; width:calc(100% + 12px); height:calc(100% + 12px); pointer-events:none; z-index:1;}
-  .hero-spark rect{stroke-dasharray:140; fill:none; stroke-width:2; filter:url(#heroGlow);}
-  .hero-spark .spark-1{stroke:var(--bgfx-yellow); stroke-dashoffset:0; animation:hero-spark-1 5s linear infinite;}
-  .hero-spark .spark-2{stroke:var(--bgfx-green); stroke-dashoffset:280; animation:hero-spark-2 5s linear infinite;}
-  @keyframes hero-spark-1{to{stroke-dashoffset:-1400;}}
-  @keyframes hero-spark-2{to{stroke-dashoffset:-700;}}
-  .hero-dots{position:absolute; inset:0; pointer-events:none; z-index:1;}
-  .hero-dots .dot{position:absolute; width:7px; height:7px; border-radius:50%; opacity:0;}
-  .hero-dots .dot-1{top:0; left:12%; background:var(--bgfx-yellow); animation:hero-fly-up 4.5s linear infinite;}
-  .hero-dots .dot-2{top:0; left:45%; background:var(--bgfx-pink); animation:hero-fly-up 4.5s linear infinite; animation-delay:.9s;}
-  .hero-dots .dot-3{top:0; left:78%; background:var(--bgfx-green); animation:hero-fly-up 4.5s linear infinite; animation-delay:1.8s;}
-  .hero-dots .dot-4{bottom:0; left:28%; background:var(--bgfx-purple); animation:hero-fly-down 4.5s linear infinite; animation-delay:2.7s;}
-  .hero-dots .dot-5{bottom:0; left:64%; background:var(--bgfx-yellow); animation:hero-fly-down 4.5s linear infinite; animation-delay:3.6s;}
-  @keyframes hero-fly-up{
-    0%{opacity:0; transform:translateY(0) scale(.3);}
-    6%{opacity:1; transform:translateY(-1.4rem) scale(.6);}
-    14%,100%{opacity:0; transform:translateY(-2.8rem) scale(.3);}
-  }
-  @keyframes hero-fly-down{
-    0%{opacity:0; transform:translateY(0) scale(.3);}
-    6%{opacity:1; transform:translateY(1.4rem) scale(.6);}
-    14%,100%{opacity:0; transform:translateY(2.8rem) scale(.3);}
-  }
-  @media (prefers-reduced-motion: reduce){
-    .hero-spark rect{animation:none; opacity:.5;}
-    .hero-dots .dot{animation:none; opacity:0;}
-  }
-
   /* ---------- intro ---------- */
   .intro-card{
     background:var(--surface);
@@ -646,16 +617,6 @@
 </style>
 </head>
 <body>
-
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <filter id="heroGlow" x="-50%" y="-50%" width="200%" height="200%">
-    <feGaussianBlur stdDeviation="1.6" result="glow"/>
-    <feMerge>
-      <feMergeNode in="glow"/>
-      <feMergeNode in="SourceGraphic"/>
-    </feMerge>
-  </filter>
-</svg>
 
 <div id="bgfx" aria-hidden="true"><span style="left:86.1%; height:51px; animation-duration:12.1s; animation-delay:-1.4s; --drop-color:var(--bgfx-pink);"></span><span style="left:95.4%; height:83px; animation-duration:14.7s; animation-delay:-11.2s; --drop-color:var(--bgfx-green);"></span><span style="left:0.6%; height:70px; animation-duration:12.3s; animation-delay:-4.2s; --drop-color:var(--bgfx-yellow);"></span><span style="left:34.4%; height:83px; animation-duration:13.3s; animation-delay:-9.7s; --drop-color:var(--bgfx-purple);"></span><span style="left:38.5%; height:126px; animation-duration:15.0s; animation-delay:-7.9s; --drop-color:var(--bgfx-yellow);"></span><span style="left:95.7%; height:93px; animation-duration:6.9s; animation-delay:-2.6s; --drop-color:var(--bgfx-pink);"></span><span style="left:99.0%; height:121px; animation-duration:8.0s; animation-delay:-2.6s; --drop-color:var(--bgfx-pink);"></span><span style="left:21.9%; height:114px; animation-duration:11.4s; animation-delay:-6.4s; --drop-color:var(--bgfx-purple);"></span><span style="left:88.5%; height:96px; animation-duration:11.2s; animation-delay:-7.9s; --drop-color:var(--bgfx-yellow);"></span><span style="left:10.6%; height:130px; animation-duration:8.7s; animation-delay:-5.6s; --drop-color:var(--bgfx-yellow);"></span><span style="left:75.1%; height:93px; animation-duration:7.0s; animation-delay:-3.0s; --drop-color:var(--bgfx-purple);"></span><span style="left:63.5%; height:118px; animation-duration:12.6s; animation-delay:-2.1s; --drop-color:var(--bgfx-yellow);"></span><span style="left:39.6%; height:108px; animation-duration:7.3s; animation-delay:-1.0s; --drop-color:var(--bgfx-yellow);"></span><span style="left:99.7%; height:67px; animation-duration:10.6s; animation-delay:-1.0s; --drop-color:var(--bgfx-purple);"></span><span style="left:5.6%; height:54px; animation-duration:13.2s; animation-delay:-5.3s; --drop-color:var(--bgfx-purple);"></span><span style="left:53.9%; height:124px; animation-duration:9.9s; animation-delay:-5.8s; --drop-color:var(--bgfx-pink);"></span><span style="left:10.2%; height:119px; animation-duration:6.8s; animation-delay:-2.9s; --drop-color:var(--bgfx-pink);"></span><span style="left:97.3%; height:98px; animation-duration:6.7s; animation-delay:-2.0s; --drop-color:var(--bgfx-green);"></span><span style="left:22.8%; height:87px; animation-duration:14.9s; animation-delay:-12.7s; --drop-color:var(--bgfx-pink);"></span><span style="left:21.0%; height:84px; animation-duration:12.3s; animation-delay:-8.4s; --drop-color:var(--bgfx-green);"></span><span style="left:70.1%; height:103px; animation-duration:8.0s; animation-delay:-4.7s; --drop-color:var(--bgfx-green);"></span><span style="left:15.3%; height:70px; animation-duration:10.9s; animation-delay:-8.5s; --drop-color:var(--bgfx-pink);"></span><span style="left:91.3%; height:122px; animation-duration:13.9s; animation-delay:-4.4s; --drop-color:var(--bgfx-green);"></span><span style="left:38.0%; height:108px; animation-duration:11.7s; animation-delay:-4.3s; --drop-color:var(--bgfx-purple);"></span><span style="left:11.0%; height:130px; animation-duration:7.4s; animation-delay:-5.0s; --drop-color:var(--bgfx-green);"></span><span style="left:63.9%; height:53px; animation-duration:12.7s; animation-delay:-3.1s; --drop-color:var(--bgfx-yellow);"></span></div>
 <div id="logofx" aria-hidden="true"></div>
@@ -1499,11 +1460,6 @@
     return ''+
     '<div class="hero">'+
       '<div class="hero-particles"><span></span><span></span><span></span><span></span><span></span></div>'+
-      '<svg class="hero-spark" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">'+
-        '<rect class="spark-1" x="1" y="1" width="98" height="98" rx="8"></rect>'+
-        '<rect class="spark-2" x="1" y="1" width="98" height="98" rx="8"></rect>'+
-      '</svg>'+
-      '<div class="hero-dots" aria-hidden="true"><span class="dot dot-1"></span><span class="dot dot-2"></span><span class="dot dot-3"></span><span class="dot dot-4"></span><span class="dot dot-5"></span></div>'+
       '<div class="hero-inner">'+
         '<div class="hero-eyebrow"><span class="eyebrow egg-eyebrow">Inoffizielles Fanprojekt · keine amtliche Website</span></div>'+
         '<h1 class="hero-title">Willkommen bei Behörden<b>Rallye</b></h1>'+
