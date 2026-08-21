@@ -290,6 +290,48 @@
   }
   input[type=text]:focus{outline:2.5px solid var(--focus); outline-offset:1px; border-color:var(--focus);}
 
+  /* ---------- name field (Uiverse.io by 0xnihilism, adapted) ---------- */
+  .name-field-brutal{
+    position:relative;
+    background:var(--bg);
+    border:4px solid var(--navy);
+    box-shadow:8px 8px 0 var(--navy);
+    padding:22px 16px 16px;
+    transition:transform .3s cubic-bezier(.23,1,.32,1), box-shadow .3s cubic-bezier(.23,1,.32,1);
+  }
+  .name-field-brutal .shadow__input{
+    content:""; position:absolute; inset:0; z-index:-1;
+    background:linear-gradient(45deg, rgba(43,108,163,.35) 0%, rgba(43,108,163,.08) 100%);
+    filter:blur(20px);
+  }
+  .name-field-brutal label{
+    position:absolute; top:-14px; left:14px; margin:0;
+    background:var(--primary); color:#fff;
+    font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:11px;
+    letter-spacing:.06em; text-transform:uppercase;
+    padding:5px 10px; border:2px solid var(--navy);
+  }
+  .name-field-brutal input[type=text]{
+    border:3px solid var(--navy); border-radius:0;
+    transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .name-field-brutal input[type=text]:hover, .name-field-brutal input[type=text]:focus{
+    background:var(--bg);
+    box-shadow:5px 5px 0 0 var(--navy);
+    transform:translate(-3px,-3px);
+  }
+  .name-field-brutal input[type=text]:focus{outline:2.5px solid var(--focus); outline-offset:3px; border-color:var(--navy);}
+  @media (hover:hover) and (pointer:fine){
+    .name-field-brutal:hover{
+      transform:translate(-2px,-2px);
+      box-shadow:14px 14px 0 -4px var(--primary), 14px 14px 0 0 var(--navy);
+    }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .name-field-brutal, .name-field-brutal input[type=text]{transition:none;}
+    .name-field-brutal:hover, .name-field-brutal input[type=text]:hover{transform:none;}
+  }
+
   /* ---------- group grid ---------- */
   .group-grid{
     display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
@@ -1051,104 +1093,58 @@
     render();
   }
 
-  /* ---------------- Musik-Playlist (rein prozedural erzeugt, keine
-     externen Audiodateien / Lizenzfragen) ---------------- */
-  var audioCtx = null;
-  var masterGain = null;
+  /* ---------------- Musik-Playlist ---------------- */
+  var PLAYLIST = [
+    'audio/elbe-akte-eins.mp3',
+    'audio/behoerdenrally-hamburg.mp3',
+    'audio/behoerdenrally-hamburg-2.mp3',
+    'audio/behoerdenrally.mp3'
+  ];
   var musicMuted = false;
   try{ musicMuted = localStorage.getItem('behoerdenrallye:muted') === '1'; }catch(e){}
-  var trackToken = 0;
-  var currentTrackTimer = null;
-
-  var PLAYLIST = [
-    { name:'Amtsstunden-Shuffle', bpm:132, wave:'triangle', bass:'sine',
-      melody:[0,-1,4,-1,7,4,-1,9,0,-1,4,-1,7,9,7,4] },
-    { name:'Formular-Groove', bpm:118, wave:'square', bass:'sine',
-      melody:[0,4,-1,7,0,4,-1,9,2,-1,7,4,-1,2,0,-1] },
-    { name:'Stempel-Swing', bpm:150, wave:'sawtooth', bass:'triangle',
-      melody:[0,-1,2,4,-1,7,-1,4,0,-1,2,-1,4,7,9,7] }
-  ];
+  var audioEl = null;
+  var lastTrackIndex = -1;
 
   function ensureAudio(){
-    if(audioCtx) return audioCtx;
+    if(audioEl) return audioEl;
     try{
-      var AC = window.AudioContext || window.webkitAudioContext;
-      if(!AC) return null;
-      audioCtx = new AC();
-      masterGain = audioCtx.createGain();
-      masterGain.gain.value = musicMuted ? 0 : 0.16;
-      masterGain.connect(audioCtx.destination);
-    }catch(e){ console.warn('Behördenrallye: Web Audio ist hier nicht verfügbar.', e); audioCtx = null; }
-    return audioCtx;
-  }
-
-  function noteFreq(semitoneOffset){
-    return 261.6 * Math.pow(2, semitoneOffset/12);
-  }
-
-  function pluck(freq, wave, duration, vol){
-    if(!audioCtx || !masterGain) return;
-    try{
-      var osc = audioCtx.createOscillator();
-      var g = audioCtx.createGain();
-      osc.type = wave || 'sine';
-      osc.frequency.value = freq;
-      var t0 = audioCtx.currentTime;
-      g.gain.setValueAtTime(0.0001, t0);
-      g.gain.linearRampToValueAtTime(vol, t0+0.01);
-      g.gain.exponentialRampToValueAtTime(0.001, t0+duration);
-      osc.connect(g);
-      g.connect(masterGain);
-      osc.start(t0);
-      osc.stop(t0+duration+0.05);
-    }catch(e){ /* einzelner Ton fehlgeschlagen - Playlist läuft weiter */ }
-  }
-
-  function playTrack(track){
-    if(!audioCtx) return;
-    var myToken = ++trackToken;
-    var stepDur = 60/track.bpm/2;
-    var step = 0, loops = 0;
-
-    function scheduleStep(){
-      if(myToken !== trackToken) return;
-      var deg = track.melody[step % track.melody.length];
-      if(deg !== -1 && deg !== null){ pluck(noteFreq(deg), track.wave, stepDur*0.9, 0.5); }
-      if(step % 4 === 0){ pluck(noteFreq(track.melody[0] - 12), track.bass, stepDur*1.8, 0.32); }
-      step++;
-      if(step % track.melody.length === 0){
-        loops++;
-        if(loops >= 4){
-          currentTrackTimer = setTimeout(function(){ if(myToken===trackToken) playRandomTrack(); }, stepDur*1000);
-          return;
-        }
-      }
-      currentTrackTimer = setTimeout(scheduleStep, stepDur*1000);
-    }
-    scheduleStep();
+      audioEl = new Audio();
+      audioEl.preload = 'none';
+      audioEl.volume = 0.55;
+      audioEl.muted = musicMuted;
+      audioEl.addEventListener('ended', playRandomTrack);
+      audioEl.addEventListener('error', function(){
+        console.warn('Behördenrallye: Titel konnte nicht geladen werden, versuche einen anderen.', audioEl.error);
+        playRandomTrack();
+      });
+    }catch(e){ console.warn('Behördenrallye: Audiowiedergabe ist hier nicht verfügbar.', e); audioEl = null; }
+    return audioEl;
   }
 
   function playRandomTrack(){
-    var ctx = ensureAudio();
-    if(!ctx) return;
-    if(ctx.state === 'suspended'){ ctx.resume().catch(function(){}); }
-    playTrack(PLAYLIST[Math.floor(Math.random()*PLAYLIST.length)]);
+    var el = ensureAudio();
+    if(!el) return;
+    var idx = Math.floor(Math.random()*PLAYLIST.length);
+    if(PLAYLIST.length > 1 && idx === lastTrackIndex){ idx = (idx+1) % PLAYLIST.length; }
+    lastTrackIndex = idx;
+    el.src = PLAYLIST[idx];
+    el.currentTime = 0;
+    el.play().catch(function(e){ console.warn('Behördenrallye: Wiedergabe wurde blockiert.', e); });
   }
 
   function stopMusic(){
-    trackToken++;
-    if(currentTrackTimer){ clearTimeout(currentTrackTimer); currentTrackTimer = null; }
+    if(audioEl){ audioEl.pause(); }
   }
 
   function toggleMute(){
     musicMuted = !musicMuted;
     try{ localStorage.setItem('behoerdenrallye:muted', musicMuted?'1':'0'); }catch(e){}
     if(musicMuted){
-      if(masterGain) masterGain.gain.value = 0;
+      if(audioEl) audioEl.muted = true;
     } else {
-      ensureAudio();
-      if(masterGain) masterGain.gain.value = 0.16;
-      if(!currentTrackTimer){ playRandomTrack(); }
+      var el = ensureAudio();
+      el.muted = false;
+      if(!el.src || el.ended || el.paused){ playRandomTrack(); }
     }
     render();
   }
@@ -1307,8 +1303,9 @@
     renderSteps(0)+
     '<div class="intro-card">'+
       '<p>Willkommen zur Behördenrallye! Trage deinen Namen ein, wähle deine Gruppe und arbeite dich Etappe für Etappe über deine Missionen – jede Station wartet mit einer Quizfrage. Richtige Antworten bringen deiner Gruppe Punkte für die Rangliste.</p>'+
-      '<div class="field" style="margin-top:16px;">'+
-        '<label for="nameField">Dein Name</label>'+
+      '<div class="field name-field-brutal" style="margin-top:24px;">'+
+        '<span class="shadow__input" aria-hidden="true"></span>'+
+        '<label for="nameField">Name</label>'+
         '<input type="text" id="nameField" placeholder="z. B. Max Mustermann" value="'+esc(state.nameInput)+'">'+
       '</div>'+
       (state.error ? '<p style="color:var(--error); font-size:14px; margin-top:10px;">'+esc(state.error)+'</p>' : '')+
@@ -1575,7 +1572,7 @@
 
     document.querySelectorAll('[data-join]').forEach(function(btn){
       btn.addEventListener('click', function(){
-        ensureAudio(); // AudioContext muss synchron im Klick-Handler starten (Autoplay-Regeln)
+        ensureAudio(); // Audio-Element im Klick-Handler anlegen (Autoplay-Regeln)
         handleJoin(btn.getAttribute('data-join'));
       });
     });
