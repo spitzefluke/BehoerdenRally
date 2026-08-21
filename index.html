@@ -271,6 +271,8 @@
   input[type=text]:focus{outline:2.5px solid var(--focus); outline-offset:1px; border-color:var(--focus);}
 
   /* ---------- name field (Uiverse.io by 0xnihilism, adapted to brand colours) ---------- */
+  .name-class-row{display:flex; gap:20px; flex-wrap:wrap;}
+  .name-class-row .name-field-brutal{flex:1 1 220px;}
   .name-field-brutal{
     position:relative;
     background:var(--bg);
@@ -952,6 +954,7 @@
   var state = {
     screen:'loading',
     nameInput:'',
+    classInput:'',
     recoveryInput:'',
     participant:null,
     groupsState:null,
@@ -1345,6 +1348,7 @@
     state.participant = null;
     state.groupProgress = {};
     state.nameInput = '';
+    state.classInput = '';
     state.screen = 'intro';
     render();
   }
@@ -1561,10 +1565,17 @@
     renderSteps(0)+
     '<div class="intro-card">'+
       '<p>Willkommen zur Behördenrallye! Trage deinen Namen ein, wähle deine Gruppe und arbeite dich Etappe für Etappe über deine Missionen – jede Station wartet mit einer Quizfrage. Richtige Antworten bringen deiner Gruppe Punkte für die Rangliste.</p>'+
-      '<div class="field name-field-brutal" style="margin-top:24px;">'+
-        '<span class="shadow__input" aria-hidden="true"></span>'+
-        '<label for="nameField">Name</label>'+
-        '<input type="text" id="nameField" placeholder="z. B. Max Mustermann" value="'+esc(state.nameInput)+'">'+
+      '<div class="name-class-row" style="margin-top:24px;">'+
+        '<div class="field name-field-brutal">'+
+          '<span class="shadow__input" aria-hidden="true"></span>'+
+          '<label for="nameField">Name</label>'+
+          '<input type="text" id="nameField" placeholder="z. B. Max Mustermann" value="'+esc(state.nameInput)+'">'+
+        '</div>'+
+        '<div class="field name-field-brutal">'+
+          '<span class="shadow__input" aria-hidden="true"></span>'+
+          '<label for="classField">Klasse</label>'+
+          '<input type="text" id="classField" placeholder="z. B. 10a" value="'+esc(state.classInput)+'">'+
+        '</div>'+
       '</div>'+
       (state.error ? '<p style="color:var(--error); font-size:14px; margin-top:10px;">'+esc(state.error)+'</p>' : '')+
       '<div style="margin-top:18px;">'+
@@ -1831,6 +1842,11 @@
       nameField.addEventListener('input', function(e){ state.nameInput = e.target.value; });
       nameField.addEventListener('keydown', function(e){ if(e.key==='Enter'){ goToGroups(); } });
     }
+    var classField = document.getElementById('classField');
+    if(classField){
+      classField.addEventListener('input', function(e){ state.classInput = e.target.value; });
+      classField.addEventListener('keydown', function(e){ if(e.key==='Enter'){ goToGroups(); } });
+    }
     var toGroupsBtn = document.getElementById('toGroupsBtn');
     if(toGroupsBtn) toGroupsBtn.addEventListener('click', goToGroups);
 
@@ -1875,6 +1891,7 @@
   function goToGroups(){
     state.error = null;
     if(!state.nameInput.trim()){ state.error = 'Bitte gib zuerst deinen Namen ein.'; render(); return; }
+    if(!state.classInput.trim()){ state.error = 'Bitte gib deine Klasse ein.'; render(); return; }
     state.screen = 'select-group';
     render();
   }
