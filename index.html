@@ -684,52 +684,248 @@
   var STAGES = [
     {
       id:'anmeldung', title:'Anmeldung nach Umzug', amt:'Bürgeramt', icon:'🪪',
-      question:'Innerhalb welcher Frist muss man sich nach einem Umzug in Deutschland ummelden?',
-      options:['48 Stunden','2 Wochen','1 Monat','Es gibt keine Frist'],
-      correct:1,
-      explanation:'Richtig: Nach dem Bundesmeldegesetz hat man 2 Wochen (14 Tage) Zeit, sich beim Bürgeramt umzumelden.'
+      questions:[
+        {
+          question:'Innerhalb welcher Frist muss man sich nach einem Umzug in Deutschland ummelden?',
+          options:['48 Stunden','2 Wochen','1 Monat','Es gibt keine Frist'],
+          correct:1,
+          explanation:'Richtig: Nach dem Bundesmeldegesetz hat man 2 Wochen (14 Tage) Zeit, sich beim Bürgeramt umzumelden.'
+        },
+        {
+          question:'Welches Dokument braucht man beim Ummelden zusätzlich zum Ausweis meist noch?',
+          options:['Wohnungsgeberbestätigung','Kontoauszug','Führerschein','Impfpass'],
+          correct:0,
+          explanation:'Richtig: Die Vermieterin oder der Vermieter muss den Einzug schriftlich bestätigen – diese Wohnungsgeberbestätigung ist Pflicht.'
+        },
+        {
+          question:'Was kann passieren, wenn man die Ummeldefrist verpasst?',
+          options:['Nichts, es gibt keine Konsequenzen','Ein Bußgeld ist möglich','Der Perso wird automatisch ungültig','Man muss die Stadt verlassen'],
+          correct:1,
+          explanation:'Richtig: Die Meldebehörde kann bei verspäteter Anmeldung ein Bußgeld verhängen.'
+        },
+        {
+          question:'Muss man sich auch ummelden, wenn man nur innerhalb derselben Stadt umzieht?',
+          options:['Ja, jeder Adresswechsel muss gemeldet werden','Nein, nur bei einem Stadtwechsel','Nur wenn man mehr als 5 km weiterzieht','Nur bei einem Wohnungswechsel über 50 m²'],
+          correct:0,
+          explanation:'Richtig: Jede neue Adresse muss gemeldet werden – auch ein Umzug innerhalb derselben Stadt.'
+        },
+        {
+          question:'Wo meldet man sich in der Regel um?',
+          options:['Beim Bürgeramt der neuen Adresse','Beim Finanzamt','Bei der Polizei','Per Brief ans Rathaus der alten Stadt'],
+          correct:0,
+          explanation:'Richtig: Zuständig ist das Bürgeramt bzw. Einwohnermeldeamt am neuen Wohnort.'
+        }
+      ]
     },
     {
       id:'steuerid', title:'Steuer-Identifikationsnummer', amt:'Finanzamt', icon:'💶',
-      question:'Wer bekommt in Deutschland automatisch eine Steuer-ID zugeschickt?',
-      options:['Nur Selbstständige','Jeder, der beim Bürgeramt gemeldet ist','Nur Rentner:innen','Nur Unternehmen'],
-      correct:1,
-      explanation:'Richtig: Die Steuer-ID wird automatisch an jede gemeldete Person vergeben – unabhängig vom Beruf.'
+      questions:[
+        {
+          question:'Wer bekommt in Deutschland automatisch eine Steuer-ID zugeschickt?',
+          options:['Nur Selbstständige','Jeder, der beim Bürgeramt gemeldet ist','Nur Rentner:innen','Nur Unternehmen'],
+          correct:1,
+          explanation:'Richtig: Die Steuer-ID wird automatisch an jede gemeldete Person vergeben – unabhängig vom Beruf.'
+        },
+        {
+          question:'Aus wie vielen Ziffern besteht die deutsche Steuer-ID?',
+          options:['8','11','13','16'],
+          correct:1,
+          explanation:'Richtig: Die Steuer-Identifikationsnummer besteht aus 11 Ziffern.'
+        },
+        {
+          question:'Ändert sich die Steuer-ID, wenn man umzieht oder heiratet?',
+          options:['Ja, bei jedem Umzug','Ja, aber nur bei Heirat','Nein, sie bleibt lebenslang gleich','Nein, aber sie wird jährlich erneuert'],
+          correct:2,
+          explanation:'Richtig: Die Steuer-ID bleibt ein Leben lang unverändert, egal wie oft man umzieht oder den Namen ändert.'
+        },
+        {
+          question:'Wofür wird die Steuer-ID unter anderem gebraucht?',
+          options:['Beim neuen Arbeitgeber für die Lohnsteuer','Nur beim Autokauf','Nur für den Reisepass','Nur für die Rundfunkanmeldung'],
+          correct:0,
+          explanation:'Richtig: Arbeitgeber, Familienkasse und Finanzamt brauchen die Steuer-ID unter anderem für die Lohnsteuer.'
+        },
+        {
+          question:'Was ist der Unterschied zwischen Steuer-ID und Steuernummer?',
+          options:['Es gibt keinen Unterschied','Die Steuer-ID bleibt lebenslang gleich, die Steuernummer kann sich z. B. bei Umzug ändern','Die Steuernummer ist nur für Firmen gedacht','Die Steuer-ID gilt nur ein Jahr'],
+          correct:1,
+          explanation:'Richtig: Die Steuer-ID ist dauerhaft, während sich die Steuernummer etwa bei einem Zuständigkeitswechsel des Finanzamts ändern kann.'
+        }
+      ]
     },
     {
       id:'aufenthaltstitel', title:'Aufenthaltstitel', amt:'Ausländerbehörde', icon:'🛂',
-      question:'Welches Dokument regelt, ob und wie lange sich eine Person ohne EU-Pass in Deutschland aufhalten darf?',
-      options:['Meldebescheinigung','Aufenthaltstitel','Führungszeugnis','Lohnsteuerbescheinigung'],
-      correct:1,
-      explanation:'Richtig: Der Aufenthaltstitel wird von der Ausländerbehörde erteilt und regelt Dauer und Zweck des Aufenthalts.'
+      questions:[
+        {
+          question:'Welches Dokument regelt, ob und wie lange sich eine Person ohne EU-Pass in Deutschland aufhalten darf?',
+          options:['Meldebescheinigung','Aufenthaltstitel','Führungszeugnis','Lohnsteuerbescheinigung'],
+          correct:1,
+          explanation:'Richtig: Der Aufenthaltstitel wird von der Ausländerbehörde erteilt und regelt Dauer und Zweck des Aufenthalts.'
+        },
+        {
+          question:'Was bescheinigt eine Fiktionsbescheinigung?',
+          options:['Dass der Aufenthalt vorläufig als erlaubt gilt, bis über den Antrag entschieden ist','Dass der Antrag abgelehnt wurde','Dass keine Ausländerbehörde zuständig ist','Dass der Reisepass verloren gegangen ist'],
+          correct:0,
+          explanation:'Richtig: Sie überbrückt die Zeit zwischen Antragstellung und Entscheidung, in der der Aufenthalt vorläufig als erlaubt gilt.'
+        },
+        {
+          question:'Was ist der Unterschied zwischen Aufenthaltserlaubnis und Niederlassungserlaubnis?',
+          options:['Kein Unterschied','Die Niederlassungserlaubnis ist zeitlich befristet, die Aufenthaltserlaubnis nicht','Die Aufenthaltserlaubnis ist meist befristet, die Niederlassungserlaubnis unbefristet','Nur EU-Bürger:innen bekommen eine Aufenthaltserlaubnis'],
+          correct:2,
+          explanation:'Richtig: Die Aufenthaltserlaubnis gilt meist zeitlich befristet, die Niederlassungserlaubnis ist ein unbefristeter Aufenthaltstitel.'
+        },
+        {
+          question:'Sollte man einen Termin zur Verlängerung des Aufenthaltstitels lieber früh oder erst am letzten Tag beantragen?',
+          options:['Frühzeitig, da Termine oft knapp sind','Erst am letzten Tag, das reicht immer','Termine sind dafür nicht nötig','Nur einmal im Leben nötig'],
+          correct:0,
+          explanation:'Richtig: Da Termine bei der Ausländerbehörde oft ausgebucht sind, lohnt sich eine frühzeitige Anfrage.'
+        },
+        {
+          question:'Muss der Aufenthaltstitel bei einer Ausweiskontrolle mitgeführt werden?',
+          options:['Nein, niemals nötig','Ja, das ist in der Regel Pflicht','Nur bei Grenzübertritten','Nur für Minderjährige'],
+          correct:1,
+          explanation:'Richtig: Wer keinen deutschen Pass besitzt, muss den Aufenthaltstitel in der Regel mit sich führen können.'
+        }
+      ]
     },
     {
       id:'rundfunk', title:'Rundfunkbeitrag', amt:'Beitragsservice', icon:'📺',
-      question:'Der Rundfunkbeitrag (früher „GEZ“) wird in Deutschland erhoben pro...',
-      options:['Person','Fernsehgerät','Wohnung','Straßenzug'],
-      correct:2,
-      explanation:'Richtig: Seit 2013 zahlt jede Wohnung pauschal einen Beitrag – egal wie viele Geräte oder Personen dort leben.'
+      questions:[
+        {
+          question:'Der Rundfunkbeitrag (früher „GEZ“) wird in Deutschland erhoben pro...',
+          options:['Person','Fernsehgerät','Wohnung','Straßenzug'],
+          correct:2,
+          explanation:'Richtig: Seit 2013 zahlt jede Wohnung pauschal einen Beitrag – egal wie viele Geräte oder Personen dort leben.'
+        },
+        {
+          question:'Muss man sich für den Rundfunkbeitrag extra irgendwo anmelden?',
+          options:['Ja, immer persönlich beim Amt','Meist nicht – die Anmeldung läuft oft automatisch über die Meldedaten','Nur online über das Finanzamt','Nur wenn man einen Fernseher besitzt'],
+          correct:1,
+          explanation:'Richtig: Der Beitragsservice gleicht die Adressdaten oft direkt mit den Meldebehörden ab.'
+        },
+        {
+          question:'Wer zieht den Rundfunkbeitrag ein?',
+          options:['Das Finanzamt','Der Beitragsservice von ARD, ZDF und Deutschlandradio','Das Bürgeramt','Die Stadtwerke'],
+          correct:1,
+          explanation:'Richtig: Zuständig ist der gemeinsame Beitragsservice von ARD, ZDF und Deutschlandradio.'
+        },
+        {
+          question:'Zahlt eine Wohngemeinschaft (WG) den Beitrag pro Person oder einmal pro Wohnung?',
+          options:['Pro Person einzeln','Einmal pro Wohnung, unabhängig von der Personenzahl','Doppelt, wenn mehr als 2 Personen dort wohnen','Gar nicht, WGs sind befreit'],
+          correct:1,
+          explanation:'Richtig: Der Beitrag fällt einmal pro Wohnung an, egal wie viele Personen dort gemeldet sind.'
+        },
+        {
+          question:'Gibt es Möglichkeiten, sich vom Rundfunkbeitrag befreien zu lassen?',
+          options:['Nein, niemals','Ja, z. B. bei bestimmten Sozialleistungen auf Antrag','Nur für Personen über 80 Jahre','Nur für Studierende automatisch'],
+          correct:1,
+          explanation:'Richtig: Wer z. B. Bürgergeld oder bestimmte andere Sozialleistungen bezieht, kann eine Befreiung beantragen.'
+        }
+      ]
     },
     {
       id:'fuehrerschein', title:'Führerschein umschreiben', amt:'Führerscheinstelle', icon:'🚗',
-      question:'Nach einem Umzug aus einem Nicht-EU-Land: Wie lange gilt der ausländische Führerschein in Deutschland meist noch, bevor man umschreiben muss?',
-      options:['3 Monate','6 Monate','2 Jahre','Er bleibt für immer gültig'],
-      correct:1,
-      explanation:'Richtig: In der Regel gilt eine Frist von 6 Monaten ab Wohnsitznahme – danach ist eine Umschreibung nötig (Details variieren je nach Herkunftsland).'
+      questions:[
+        {
+          question:'Nach einem Umzug aus einem Nicht-EU-Land: Wie lange gilt der ausländische Führerschein in Deutschland meist noch, bevor man umschreiben muss?',
+          options:['3 Monate','6 Monate','2 Jahre','Er bleibt für immer gültig'],
+          correct:1,
+          explanation:'Richtig: In der Regel gilt eine Frist von 6 Monaten ab Wohnsitznahme – danach ist eine Umschreibung nötig (Details variieren je nach Herkunftsland).'
+        },
+        {
+          question:'Muss ein EU-Führerschein nach einem Umzug innerhalb Deutschlands umgeschrieben werden?',
+          options:['Ja, immer','Nein, er bleibt unbegrenzt gültig','Nur nach 5 Jahren','Nur bei einem Bundeslandwechsel'],
+          correct:1,
+          explanation:'Richtig: EU-Führerscheine gelten in ganz Deutschland unbegrenzt, eine Umschreibung ist nicht nötig.'
+        },
+        {
+          question:'Was wird für die Umschreibung eines Nicht-EU-Führerscheins häufig zusätzlich verlangt?',
+          options:['Eine amtliche Übersetzung des Führerscheins','Ein neuer Reisepass','Ein Auto muss bereits angemeldet sein','Ein Führungszeugnis vom Arbeitgeber'],
+          correct:0,
+          explanation:'Richtig: Meist ist eine beglaubigte Übersetzung nötig, je nach Herkunftsland manchmal auch eine Prüfung.'
+        },
+        {
+          question:'Ersetzt ein internationaler Führerschein die Umschreibung?',
+          options:['Ja, komplett','Nein, er ist nur eine amtliche Übersetzung des nationalen Führerscheins','Nur für Motorräder','Nur für einen Monat'],
+          correct:1,
+          explanation:'Richtig: Der internationale Führerschein ist keine eigenständige Fahrerlaubnis, sondern nur eine Übersetzungshilfe.'
+        },
+        {
+          question:'Wohin wendet man sich für die Umschreibung des Führerscheins?',
+          options:['Ans Bürgeramt','An die Führerscheinstelle bzw. das Straßenverkehrsamt','Ans Finanzamt','An die Polizei'],
+          correct:1,
+          explanation:'Richtig: Zuständig ist die Führerscheinstelle, oft Teil des Straßenverkehrsamts.'
+        }
+      ]
     },
     {
       id:'muelltrennung', title:'Mülltrennung', amt:'Ordnungsamt', icon:'🗑️',
-      question:'Welche Tonne ist in Deutschland typischerweise für Verpackungen aus Kunststoff und Metall gedacht?',
-      options:['Blaue Tonne','Gelbe Tonne','Biotonne','Schwarze Restmülltonne'],
-      correct:1,
-      explanation:'Richtig: Leichtverpackungen aus Plastik und Metall gehören in die Gelbe Tonne bzw. den Gelben Sack.'
+      questions:[
+        {
+          question:'Welche Tonne ist in Deutschland typischerweise für Verpackungen aus Kunststoff und Metall gedacht?',
+          options:['Blaue Tonne','Gelbe Tonne','Biotonne','Schwarze Restmülltonne'],
+          correct:1,
+          explanation:'Richtig: Leichtverpackungen aus Plastik und Metall gehören in die Gelbe Tonne bzw. den Gelben Sack.'
+        },
+        {
+          question:'Wohin gehört Altpapier wie Zeitungen und Kartons?',
+          options:['Blaue Tonne','Gelbe Tonne','Biotonne','Glascontainer'],
+          correct:0,
+          explanation:'Richtig: Papier, Pappe und Kartons gehören in die Blaue Tonne.'
+        },
+        {
+          question:'Wohin gehören Essensreste und Gartenabfälle?',
+          options:['Restmülltonne','Biotonne','Gelbe Tonne','Glascontainer'],
+          correct:1,
+          explanation:'Richtig: Bioabfall wie Essensreste und Gartenschnitt kommt in die Biotonne.'
+        },
+        {
+          question:'Wie entsorgt man Altglas meist?',
+          options:['Über die Restmülltonne','Über nach Farben getrennte Glascontainer','Über die Biotonne','Über die Gelbe Tonne'],
+          correct:1,
+          explanation:'Richtig: Altglas wird meist farblich getrennt (weiß, braun, grün) in öffentlichen Containern gesammelt.'
+        },
+        {
+          question:'Wohin mit alten Batterien oder kleinen Elektrogeräten?',
+          options:['In den Restmüll','Zu Sammelstellen, z. B. im Handel oder am Wertstoffhof','In die Biotonne','In die Gelbe Tonne'],
+          correct:1,
+          explanation:'Richtig: Batterien und Elektroschrott gehören nicht in den Hausmüll, sondern zu speziellen Sammelstellen.'
+        }
+      ]
     },
     {
       id:'termin', title:'Termin-Etikette', amt:'Amt für Ordnung & Geduld', icon:'📅',
-      question:'Was ist bei einem Behördentermin in Deutschland besonders wichtig?',
-      options:['Pünktlich sein und alle Unterlagen vollständig mitbringen','Spontan ohne Termin vorbeikommen','Anzugpflicht beachten','Termine sind beliebig verschiebbar'],
-      correct:0,
-      explanation:'Richtig: Pünktlichkeit und vollständige Unterlagen sparen den meisten Ärger – ohne Termin kommt man meist gar nicht weiter.'
+      questions:[
+        {
+          question:'Was ist bei einem Behördentermin in Deutschland besonders wichtig?',
+          options:['Pünktlich sein und alle Unterlagen vollständig mitbringen','Spontan ohne Termin vorbeikommen','Anzugpflicht beachten','Termine sind beliebig verschiebbar'],
+          correct:0,
+          explanation:'Richtig: Pünktlichkeit und vollständige Unterlagen sparen den meisten Ärger – ohne Termin kommt man meist gar nicht weiter.'
+        },
+        {
+          question:'Kommt man bei den meisten Ämtern ohne Termin einfach so weiter?',
+          options:['Ja, immer problemlos','Meist nein, ein Termin ist in der Regel nötig','Nur montags','Nur mit Voranmeldung per Post'],
+          correct:1,
+          explanation:'Richtig: Viele Ämter bearbeiten Anliegen nur noch mit vorher vereinbartem Termin.'
+        },
+        {
+          question:'Was sollte man tun, wenn man einen Behördentermin nicht wahrnehmen kann?',
+          options:['Einfach nicht hingehen','Frühzeitig absagen und neuen Termin vereinbaren','Eine andere Person unangekündigt schicken','Das Amt anrufen ist nicht nötig'],
+          correct:1,
+          explanation:'Richtig: Eine rechtzeitige Absage gibt den Termin für andere frei und erspart unnötigen Ärger.'
+        },
+        {
+          question:'Welches Dokument sollte man zu praktisch jedem Behördentermin mitbringen?',
+          options:['Einen gültigen Ausweis','Den Impfpass','Die letzte Gehaltsabrechnung','Den Mietvertrag der Vorvorwohnung'],
+          correct:0,
+          explanation:'Richtig: Ein gültiger Personalausweis oder Reisepass wird so gut wie immer verlangt.'
+        },
+        {
+          question:'Was ist bei Sprachschwierigkeiten für einen Behördentermin sinnvoll?',
+          options:['Einfach hoffen, dass es klappt','Frühzeitig an eine Begleitung oder Dolmetscher:in denken','Termine gibt es nur auf Deutsch, das lässt sich nicht ändern','Das Amt spricht automatisch jede Sprache'],
+          correct:1,
+          explanation:'Richtig: Wer unsicher ist, sollte vorab klären, ob eine Begleitperson oder ein Dolmetscher mitgebracht werden darf.'
+        }
+      ]
     }
   ];
 
@@ -747,6 +943,7 @@
     offline:false,
     countdownNumber:3,
     activeQuizIndex:null,
+    quizQuestionIndex:0,
     quizSelectedOption:null,
     quizAnswered:false,
     boardOpen:false,
@@ -1021,6 +1218,7 @@
 
   function openQuiz(index){
     state.activeQuizIndex = index;
+    state.quizQuestionIndex = 0;
     state.quizSelectedOption = null;
     state.quizAnswered = false;
     render();
@@ -1028,21 +1226,35 @@
 
   function closeQuiz(){
     state.activeQuizIndex = null;
+    state.quizQuestionIndex = 0;
     state.quizSelectedOption = null;
     state.quizAnswered = false;
     render();
   }
 
-  async function selectOption(optIndex){
+  function selectOption(optIndex){
     if(state.quizAnswered) return;
     state.quizSelectedOption = optIndex;
     state.quizAnswered = true;
     render();
+  }
 
+  function advanceQuiz(){
     var stage = STAGES[state.activeQuizIndex];
-    var isCorrect = optIndex === stage.correct;
+    if(state.quizQuestionIndex < stage.questions.length - 1){
+      state.quizQuestionIndex++;
+      state.quizSelectedOption = null;
+      state.quizAnswered = false;
+      render();
+    } else {
+      finishStageQuiz();
+    }
+  }
 
-    if(isCorrect && !(state.groupProgress && state.groupProgress[stage.id])){
+  async function finishStageQuiz(){
+    var stage = STAGES[state.activeQuizIndex];
+
+    if(!(state.groupProgress && state.groupProgress[stage.id])){
       state.groupProgress = Object.assign({}, state.groupProgress);
       state.groupProgress[stage.id] = true;
       recentlyCompletedByMe[stage.id] = Date.now();
@@ -1052,13 +1264,13 @@
           var res = await sb.rpc('complete_stage', {p_group_id: state.participant.groupId, p_stage_id: stage.id});
           if(res.error){
             console.warn('Behördenrallye: Mission konnte nicht mit dem Team synchronisiert werden.', res.error);
-            showToast('Deine Antwort wurde gewertet, ist aber gerade nicht mit dem Team synchronisiert.');
+            showToast('Deine Antworten wurden gewertet, sind aber gerade nicht mit dem Team synchronisiert.');
           } else if(res.data){
             state.groupProgress = res.data;
           }
         }catch(e){
           console.warn('Behördenrallye: Mission konnte nicht mit dem Team synchronisiert werden.', e);
-          showToast('Deine Antwort wurde gewertet, ist aber gerade nicht mit dem Team synchronisiert.');
+          showToast('Deine Antworten wurden gewertet, sind aber gerade nicht mit dem Team synchronisiert.');
         }
       }
       await refreshGroupsState();
@@ -1068,8 +1280,10 @@
       var allDone = STAGES.every(function(s){ return state.groupProgress[s.id]; });
       if(allDone){
         setTimeout(function(){ state.screen = 'finished'; state.activeQuizIndex = null; render(); }, 900);
+        return;
       }
     }
+    closeQuiz();
   }
 
   function showStampFx(){
@@ -1455,7 +1669,11 @@
 
   function renderQuiz(){
     var i = state.activeQuizIndex;
-    var s = STAGES[i];
+    var stage = STAGES[i];
+    var qi = state.quizQuestionIndex;
+    var s = stage.questions[qi];
+    var isLast = qi === stage.questions.length - 1;
+
     var optsHtml = s.options.map(function(opt, idx){
       var cls = 'option';
       if(state.quizAnswered){
@@ -1469,19 +1687,19 @@
     var feedback = '';
     if(state.quizAnswered){
       feedback = '<div class="feedback '+(isCorrect?'correct':'wrong')+'">'+
-        (isCorrect ? esc(s.explanation) : 'Nicht ganz. Schau dir die richtige Antwort oben an und versuch die nächste Etappe!')+
+        (isCorrect ? esc(s.explanation) : 'Nicht ganz. Richtige Antwort: „'+esc(s.options[s.correct])+'“')+
       '</div>';
     }
 
-    var actionBtn = isCorrect
-      ? btn('Weiter zur Karte →', {id:'quizContinueBtn'})
-      : (state.quizAnswered ? btn('Nochmal versuchen', {id:'quizRetryBtn'}) : '');
+    var actionBtn = state.quizAnswered
+      ? btn(isLast ? 'Fallakte abschließen →' : 'Nächste Frage →', {id:'quizNextBtn'})
+      : '';
 
     return ''+
     '<div class="overlay" id="quizOverlay">'+
       '<div class="quiz-card" role="dialog" aria-modal="true" aria-labelledby="quizQuestion">'+
         '<button class="close-x" id="quizCloseBtn" aria-label="Quiz schließen">'+icon('close')+'</button>'+
-        '<div class="quiz-amt">'+s.icon+' Station '+(i+1)+' · '+esc(s.amt)+'</div>'+
+        '<div class="quiz-amt">'+stage.icon+' Station '+(i+1)+' · '+esc(stage.amt)+' · Frage '+(qi+1)+'/'+stage.questions.length+'</div>'+
         '<div class="quiz-question" id="quizQuestion">'+esc(s.question)+'</div>'+
         '<div class="options">'+optsHtml+'</div>'+
         feedback+
@@ -1607,10 +1825,8 @@
     if(quizClose) quizClose.addEventListener('click', closeQuiz);
     var quizOverlay = document.getElementById('quizOverlay');
     if(quizOverlay) quizOverlay.addEventListener('click', function(e){ if(e.target === quizOverlay) closeQuiz(); });
-    var quizContinue = document.getElementById('quizContinueBtn');
-    if(quizContinue) quizContinue.addEventListener('click', closeQuiz);
-    var quizRetry = document.getElementById('quizRetryBtn');
-    if(quizRetry) quizRetry.addEventListener('click', function(){ state.quizAnswered=false; state.quizSelectedOption=null; render(); });
+    var quizNext = document.getElementById('quizNextBtn');
+    if(quizNext) quizNext.addEventListener('click', advanceQuiz);
   }
 
   function goToGroups(){
