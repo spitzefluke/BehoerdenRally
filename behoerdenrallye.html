@@ -38,6 +38,9 @@
     --panel-shadow: 0 2px 6px rgba(0,0,0,0.18), 0 18px 34px -14px rgba(0,0,0,0.4);
     --glow-primary: 0 0 0 4px rgba(200,16,46,0.14), 0 0 22px -4px rgba(200,16,46,0.4);
     --navy-deep:#081420;
+    --logo-blue:#0566B2;
+    --logo-blue-light:#3E9BDE;
+    --logo-red:#E10019;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -49,50 +52,36 @@
     -webkit-font-smoothing:antialiased;
   }
 
-  /* ---------- rain background (Uiverse.io by SelfMadeSystem, recoloured to Hamburg blue) ---------- */
+  /* ---------- animated rain background, in the logo's exact colours ----------
+     Uses real elements + transform:translateY (GPU-compositable, cheap) rather
+     than animating background-position across many gradient layers - that
+     approach measured a 60fps -> ~17fps regression earlier in this project. */
   #bgfx{
     position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
-    --c:var(--blue);
-    background-color:var(--navy-deep);
-    background-image:
-      radial-gradient(4px 100px at 0px 235px, var(--c), #0000), radial-gradient(4px 100px at 300px 235px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 117.5px, var(--c) 100%, #0000 150%),
-      radial-gradient(4px 100px at 0px 252px, var(--c), #0000), radial-gradient(4px 100px at 300px 252px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 126px, var(--c) 100%, #0000 150%),
-      radial-gradient(4px 100px at 0px 150px, var(--c), #0000), radial-gradient(4px 100px at 300px 150px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 75px, var(--c) 100%, #0000 150%),
-      radial-gradient(4px 100px at 0px 253px, var(--c), #0000), radial-gradient(4px 100px at 300px 253px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 126.5px, var(--c) 100%, #0000 150%),
-      radial-gradient(4px 100px at 0px 204px, var(--c), #0000), radial-gradient(4px 100px at 300px 204px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 102px, var(--c) 100%, #0000 150%),
-      radial-gradient(4px 100px at 0px 134px, var(--c), #0000), radial-gradient(4px 100px at 300px 134px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 67px, var(--c) 100%, #0000 150%),
-      radial-gradient(4px 100px at 0px 179px, var(--c), #0000), radial-gradient(4px 100px at 300px 179px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 89.5px, var(--c) 100%, #0000 150%),
-      radial-gradient(4px 100px at 0px 299px, var(--c), #0000), radial-gradient(4px 100px at 300px 299px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 149.5px, var(--c) 100%, #0000 150%),
-      radial-gradient(4px 100px at 0px 215px, var(--c), #0000), radial-gradient(4px 100px at 300px 215px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 107.5px, var(--c) 100%, #0000 150%),
-      radial-gradient(4px 100px at 0px 281px, var(--c), #0000), radial-gradient(4px 100px at 300px 281px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 140.5px, var(--c) 100%, #0000 150%),
-      radial-gradient(4px 100px at 0px 158px, var(--c), #0000), radial-gradient(4px 100px at 300px 158px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 79px, var(--c) 100%, #0000 150%),
-      radial-gradient(4px 100px at 0px 210px, var(--c), #0000), radial-gradient(4px 100px at 300px 210px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 105px, var(--c) 100%, #0000 150%);
-    background-size:
-      300px 235px, 300px 235px, 300px 235px,
-      300px 252px, 300px 252px, 300px 252px,
-      300px 150px, 300px 150px, 300px 150px,
-      300px 253px, 300px 253px, 300px 253px,
-      300px 204px, 300px 204px, 300px 204px,
-      300px 134px, 300px 134px, 300px 134px,
-      300px 179px, 300px 179px, 300px 179px,
-      300px 299px, 300px 299px, 300px 299px,
-      300px 215px, 300px 215px, 300px 215px,
-      300px 281px, 300px 281px, 300px 281px,
-      300px 158px, 300px 158px, 300px 158px,
-      300px 210px, 300px 210px, 300px 210px;
-    background-position:
-      0px 220px, 3px 220px, 151.5px 337.5px,
-      25px 24px, 28px 24px, 176.5px 150px,
-      50px 16px, 53px 16px, 201.5px 91px,
-      75px 224px, 78px 224px, 226.5px 350.5px,
-      100px 19px, 103px 19px, 251.5px 121px,
-      125px 120px, 128px 120px, 276.5px 187px,
-      150px 31px, 153px 31px, 301.5px 120.5px,
-      175px 235px, 178px 235px, 326.5px 384.5px,
-      200px 121px, 203px 121px, 351.5px 228.5px,
-      225px 224px, 228px 224px, 376.5px 364.5px,
-      250px 26px, 253px 26px, 401.5px 105px,
-      275px 75px, 278px 75px, 426.5px 180px;
+    background:var(--navy-deep);
+  }
+  #bgfx span{
+    position:absolute; top:-15vh; width:2px;
+    border-radius:2px;
+    background:linear-gradient(to bottom, transparent, var(--drop-color, var(--logo-blue)), transparent);
+    opacity:.55;
+    animation-name:raindrop; animation-timing-function:linear; animation-iteration-count:infinite;
+    will-change:transform;
+  }
+  @keyframes raindrop{
+    from{ transform:translateY(0); }
+    to{ transform:translateY(130vh); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    #bgfx span{animation:none; top:35vh; opacity:.35;}
+  }
+  #logofx{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:url('assets/logo-hamburg.png');
+    background-repeat:no-repeat;
+    background-position:center center;
+    background-size:min(90vw,460px) auto;
+    opacity:.17;
   }
   #app{position:relative; z-index:1; max-width:760px;margin:0 auto;padding:24px 16px 80px;}
   :focus-visible{outline:2.5px solid var(--focus); outline-offset:2px; border-radius:4px;}
@@ -621,7 +610,8 @@
 </head>
 <body>
 
-<div id="bgfx" aria-hidden="true"></div>
+<div id="bgfx" aria-hidden="true"><span style="left:63.9%; height:53px; animation-duration:12.7s; animation-delay:-3.1s; --drop-color:var(--logo-blue);"></span><span style="left:10.2%; height:119px; animation-duration:6.8s; animation-delay:-2.9s; --drop-color:var(--logo-blue);"></span><span style="left:21.9%; height:114px; animation-duration:11.4s; animation-delay:-6.4s; --drop-color:var(--logo-blue-light);"></span><span style="left:70.1%; height:103px; animation-duration:8.0s; animation-delay:-4.7s; --drop-color:var(--logo-blue-light);"></span><span style="left:0.6%; height:70px; animation-duration:12.3s; animation-delay:-4.2s; --drop-color:var(--logo-blue);"></span><span style="left:95.7%; height:93px; animation-duration:6.9s; animation-delay:-2.6s; --drop-color:var(--logo-blue);"></span><span style="left:34.4%; height:83px; animation-duration:13.3s; animation-delay:-9.7s; --drop-color:var(--logo-blue);"></span><span style="left:97.3%; height:98px; animation-duration:6.7s; animation-delay:-2.0s; --drop-color:var(--logo-blue-light);"></span><span style="left:88.5%; height:96px; animation-duration:11.2s; animation-delay:-7.9s; --drop-color:var(--logo-blue);"></span><span style="left:22.8%; height:87px; animation-duration:14.9s; animation-delay:-12.7s; --drop-color:var(--logo-red);"></span><span style="left:38.0%; height:108px; animation-duration:11.7s; animation-delay:-4.3s; --drop-color:var(--logo-blue);"></span><span style="left:21.0%; height:84px; animation-duration:12.3s; animation-delay:-8.4s; --drop-color:var(--logo-blue);"></span><span style="left:63.5%; height:118px; animation-duration:12.6s; animation-delay:-2.1s; --drop-color:var(--logo-blue);"></span><span style="left:99.0%; height:121px; animation-duration:8.0s; animation-delay:-2.6s; --drop-color:var(--logo-blue-light);"></span><span style="left:5.6%; height:54px; animation-duration:13.2s; animation-delay:-5.3s; --drop-color:var(--logo-blue);"></span><span style="left:91.3%; height:122px; animation-duration:13.9s; animation-delay:-4.4s; --drop-color:var(--logo-blue-light);"></span><span style="left:39.6%; height:108px; animation-duration:7.3s; animation-delay:-1.0s; --drop-color:var(--logo-blue-light);"></span><span style="left:53.9%; height:124px; animation-duration:9.9s; animation-delay:-5.8s; --drop-color:var(--logo-blue);"></span><span style="left:99.7%; height:67px; animation-duration:10.6s; animation-delay:-1.0s; --drop-color:var(--logo-blue);"></span><span style="left:11.0%; height:130px; animation-duration:7.4s; animation-delay:-5.0s; --drop-color:var(--logo-blue);"></span><span style="left:38.5%; height:126px; animation-duration:15.0s; animation-delay:-7.9s; --drop-color:var(--logo-red);"></span><span style="left:86.1%; height:51px; animation-duration:12.1s; animation-delay:-1.4s; --drop-color:var(--logo-red);"></span><span style="left:75.1%; height:93px; animation-duration:7.0s; animation-delay:-3.0s; --drop-color:var(--logo-blue);"></span><span style="left:95.4%; height:83px; animation-duration:14.7s; animation-delay:-11.2s; --drop-color:var(--logo-blue);"></span><span style="left:10.6%; height:130px; animation-duration:8.7s; animation-delay:-5.6s; --drop-color:var(--logo-blue);"></span><span style="left:15.3%; height:70px; animation-duration:10.9s; animation-delay:-8.5s; --drop-color:var(--logo-blue);"></span></div>
+<div id="logofx" aria-hidden="true"></div>
 
 <header id="topbar"></header>
 
