@@ -37,31 +37,63 @@
     --card-shadow-hover: 0 2px 6px rgba(14,42,67,0.10), 0 16px 30px -12px rgba(14,42,67,0.24);
     --panel-shadow: 0 2px 6px rgba(0,0,0,0.18), 0 18px 34px -14px rgba(0,0,0,0.4);
     --glow-primary: 0 0 0 4px rgba(200,16,46,0.14), 0 0 22px -4px rgba(200,16,46,0.4);
+    --navy-deep:#081420;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
-    background:
-      radial-gradient(circle at 10% -4%, rgba(43,108,163,0.07), transparent 42%),
-      radial-gradient(circle at 94% 96%, rgba(200,16,46,0.05), transparent 46%),
-      var(--bg);
-    background-attachment:fixed;
+    background:var(--navy-deep);
     color:var(--text);
     font-family:'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
     min-height:100vh;
     -webkit-font-smoothing:antialiased;
   }
-  #bgfx{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;}
-  #bgfx span{position:absolute; border-radius:50%; opacity:.10; animation:bgdrift 24s ease-in-out infinite;}
-  #bgfx span:nth-child(1){width:5px; height:5px; left:6%; top:18%; background:var(--tab-1); animation-duration:23s;}
-  #bgfx span:nth-child(2){width:4px; height:4px; left:92%; top:14%; background:var(--tab-4); animation-duration:27s; animation-delay:-4s;}
-  #bgfx span:nth-child(3){width:6px; height:6px; left:85%; top:62%; background:var(--tab-2); opacity:.08; animation-duration:31s; animation-delay:-9s;}
-  #bgfx span:nth-child(4){width:4px; height:4px; left:10%; top:72%; background:var(--tab-3); animation-duration:26s; animation-delay:-6s;}
-  #bgfx span:nth-child(5){width:5px; height:5px; left:48%; top:90%; background:var(--tab-6); animation-duration:29s; animation-delay:-13s;}
-  #bgfx span:nth-child(6){width:3px; height:3px; left:35%; top:8%; background:var(--tab-5); animation-duration:21s; animation-delay:-2s;}
-  #bgfx span:nth-child(7){width:4px; height:4px; left:70%; top:38%; background:var(--tab-4); opacity:.08; animation-duration:33s; animation-delay:-16s;}
-  @keyframes bgdrift{0%,100%{transform:translate(0,0);} 50%{transform:translate(16px,-24px);}}
-  @media (prefers-reduced-motion: reduce){ #bgfx span{animation:none;} }
+
+  /* ---------- rain background (Uiverse.io by SelfMadeSystem, recoloured to Hamburg blue) ---------- */
+  #bgfx{
+    position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
+    --c:var(--blue);
+    background-color:var(--navy-deep);
+    background-image:
+      radial-gradient(4px 100px at 0px 235px, var(--c), #0000), radial-gradient(4px 100px at 300px 235px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 117.5px, var(--c) 100%, #0000 150%),
+      radial-gradient(4px 100px at 0px 252px, var(--c), #0000), radial-gradient(4px 100px at 300px 252px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 126px, var(--c) 100%, #0000 150%),
+      radial-gradient(4px 100px at 0px 150px, var(--c), #0000), radial-gradient(4px 100px at 300px 150px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 75px, var(--c) 100%, #0000 150%),
+      radial-gradient(4px 100px at 0px 253px, var(--c), #0000), radial-gradient(4px 100px at 300px 253px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 126.5px, var(--c) 100%, #0000 150%),
+      radial-gradient(4px 100px at 0px 204px, var(--c), #0000), radial-gradient(4px 100px at 300px 204px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 102px, var(--c) 100%, #0000 150%),
+      radial-gradient(4px 100px at 0px 134px, var(--c), #0000), radial-gradient(4px 100px at 300px 134px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 67px, var(--c) 100%, #0000 150%),
+      radial-gradient(4px 100px at 0px 179px, var(--c), #0000), radial-gradient(4px 100px at 300px 179px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 89.5px, var(--c) 100%, #0000 150%),
+      radial-gradient(4px 100px at 0px 299px, var(--c), #0000), radial-gradient(4px 100px at 300px 299px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 149.5px, var(--c) 100%, #0000 150%),
+      radial-gradient(4px 100px at 0px 215px, var(--c), #0000), radial-gradient(4px 100px at 300px 215px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 107.5px, var(--c) 100%, #0000 150%),
+      radial-gradient(4px 100px at 0px 281px, var(--c), #0000), radial-gradient(4px 100px at 300px 281px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 140.5px, var(--c) 100%, #0000 150%),
+      radial-gradient(4px 100px at 0px 158px, var(--c), #0000), radial-gradient(4px 100px at 300px 158px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 79px, var(--c) 100%, #0000 150%),
+      radial-gradient(4px 100px at 0px 210px, var(--c), #0000), radial-gradient(4px 100px at 300px 210px, var(--c), #0000), radial-gradient(1.5px 1.5px at 150px 105px, var(--c) 100%, #0000 150%);
+    background-size:
+      300px 235px, 300px 235px, 300px 235px,
+      300px 252px, 300px 252px, 300px 252px,
+      300px 150px, 300px 150px, 300px 150px,
+      300px 253px, 300px 253px, 300px 253px,
+      300px 204px, 300px 204px, 300px 204px,
+      300px 134px, 300px 134px, 300px 134px,
+      300px 179px, 300px 179px, 300px 179px,
+      300px 299px, 300px 299px, 300px 299px,
+      300px 215px, 300px 215px, 300px 215px,
+      300px 281px, 300px 281px, 300px 281px,
+      300px 158px, 300px 158px, 300px 158px,
+      300px 210px, 300px 210px, 300px 210px;
+    background-position:
+      0px 220px, 3px 220px, 151.5px 337.5px,
+      25px 24px, 28px 24px, 176.5px 150px,
+      50px 16px, 53px 16px, 201.5px 91px,
+      75px 224px, 78px 224px, 226.5px 350.5px,
+      100px 19px, 103px 19px, 251.5px 121px,
+      125px 120px, 128px 120px, 276.5px 187px,
+      150px 31px, 153px 31px, 301.5px 120.5px,
+      175px 235px, 178px 235px, 326.5px 384.5px,
+      200px 121px, 203px 121px, 351.5px 228.5px,
+      225px 224px, 228px 224px, 376.5px 364.5px,
+      250px 26px, 253px 26px, 401.5px 105px,
+      275px 75px, 278px 75px, 426.5px 180px;
+  }
   #app{position:relative; z-index:1; max-width:760px;margin:0 auto;padding:24px 16px 80px;}
   :focus-visible{outline:2.5px solid var(--focus); outline-offset:2px; border-radius:4px;}
   .icon{display:inline-flex; align-items:center; justify-content:center; line-height:0; flex:0 0 auto;}
@@ -205,7 +237,7 @@
   }
   .step.active{color:#fff; background:var(--navy); border-color:var(--navy);}
   .step.done{color:var(--success); border-color:var(--success);}
-  .step-sep{color:var(--border); font-size:12px;}
+  .step-sep{color:rgba(255,255,255,.3); font-size:12px;}
 
   /* ---------- hero (Startseite) ---------- */
   .hero{
@@ -214,7 +246,8 @@
     margin-bottom:22px;
     overflow:hidden;
     border-radius:16px;
-    background:linear-gradient(180deg, var(--blue-light) 0%, transparent 100%);
+    background:linear-gradient(180deg, var(--blue-light) 0%, var(--surface) 100%);
+    box-shadow:var(--card-shadow);
   }
   .hero-particles{position:absolute; inset:0; pointer-events:none; overflow:hidden;}
   .hero-particles span{position:absolute; border-radius:50%; opacity:.16; animation:drift 14s ease-in-out infinite;}
@@ -339,8 +372,12 @@
   }
   .status-actions{display:flex; gap:8px; align-items:center; position:relative; flex-wrap:wrap;}
 
+  .page-lead .eyebrow{color:rgba(255,255,255,.6);}
+  .page-lead h1{color:#fff;}
   .missions-head{text-align:center; margin-bottom:16px;}
-  .missions-head .eyebrow{display:block; margin-bottom:2px;}
+  .missions-head .eyebrow{display:block; margin-bottom:2px; color:rgba(255,255,255,.6);}
+  .missions-head h2{color:#fff;}
+  .missions-head .muted{color:rgba(255,255,255,.55);}
 
   /* ---------- mission cards ("Fallakten") ---------- */
   .mission-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px;}
@@ -482,6 +519,7 @@
 
   /* ---------- recovery / offline ---------- */
   .recover-box{margin-top:16px; text-align:center;}
+  .recover-box .eyebrow{color:rgba(255,255,255,.6);}
   .recover-row{display:flex; gap:8px; justify-content:center; margin-top:8px; flex-wrap:wrap;}
   .recover-row input{
     font-family:'IBM Plex Mono',monospace; font-size:14px; letter-spacing:.05em;
@@ -526,8 +564,8 @@
   }
 
   footer.foot{margin-top:30px; text-align:center;}
-  footer.foot button{font-size:12.5px; color:var(--text-muted); background:none; border:none; text-decoration:underline; padding:10px; min-height:44px;}
-  .site-disclaimer{margin-top:36px; text-align:center; font-size:11.5px; color:var(--text-muted); line-height:1.5; padding:0 12px;}
+  footer.foot button{font-size:12.5px; color:rgba(255,255,255,.6); background:none; border:none; text-decoration:underline; padding:10px; min-height:44px;}
+  .site-disclaimer{margin-top:36px; text-align:center; font-size:11.5px; color:rgba(255,255,255,.45); line-height:1.5; padding:0 12px;}
 
   @media (prefers-reduced-motion: reduce){
     .stamp-fx .stamp-mark{animation:none; opacity:1; transform:rotate(-8deg) scale(1);}
@@ -541,7 +579,7 @@
 </head>
 <body>
 
-<div id="bgfx" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+<div id="bgfx" aria-hidden="true"></div>
 
 <header id="topbar"></header>
 
@@ -1321,8 +1359,10 @@
 
     return ''+
     renderSteps(1)+
-    '<div class="eyebrow" style="margin-bottom:6px;">Angemeldet als</div>'+
-    '<h1 style="margin-bottom:14px;">'+esc(state.nameInput)+'</h1>'+
+    '<div class="page-lead">'+
+      '<div class="eyebrow" style="margin-bottom:6px;">Angemeldet als</div>'+
+      '<h1 style="margin-bottom:14px;">'+esc(state.nameInput)+'</h1>'+
+    '</div>'+
     renderOfflineBanner()+
     (state.error ? '<p style="color:var(--error); font-size:14px;">'+esc(state.error)+'</p>' : '')+
     '<div class="group-grid">'+cards+'</div>'+
