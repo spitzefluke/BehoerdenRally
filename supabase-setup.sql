@@ -64,14 +64,19 @@ create trigger check_group_capacity
 
 -- Atomares Abschließen einer Mission für die ganze Gruppe (verhindert
 -- Race Conditions, wenn zwei Teammitglieder fast gleichzeitig antworten).
-create or replace function public.complete_stage(p_group_id text, p_stage_id text)
+-- p_points: wie viele der 5 Fragen dieser Station richtig beantwortet
+-- wurden (Punkte für die Rangliste); wird zusammen mit "done" gespeichert,
+-- damit jede Station ihre tatsächlich erzielte Punktzahl behält.
+drop function if exists public.complete_stage(text, text);
+
+create or replace function public.complete_stage(p_group_id text, p_stage_id text, p_points integer)
 returns jsonb
 language sql
 security definer
 set search_path = public
 as $$
   update public.groups
-  set progress = progress || jsonb_build_object(p_stage_id, true),
+  set progress = progress || jsonb_build_object(p_stage_id, jsonb_build_object('done', true, 'points', p_points)),
       updated_at = now()
   where id = p_group_id
   returning progress;
@@ -98,7 +103,7 @@ create policy "participants public insert"
 -- Kein direktes UPDATE auf "groups" für anon - Fortschritt läuft nur über
 -- die complete_stage()-Funktion (SECURITY DEFINER), das verhindert, dass
 -- jemand beliebige Punktestände eintragen kann.
-grant execute on function public.complete_stage(text, text) to anon;
+grant execute on function public.complete_stage(text, text, integer) to anon;
 
 -- Realtime aktivieren, damit alle Geräte Änderungen sofort sehen.
 alter publication supabase_realtime add table public.groups;

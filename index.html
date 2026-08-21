@@ -668,6 +668,7 @@
   ];
   var CAPACITY = 10;
   var POINTS_PER_STAGE = 10;
+  var POINTS_PER_CORRECT = 2; // POINTS_PER_STAGE / 5 Fragen je Station
 
   function tabClass(index){ return 'tab-' + ((index % 6) + 1); }
 
@@ -949,6 +950,7 @@
     quizQuestionIndex:0,
     quizSelectedOption:null,
     quizAnswered:false,
+    quizCorrectCount:0,
     boardOpen:false,
     menuOpen:false,
     error:null
@@ -977,6 +979,21 @@
     return n;
   }
 
+  // Liest die Punkte einer abgeschlossenen Station aus dem Fortschritt.
+  // Ältere Einträge speichern nur "true" (vor der Frage-für-Frage-Wertung) -
+  // die zählen als volle Punktzahl.
+  function stagePoints(entry){
+    if(!entry) return 0;
+    if(typeof entry === 'object') return entry.points || 0;
+    return POINTS_PER_STAGE;
+  }
+
+  function sumPoints(progress){
+    var total = 0;
+    for(var k in (progress||{})){ total += stagePoints(progress[k]); }
+    return total;
+  }
+
   function deriveGroupsState(groupRows, participantRows){
     var gs = emptyGroupsState();
     (participantRows||[]).forEach(function(p){
@@ -985,7 +1002,7 @@
     });
     (groupRows||[]).forEach(function(row){
       var g = gs[row.id];
-      if(g) g.points = countDone(row.progress) * POINTS_PER_STAGE;
+      if(g) g.points = sumPoints(row.progress);
     });
     return gs;
   }
@@ -1224,6 +1241,7 @@
     state.quizQuestionIndex = 0;
     state.quizSelectedOption = null;
     state.quizAnswered = false;
+    state.quizCorrectCount = 0;
     render();
   }
 
@@ -1232,6 +1250,7 @@
     state.quizQuestionIndex = 0;
     state.quizSelectedOption = null;
     state.quizAnswered = false;
+    state.quizCorrectCount = 0;
     render();
   }
 
@@ -1239,6 +1258,9 @@
     if(state.quizAnswered) return;
     state.quizSelectedOption = optIndex;
     state.quizAnswered = true;
+    var stage = STAGES[state.activeQuizIndex];
+    var q = stage.questions[state.quizQuestionIndex];
+    if(optIndex === q.correct) state.quizCorrectCount++;
     render();
   }
 
@@ -1258,13 +1280,14 @@
     var stage = STAGES[state.activeQuizIndex];
 
     if(!(state.groupProgress && state.groupProgress[stage.id])){
+      var earnedPoints = state.quizCorrectCount * POINTS_PER_CORRECT;
       state.groupProgress = Object.assign({}, state.groupProgress);
-      state.groupProgress[stage.id] = true;
+      state.groupProgress[stage.id] = {done:true, points:earnedPoints};
       recentlyCompletedByMe[stage.id] = Date.now();
 
       if(sb){
         try{
-          var res = await sb.rpc('complete_stage', {p_group_id: state.participant.groupId, p_stage_id: stage.id});
+          var res = await sb.rpc('complete_stage', {p_group_id: state.participant.groupId, p_stage_id: stage.id, p_points: earnedPoints});
           if(res.error){
             console.warn('Behördenrallye: Mission konnte nicht mit dem Team synchronisiert werden.', res.error);
             showToast('Deine Antworten wurden gewertet, sind aber gerade nicht mit dem Team synchronisiert.');
@@ -1278,7 +1301,7 @@
       }
       await refreshGroupsState();
 
-      showStampFx();
+      showStampFx(earnedPoints);
 
       var allDone = STAGES.every(function(s){ return state.groupProgress[s.id]; });
       if(allDone){
@@ -1289,10 +1312,10 @@
     closeQuiz();
   }
 
-  function showStampFx(){
+  function showStampFx(earnedPoints){
     var fx = document.createElement('div');
     fx.className = 'stamp-fx';
-    fx.innerHTML = '<div><div class="stamp-mark">GENEHMIGT</div><div class="xp-pop">+'+POINTS_PER_STAGE+' XP</div></div>';
+    fx.innerHTML = '<div><div class="stamp-mark">GENEHMIGT</div><div class="xp-pop">+'+earnedPoints+' XP</div></div>';
     document.body.appendChild(fx);
     setTimeout(function(){
       fx.classList.add('fadeout');
@@ -1621,7 +1644,7 @@
       var clickAttr = status === 'current' ? ' data-stage="'+i+'"' : '';
       var statusIcon = status === 'done' ? 'check' : status === 'current' ? 'bolt' : 'lock';
       var statusLabel = status === 'done' ? 'Abgeschlossen' : status === 'current' ? 'Aktiv' : 'Gesperrt';
-      var footer = status === 'done' ? icon('star')+'<span>Bearbeitet · +'+POINTS_PER_STAGE+' XP</span>' :
+      var footer = status === 'done' ? icon('star')+'<span>Bearbeitet · +'+stagePoints(progress[s.id])+' XP</span>' :
                 status === 'current' ? '<span>Fallakte bearbeiten →</span>' :
                 '<span>Erst vorherige Fallakte abschließen</span>';
       var ariaLabel = status === 'current' ? ' aria-label="Fallakte '+(i+1)+' bearbeiten: '+esc(s.title)+'"' :
@@ -1718,7 +1741,7 @@
     '<div class="finished-card">'+
       '<div class="stamp-mark">'+icon('check')+'<span>Rallye abgeschlossen</span></div>'+
       '<h2>Gut gemacht, '+esc(p.name)+'!</h2>'+
-      '<p>Euer Team <b class="'+tabClass(groupIdx)+'" style="color:var(--tab)">'+esc(groupDef.name)+'</b> hat alle 7 Fallakten bearbeitet und '+POINTS_PER_STAGE*7+' Punkte gesammelt.</p>'+
+      '<p>Euer Team <b class="'+tabClass(groupIdx)+'" style="color:var(--tab)">'+esc(groupDef.name)+'</b> hat alle 7 Fallakten bearbeitet und '+myPoints+' Punkte gesammelt.</p>'+
       '<div class="hero-stats" style="margin-top:4px;">'+
         '<span class="hero-stat">'+icon('star')+'<span>'+myPoints+' Punkte</span></span>'+
         '<span class="hero-stat">'+icon('trophy')+'<span>'+esc(rankForPoints(myPoints))+'</span></span>'+
