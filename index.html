@@ -228,22 +228,56 @@
   }
   input[type=text]:focus{outline:2.5px solid var(--focus); outline-offset:1px; border-color:var(--focus);}
 
-  /* ---------- name field ---------- */
+  /* ---------- name field (Uiverse.io by 0xnihilism, adapted to brand colours) ---------- */
   .name-field-brutal{
     position:relative;
-    background:var(--surface);
-    border:1px solid var(--border);
-    padding:20px 16px 16px;
+    background:var(--bg);
+    border:3px solid var(--navy);
+    padding:22px 16px 16px;
+    max-width:380px;
+    transform-style:preserve-3d;
+    transform:rotateX(6deg) rotateY(-6deg);
+    perspective:1000px;
+    box-shadow:8px 8px 0 var(--navy);
+    transition:transform .35s cubic-bezier(.23,1,.32,1), box-shadow .35s cubic-bezier(.23,1,.32,1);
   }
-  .name-field-brutal .shadow__input{display:none;}
+  .name-field-brutal .shadow__input{
+    content:""; position:absolute; inset:0; z-index:-1;
+    transform:translateZ(-40px);
+    background:linear-gradient(45deg, rgba(200,16,46,.35) 0%, rgba(200,16,46,.08) 100%);
+    filter:blur(20px);
+  }
   .name-field-brutal label{
-    position:absolute; top:-11px; left:12px; margin:0;
-    background:var(--surface); color:var(--text-muted);
-    font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:11px;
-    letter-spacing:.06em; text-transform:uppercase;
-    padding:2px 6px;
+    position:absolute; top:-14px; left:14px; margin:0;
+    background:var(--primary); color:#fff;
+    font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:11px;
+    letter-spacing:.08em; text-transform:uppercase;
+    padding:5px 10px; border:2px solid var(--navy);
+    transform:translateZ(30px);
   }
-  .name-field-brutal input[type=text]{border-radius:var(--radius);}
+  .name-field-brutal input[type=text]{
+    border:2.5px solid var(--navy); border-radius:0;
+    background:var(--surface);
+    transform:translateZ(10px);
+    transition:transform .3s cubic-bezier(.23,1,.32,1), box-shadow .3s cubic-bezier(.23,1,.32,1), background .3s ease;
+  }
+  .name-field-brutal input[type=text]:hover,
+  .name-field-brutal input[type=text]:focus{
+    background:var(--bg);
+    transform:translateZ(20px) translateX(-3px) translateY(-3px);
+    box-shadow:5px 5px 0 0 var(--navy);
+  }
+  .name-field-brutal input[type=text]:focus{outline:2.5px solid var(--focus); outline-offset:3px; border-color:var(--navy);}
+  @media (hover:hover) and (pointer:fine){
+    .name-field-brutal:hover{
+      transform:rotateX(3deg) rotateY(1deg) scale(1.02);
+      box-shadow:16px 16px 0 -4px var(--primary), 16px 16px 0 0 var(--navy);
+    }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .name-field-brutal, .name-field-brutal input[type=text]{transition:none;}
+    .name-field-brutal:hover, .name-field-brutal input[type=text]:hover{transform:none;}
+  }
 
   /* ---------- group grid ---------- */
   .group-grid{
