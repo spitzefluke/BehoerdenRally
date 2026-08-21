@@ -90,30 +90,56 @@
   a, button{font-family:inherit;}
   button{cursor:pointer;}
 
-  /* ---------- buttons ---------- */
+  /* ---------- buttons (Uiverse.io by Spacious74, adapted) ---------- */
   .btn{
+    cursor:pointer;
     font-family:'IBM Plex Sans', sans-serif;
     font-weight:600;
     font-size:14px;
-    border:1.5px solid transparent;
-    background:transparent;
-    color:var(--text);
-    padding:11px 20px;
+    border:none;
+    border-radius:16px;
+    padding:2px;
     min-height:44px;
-    display:inline-flex; align-items:center; justify-content:center; gap:8px;
-    border-radius:9px;
-    transition:transform .16s ease, background .16s ease, color .16s ease, box-shadow .16s ease, border-color .16s ease;
+    display:inline-flex; align-items:stretch; justify-content:center;
+    position:relative; overflow:hidden;
+    background:radial-gradient(circle 80px at 80% -10%, #ffffff, #181b1b);
+    transition:transform .16s ease;
   }
-  .btn:active{transform:translateY(0) scale(.98); box-shadow:none;}
-  .btn:disabled{opacity:.45; cursor:not-allowed; pointer-events:none; transform:none; box-shadow:none;}
+  .btn::after{
+    content:"";
+    position:absolute; width:65%; height:60%;
+    border-radius:120px; top:0; right:0;
+    box-shadow:0 0 20px #ffffff38;
+    z-index:0; pointer-events:none;
+  }
+  .btn .blob{
+    position:absolute; width:70px; max-width:40%; height:100%;
+    border-radius:16px; bottom:0; left:0;
+    background:radial-gradient(circle 60px at 0% 100%, #3fe9ff, #0000ff80, transparent);
+    box-shadow:-10px 10px 30px #0051ff2d;
+    pointer-events:none;
+  }
+  .btn .inner{
+    width:100%;
+    padding:11px 20px;
+    border-radius:14px;
+    color:#fff;
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    z-index:3; position:relative;
+    background:radial-gradient(circle 80px at 80% -50%, #777777, #0f1111);
+  }
+  .btn .inner::before{
+    content:"";
+    position:absolute; inset:0; border-radius:14px;
+    background:radial-gradient(circle 60px at 0% 100%, #00e1ff1a, #0000ff11, transparent);
+    pointer-events:none;
+  }
+  .btn:hover{transform:translateY(-2px);}
+  .btn:active{transform:translateY(0) scale(.98);}
+  .btn:disabled{opacity:.45; cursor:not-allowed; pointer-events:none; transform:none;}
   .btn.is-loading{opacity:.75; cursor:wait; pointer-events:none;}
-  .btn-primary{background:var(--primary); border-color:var(--primary); color:#fff;}
-  .btn-primary:hover{background:var(--primary-dark); border-color:var(--primary-dark); transform:translateY(-2px); box-shadow:var(--glow-primary);}
-  .btn-secondary{background:var(--navy); border-color:var(--navy); color:#fff;}
-  .btn-secondary:hover{background:#0A2035; border-color:#0A2035; transform:translateY(-2px); box-shadow:0 8px 18px -8px rgba(14,42,67,0.45);}
-  .btn-ghost{border-color:var(--border); color:var(--text);}
-  .btn-ghost:hover{background:var(--blue-light); border-color:var(--blue); transform:translateY(-2px);}
-  .btn-lg{padding:15px 28px; font-size:15px;}
+  .btn-lg .inner{padding:15px 28px; font-size:15px;}
+  @media (prefers-reduced-motion: reduce){ .btn{transition:none;} }
 
   /* ---------- header / topbar ---------- */
   .topbar{
@@ -1175,6 +1201,15 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  function btn(label, opts){
+    opts = opts || {};
+    var cls = 'btn' + (opts.cls ? ' '+opts.cls : '');
+    var attrs = '';
+    if(opts.id) attrs += ' id="'+opts.id+'"';
+    if(opts.attrs) attrs += ' '+opts.attrs;
+    return '<button type="button" class="'+cls+'"'+attrs+'><span class="blob"></span><span class="inner">'+label+'</span></button>';
+  }
+
   function renderHero(){
     return ''+
     '<div class="hero">'+
@@ -1240,14 +1275,14 @@
       '</div>'+
       (state.error ? '<p style="color:var(--error); font-size:14px; margin-top:10px;">'+esc(state.error)+'</p>' : '')+
       '<div style="margin-top:18px;">'+
-        '<button class="btn btn-primary btn-lg" id="toGroupsBtn">Team wählen &amp; starten →</button>'+
+        btn('Team wählen &amp; starten →', {id:'toGroupsBtn', cls:'btn-lg'})+
       '</div>'+
     '</div>'+
     '<div class="recover-box">'+
       '<span class="eyebrow">Schon dabei?</span>'+
       '<div class="recover-row">'+
         '<input type="text" id="recoveryField" placeholder="z. B. AB3XZ9" value="'+esc(state.recoveryInput)+'" maxlength="6" style="text-transform:uppercase;">'+
-        '<button class="btn btn-secondary" id="recoverBtn">Fortschritt laden</button>'+
+        btn('Fortschritt laden', {id:'recoverBtn'})+
       '</div>'+
     '</div>';
   }
@@ -1280,7 +1315,7 @@
           '<div class="capacity-text">'+occ+'/'+CAPACITY+'</div>'+
         '</div>'+
         '<div class="points-text">'+pts+' Punkte bisher</div>'+
-        '<button class="btn select-btn'+(isJoiningThis?' is-loading':'')+'" data-join="'+gr.id+'" '+((full||anyJoining)?'disabled':'')+'>'+btnLabel+'</button>'+
+        btn(btnLabel, {cls:'select-btn'+(isJoiningThis?' is-loading':''), attrs:'data-join="'+gr.id+'" '+((full||anyJoining)?'disabled':'')})+
       '</div>';
     }).join('');
 
@@ -1291,7 +1326,7 @@
     renderOfflineBanner()+
     (state.error ? '<p style="color:var(--error); font-size:14px;">'+esc(state.error)+'</p>' : '')+
     '<div class="group-grid">'+cards+'</div>'+
-    '<div style="margin-top:18px;"><button class="btn btn-ghost" id="backToIntroBtn">← Name ändern</button></div>';
+    '<div style="margin-top:18px;">'+btn('← Name ändern', {id:'backToIntroBtn'})+'</div>';
   }
 
   function renderBoard(){
@@ -1396,8 +1431,8 @@
     }
 
     var actionBtn = isCorrect
-      ? '<button class="btn btn-primary" id="quizContinueBtn">Weiter zur Karte →</button>'
-      : (state.quizAnswered ? '<button class="btn" id="quizRetryBtn">Nochmal versuchen</button>' : '');
+      ? btn('Weiter zur Karte →', {id:'quizContinueBtn'})
+      : (state.quizAnswered ? btn('Nochmal versuchen', {id:'quizRetryBtn'}) : '');
 
     return ''+
     '<div class="overlay" id="quizOverlay">'+
