@@ -183,7 +183,10 @@
   }
   .brand-mark::after{content:""; position:absolute; left:0; right:0; bottom:3px; height:3px; background:var(--primary);}
   .brand-word{font-weight:700; font-size:15.5px; letter-spacing:-.01em; color:var(--navy); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;}
-  .brand-word b{color:var(--primary);}
+  .brand-word b{
+    background:linear-gradient(90deg, var(--bgfx-yellow) 0%, var(--bgfx-pink) 38%, var(--bgfx-purple) 68%, var(--bgfx-green) 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
+  }
   .topbar-right{display:flex; align-items:center; gap:8px; position:relative; min-width:0; flex:0 1 auto; justify-content:flex-end;}
   .topbar-pill{
     font-family:'IBM Plex Mono',monospace; font-size:11.5px; font-weight:600;
@@ -256,7 +259,10 @@
   .hero-eyebrow{display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;}
   .hero-eyebrow .eyebrow{color:rgba(255,255,255,.68);}
   .hero-title{font-size:clamp(32px,7.5vw,50px); line-height:1.05; letter-spacing:-.02em; margin:0 0 10px; color:#fff;}
-  .hero-title b{color:var(--bgfx-yellow);}
+  .hero-title b{
+    background:linear-gradient(90deg, var(--bgfx-yellow) 0%, var(--bgfx-pink) 38%, var(--bgfx-purple) 68%, var(--bgfx-green) 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
+  }
   .hero-sub{max-width:46ch; margin:0 auto 22px; color:rgba(255,255,255,.72); font-size:15.5px;}
   .hero-stats{display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:8px;}
   .hero-stat{
@@ -621,7 +627,7 @@
 <div id="bgfx" aria-hidden="true"><span style="left:86.1%; height:51px; animation-duration:12.1s; animation-delay:-1.4s; --drop-color:var(--bgfx-pink);"></span><span style="left:95.4%; height:83px; animation-duration:14.7s; animation-delay:-11.2s; --drop-color:var(--bgfx-green);"></span><span style="left:0.6%; height:70px; animation-duration:12.3s; animation-delay:-4.2s; --drop-color:var(--bgfx-yellow);"></span><span style="left:34.4%; height:83px; animation-duration:13.3s; animation-delay:-9.7s; --drop-color:var(--bgfx-purple);"></span><span style="left:38.5%; height:126px; animation-duration:15.0s; animation-delay:-7.9s; --drop-color:var(--bgfx-yellow);"></span><span style="left:95.7%; height:93px; animation-duration:6.9s; animation-delay:-2.6s; --drop-color:var(--bgfx-pink);"></span><span style="left:99.0%; height:121px; animation-duration:8.0s; animation-delay:-2.6s; --drop-color:var(--bgfx-pink);"></span><span style="left:21.9%; height:114px; animation-duration:11.4s; animation-delay:-6.4s; --drop-color:var(--bgfx-purple);"></span><span style="left:88.5%; height:96px; animation-duration:11.2s; animation-delay:-7.9s; --drop-color:var(--bgfx-yellow);"></span><span style="left:10.6%; height:130px; animation-duration:8.7s; animation-delay:-5.6s; --drop-color:var(--bgfx-yellow);"></span><span style="left:75.1%; height:93px; animation-duration:7.0s; animation-delay:-3.0s; --drop-color:var(--bgfx-purple);"></span><span style="left:63.5%; height:118px; animation-duration:12.6s; animation-delay:-2.1s; --drop-color:var(--bgfx-yellow);"></span><span style="left:39.6%; height:108px; animation-duration:7.3s; animation-delay:-1.0s; --drop-color:var(--bgfx-yellow);"></span><span style="left:99.7%; height:67px; animation-duration:10.6s; animation-delay:-1.0s; --drop-color:var(--bgfx-purple);"></span><span style="left:5.6%; height:54px; animation-duration:13.2s; animation-delay:-5.3s; --drop-color:var(--bgfx-purple);"></span><span style="left:53.9%; height:124px; animation-duration:9.9s; animation-delay:-5.8s; --drop-color:var(--bgfx-pink);"></span><span style="left:10.2%; height:119px; animation-duration:6.8s; animation-delay:-2.9s; --drop-color:var(--bgfx-pink);"></span><span style="left:97.3%; height:98px; animation-duration:6.7s; animation-delay:-2.0s; --drop-color:var(--bgfx-green);"></span><span style="left:22.8%; height:87px; animation-duration:14.9s; animation-delay:-12.7s; --drop-color:var(--bgfx-pink);"></span><span style="left:21.0%; height:84px; animation-duration:12.3s; animation-delay:-8.4s; --drop-color:var(--bgfx-green);"></span><span style="left:70.1%; height:103px; animation-duration:8.0s; animation-delay:-4.7s; --drop-color:var(--bgfx-green);"></span><span style="left:15.3%; height:70px; animation-duration:10.9s; animation-delay:-8.5s; --drop-color:var(--bgfx-pink);"></span><span style="left:91.3%; height:122px; animation-duration:13.9s; animation-delay:-4.4s; --drop-color:var(--bgfx-green);"></span><span style="left:38.0%; height:108px; animation-duration:11.7s; animation-delay:-4.3s; --drop-color:var(--bgfx-purple);"></span><span style="left:11.0%; height:130px; animation-duration:7.4s; animation-delay:-5.0s; --drop-color:var(--bgfx-green);"></span><span style="left:63.9%; height:53px; animation-duration:12.7s; animation-delay:-3.1s; --drop-color:var(--bgfx-yellow);"></span></div>
 <div id="logofx" aria-hidden="true"></div>
 
-<header id="topbar"></header>
+<header id="topbar" class="topbar"></header>
 
 <div id="app"><div class="boot-screen"><div class="boot-text">Rallye-System wird initialisiert<span class="boot-dots"></span></div></div></div>
 
