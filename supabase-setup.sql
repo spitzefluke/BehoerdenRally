@@ -43,14 +43,15 @@ create table if not exists public.participants (
 create index if not exists participants_group_id_idx on public.participants (group_id);
 create index if not exists participants_recovery_code_idx on public.participants (recovery_code);
 
--- Kapazität serverseitig durchsetzen (max. 10 pro Gruppe), damit zwei
--- Geräte nicht gleichzeitig den letzten Platz belegen können.
+-- Kapazität serverseitig durchsetzen (max. 5 pro Gruppe - jede Gruppe hat
+-- 5 feste Mitglieder), damit zwei Geräte nicht gleichzeitig den letzten
+-- Platz belegen können.
 create or replace function public.enforce_group_capacity()
 returns trigger
 language plpgsql
 as $$
 begin
-  if (select count(*) from public.participants where group_id = new.group_id) >= 10 then
+  if (select count(*) from public.participants where group_id = new.group_id) >= 5 then
     raise exception 'GROUP_FULL' using errcode = 'P0001';
   end if;
   return new;
