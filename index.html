@@ -83,6 +83,7 @@
   #app{position:relative; z-index:1; max-width:760px;margin:0 auto;padding:24px 16px 80px;}
   :focus-visible{outline:2.5px solid var(--focus); outline-offset:2px; border-radius:4px;}
   .icon{display:inline-flex; align-items:center; justify-content:center; line-height:0; flex:0 0 auto;}
+  .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
   .tab-1{--tab:var(--tab-1);} .tab-2{--tab:var(--tab-2);} .tab-3{--tab:var(--tab-3);}
   .tab-4{--tab:var(--tab-4);} .tab-5{--tab:var(--tab-5);} .tab-6{--tab:var(--tab-6);}
   .eyebrow{
@@ -373,6 +374,8 @@
   .mission-org{font-size:12.5px; color:var(--text-muted); margin-bottom:4px; display:flex; align-items:center; gap:6px;}
   .mission-title{font-family:'IBM Plex Sans',sans-serif; font-weight:700; font-size:15.5px; line-height:1.3; margin-bottom:12px; color:var(--navy);}
   .mission-footer{font-family:'IBM Plex Mono',monospace; font-size:11.5px; display:flex; align-items:center; gap:6px;}
+  .mission-address{font-size:11.5px; color:var(--text-muted); display:flex; align-items:flex-start; gap:5px; margin-bottom:10px; line-height:1.4;}
+  .mission-address .icon{margin-top:1px; flex:0 0 auto;}
 
   .mission-card.locked{background:var(--locked-bg);}
   .mission-card.locked .mission-title{color:var(--text-muted);}
@@ -426,10 +429,20 @@
     grid-row:1 / span 2; display:flex; align-items:center; justify-content:center;
     width:34px; height:34px; background:var(--locked-bg); color:var(--text-muted);
     font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:700; border-radius:var(--radius-sm);
+    position:relative;
   }
   .board-row.place-1 .board-rank{background:#E8B923; color:var(--navy);}
   .board-row.place-2 .board-rank{background:#C3C9D1; color:var(--navy);}
   .board-row.place-3 .board-rank{background:#D08A4C; color:var(--navy);}
+  .rank-arrow{
+    position:absolute; top:-6px; right:-6px; font-size:11px; line-height:1;
+    width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    animation:rankArrowIn .5s cubic-bezier(.2,.8,.3,1) both;
+  }
+  .rank-arrow.up{background:var(--success); color:#fff;}
+  .rank-arrow.down{background:var(--primary); color:#fff;}
+  @keyframes rankArrowIn{from{opacity:0; transform:scale(.5);} to{opacity:1; transform:scale(1);}}
+  @media (prefers-reduced-motion: reduce){ .rank-arrow{animation:none;} }
   .board-name{
     min-width:0; display:flex; align-items:center; gap:9px;
     color:var(--navy); font-family:'IBM Plex Sans',sans-serif; font-size:14px; font-weight:600;
@@ -461,6 +474,22 @@
     .board-points{font-size:14.5px;}
   }
 
+  /* ---------- podium (Top 3) ---------- */
+  .podium{display:flex; align-items:flex-end; justify-content:center; gap:10px; padding:20px 14px 0;}
+  .podium-slot{display:flex; flex-direction:column; align-items:center; width:88px; text-align:center; min-width:0;}
+  .podium-team{font-size:12px; font-weight:700; color:var(--navy); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
+  .podium-pts{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-muted); margin-bottom:6px;}
+  .podium-crown{font-size:20px; margin-bottom:2px; line-height:1;}
+  .podium-block{
+    width:100%; border-radius:var(--radius-sm) var(--radius-sm) 0 0;
+    font-family:'IBM Plex Mono',monospace; font-weight:800; color:var(--navy);
+    display:flex; align-items:flex-start; justify-content:center; padding-top:6px;
+  }
+  .podium-slot.place-1 .podium-block{height:64px; background:#E8B923; font-size:20px;}
+  .podium-slot.place-2 .podium-block{height:46px; background:#C3C9D1; font-size:17px;}
+  .podium-slot.place-3 .podium-block{height:34px; background:#D08A4C; font-size:16px;}
+  @media (max-width:380px){ .podium-slot{width:72px;} }
+
   /* ---------- quiz modal ---------- */
   .overlay{
     position:fixed; inset:0; background:rgba(14,42,67,0.5);
@@ -481,6 +510,11 @@
   @media(min-width:640px){ .quiz-card{border-radius:var(--radius);} }
   @media (prefers-reduced-motion: reduce){ .overlay, .quiz-card{animation:none;} }
   .quiz-amt{font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; display:flex; align-items:center; gap:6px;}
+  .quiz-dots{display:flex; gap:6px; margin:10px 0 4px;}
+  .quiz-dots .dot{width:8px; height:8px; border-radius:50%; background:var(--locked-bg); flex:0 0 auto; transition:background .2s ease, transform .2s ease;}
+  .quiz-dots .dot.done{background:var(--success);}
+  .quiz-dots .dot.current{background:var(--blue); transform:scale(1.25);}
+  @media (prefers-reduced-motion: reduce){ .quiz-dots .dot{transition:none;} }
   .quiz-question{font-family:'IBM Plex Sans',sans-serif; font-weight:700; font-size:19px; line-height:1.35; margin:10px 0 18px; color:var(--navy);}
   .option{
     display:block; width:100%; text-align:left; padding:13px 14px; margin-bottom:9px;
@@ -506,6 +540,18 @@
     display:flex; align-items:center; justify-content:center; border-radius:var(--radius);
   }
   .close-x:hover{background:var(--locked-bg);}
+
+  /* ---------- generic info/confirm dialog (reuses .overlay/.quiz-card) ---------- */
+  .info-card h3{font-size:17px; margin:0 0 4px; color:var(--navy);}
+  .info-card p{font-size:14.5px; margin:0 0 12px;}
+  .info-card ul{margin:0 0 16px; padding-left:20px;}
+  .info-card li{font-size:14.5px; line-height:1.55; margin-bottom:6px; color:var(--text);}
+  .info-card .quiz-actions{justify-content:flex-end;}
+  .btn-plain{
+    background:none; border:none; padding:11px 16px; min-height:44px;
+    font-weight:600; font-size:14px; color:var(--text-muted); border-radius:var(--radius);
+  }
+  .btn-plain:hover{background:var(--locked-bg); color:var(--text);}
 
   /* ---------- stamp / approval effect ----------
      Der Ein-/Ausblend-Zeitpunkt wird von der <stamp-overlay>-Komponente per
@@ -582,6 +628,24 @@
     border-radius:var(--radius); padding:10px 14px; margin-bottom:14px;
   }
 
+  /* ---------- admin (internes Orga-Team) ---------- */
+  .admin-banner{
+    display:flex; align-items:center; gap:8px;
+    font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; letter-spacing:.03em;
+    color:#fff; background:var(--navy); border-radius:var(--radius); padding:10px 14px; margin-bottom:16px;
+  }
+  .admin-table{width:100%; border-collapse:collapse; margin-top:12px; font-size:13.5px;}
+  .admin-table th{
+    text-align:left; font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase;
+    letter-spacing:.05em; color:rgba(255,255,255,.6); padding:8px 10px; border-bottom:2px solid rgba(255,255,255,.18);
+  }
+  .admin-table td{padding:10px; border-bottom:1px solid rgba(255,255,255,.12); color:#fff;}
+  .admin-table tr:last-child td{border-bottom:none;}
+  .admin-actions{display:flex; gap:10px; flex-wrap:wrap; margin:18px 0;}
+  .admin-announce{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:12px;}
+  .admin-announce .field{flex:1 1 220px; margin:0;}
+  .admin-note{font-size:12.5px; color:var(--text-muted); margin-top:8px;}
+
   /* ---------- countdown ---------- */
   .countdown-screen{min-height:52vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
   .countdown-card{
@@ -626,6 +690,7 @@
 <header id="topbar" class="topbar"></header>
 
 <div id="app"><div class="boot-screen"><div class="boot-text">Rallye-System wird initialisiert<span class="boot-dots"></span></div></div></div>
+<div id="srLive" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
@@ -645,7 +710,10 @@
     list: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.3" fill="currentColor" stroke="none"/></svg>',
     logout: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
     warning: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3Z"/><line x1="12" y1="9" x2="12" y2="14"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg>',
-    trophy: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4a3 3 0 0 0 3 5M17 5h3a3 3 0 0 1-3 5"/><path d="M12 14v3M9 21h6M9 21c0-1.5.7-3 3-3s3 1.5 3 3"/></svg>'
+    trophy: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4a3 3 0 0 0 3 5M17 5h3a3 3 0 0 1-3 5"/><path d="M12 14v3M9 21h6M9 21c0-1.5.7-3 3-3s3 1.5 3 3"/></svg>',
+    pin: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.3 7-12a7 7 0 0 0-14 0c0 5.7 7 12 7 12Z"/><circle cx="12" cy="9" r="2.4"/></svg>',
+    info: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16.5"/><circle cx="12" cy="7.7" r="0.6" fill="currentColor" stroke="none"/></svg>',
+    download: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><polyline points="7 11 12 16 17 11"/><line x1="4" y1="20" x2="20" y2="20"/></svg>'
   };
   function icon(name){ return '<span class="icon">'+(ICONS[name]||'')+'</span>'; }
 
@@ -673,6 +741,10 @@
     'rallye8': 'gruppe-8',
     'rallye9': 'gruppe-9'
   };
+  // Interner Admin-Zugang fürs Orga-Team - erreichbar über die URL mit #admin.
+  // Nur ein Sichtschutz im Browser (wie die Gruppen-Passwörter), kein echter
+  // Server-Schutz. Vor dem Event unbedingt ändern.
+  var ADMIN_PASSWORD = 'orga-2026';
   var CAPACITY = 5;
   var POINTS_PER_STAGE = 10;
   var POINTS_PER_CORRECT = 2; // POINTS_PER_STAGE / 5 Fragen je Station
@@ -692,9 +764,11 @@
     return r.label;
   }
 
+  // Platzhalter-Adressen (Musterstraße) - vor dem echten Event durch die
+  // tatsächlichen Stationen ersetzen, siehe address je Fallakte.
   var STAGES = [
     {
-      id:'anmeldung', title:'Anmeldung nach Umzug', amt:'Bürgeramt', icon:'🪪',
+      id:'anmeldung', title:'Anmeldung nach Umzug', amt:'Bürgeramt', address:'Musterstraße 1, 20095 Hamburg', icon:'🪪',
       questions:[
         {
           question:'Innerhalb welcher Frist muss man sich nach einem Umzug in Deutschland ummelden?',
@@ -729,7 +803,7 @@
       ]
     },
     {
-      id:'steuerid', title:'Steuer-Identifikationsnummer', amt:'Finanzamt', icon:'💶',
+      id:'steuerid', title:'Steuer-Identifikationsnummer', amt:'Finanzamt', address:'Musterstraße 12, 20355 Hamburg', icon:'💶',
       questions:[
         {
           question:'Wer bekommt in Deutschland automatisch eine Steuer-ID zugeschickt?',
@@ -764,7 +838,7 @@
       ]
     },
     {
-      id:'aufenthaltstitel', title:'Aufenthaltstitel', amt:'Ausländerbehörde', icon:'🛂',
+      id:'aufenthaltstitel', title:'Aufenthaltstitel', amt:'Ausländerbehörde', address:'Musterstraße 28, 20097 Hamburg', icon:'🛂',
       questions:[
         {
           question:'Welches Dokument regelt, ob und wie lange sich eine Person ohne EU-Pass in Deutschland aufhalten darf?',
@@ -799,7 +873,7 @@
       ]
     },
     {
-      id:'rundfunk', title:'Rundfunkbeitrag', amt:'Beitragsservice', icon:'📺',
+      id:'rundfunk', title:'Rundfunkbeitrag', amt:'Beitragsservice', address:'Musterstraße 45, 22765 Hamburg', icon:'📺',
       questions:[
         {
           question:'Der Rundfunkbeitrag (früher „GEZ“) wird in Deutschland erhoben pro...',
@@ -834,7 +908,7 @@
       ]
     },
     {
-      id:'fuehrerschein', title:'Führerschein umschreiben', amt:'Führerscheinstelle', icon:'🚗',
+      id:'fuehrerschein', title:'Führerschein umschreiben', amt:'Führerscheinstelle', address:'Musterstraße 7, 22083 Hamburg', icon:'🚗',
       questions:[
         {
           question:'Nach einem Umzug aus einem Nicht-EU-Land: Wie lange gilt der ausländische Führerschein in Deutschland meist noch, bevor man umschreiben muss?',
@@ -869,7 +943,7 @@
       ]
     },
     {
-      id:'muelltrennung', title:'Mülltrennung', amt:'Ordnungsamt', icon:'🗑️',
+      id:'muelltrennung', title:'Mülltrennung', amt:'Ordnungsamt', address:'Musterstraße 19, 20359 Hamburg', icon:'🗑️',
       questions:[
         {
           question:'Welche Tonne ist in Deutschland typischerweise für Verpackungen aus Kunststoff und Metall gedacht?',
@@ -904,7 +978,7 @@
       ]
     },
     {
-      id:'termin', title:'Termin-Etikette', amt:'Amt für Ordnung & Geduld', icon:'📅',
+      id:'termin', title:'Termin-Etikette', amt:'Amt für Ordnung & Geduld', address:'Musterstraße 99, 20099 Hamburg', icon:'📅',
       questions:[
         {
           question:'Was ist bei einem Behördentermin in Deutschland besonders wichtig?',
@@ -960,6 +1034,11 @@
     boardOpen:false,
     boardPulseUntil:0,
     menuOpen:false,
+    helpOpen:false,
+    adminPasswordInput:'',
+    adminAnnounceInput:'',
+    adminJoining:false,
+    adminAnnounceSent:false,
     error:null
   };
 
@@ -1053,6 +1132,7 @@
     if(remote){
       state.groupRows = remote.groups || [];
       state.participantRows = remote.participants || [];
+      if(state.offline) showToast('✓ Verbindung wiederhergestellt – Rangliste ist wieder live.');
       state.offline = false;
       cacheRemoteState(remote);
     } else {
@@ -1085,6 +1165,7 @@
 
   var recentlyCompletedByMe = {};
 
+  var announceChannel = null;
   function subscribeRealtime(){
     if(!sb || !sb.channel) return;
     try{
@@ -1094,7 +1175,19 @@
       sb.channel('public:participants')
         .on('postgres_changes', {event:'*', schema:'public', table:'participants'}, handleRemoteParticipantsChange)
         .subscribe();
+      announceChannel = sb.channel('behoerdenrallye:announcements');
+      announceChannel
+        .on('broadcast', {event:'announcement'}, function(msg){
+          var text = msg && msg.payload && msg.payload.text;
+          if(text) showToast('📣 ' + text);
+        })
+        .subscribe();
     }catch(e){ console.warn('Behördenrallye: Live-Verbindung konnte nicht aufgebaut werden.', e); }
+  }
+
+  function sendAnnouncement(text){
+    if(!announceChannel) return Promise.resolve({error:'no-channel'});
+    return announceChannel.send({type:'broadcast', event:'announcement', payload:{text:text}});
   }
 
   function handleRemoteGroupsChange(payload){
@@ -1115,7 +1208,7 @@
 
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
     cacheRemoteState({groups:state.groupRows, participants:state.participantRows});
-    if(state.screen==='map' || state.screen==='finished'){ render(); }
+    if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
   }
 
   function handleRemoteParticipantsChange(payload){
@@ -1125,11 +1218,21 @@
     if(payload.eventType !== 'DELETE'){ state.participantRows = state.participantRows.concat([row]); }
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
     cacheRemoteState({groups:state.groupRows, participants:state.participantRows});
-    if(state.screen==='map' || state.screen==='finished'){ render(); }
+    if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
+  }
+
+  function isAdminUrl(){
+    return location.hash === '#admin';
   }
 
   async function init(){
     sb = initSupabase();
+    if(isAdminUrl()){
+      state.screen = 'adminLogin';
+      render();
+      subscribeRealtime();
+      return;
+    }
     var p = await loadParticipant();
     await refreshGroupsState();
     if(p && p.groupId){
@@ -1150,7 +1253,7 @@
   function startPolling(){
     setInterval(async function(){
       if(document.hidden) return;
-      if(state.screen === 'map' || state.screen === 'finished'){
+      if(state.screen === 'map' || state.screen === 'finished' || state.screen === 'admin'){
         await refreshGroupsState();
         render();
       }
@@ -1214,6 +1317,19 @@
     startCountdown();
   }
 
+  async function handleAdminPasswordSubmit(){
+    state.error = null;
+    var pw = (state.adminPasswordInput||'').trim();
+    if(!pw){ state.error = 'Bitte Admin-Passwort eingeben.'; render(); return; }
+    if(pw !== ADMIN_PASSWORD){ state.error = 'Falsches Passwort.'; render(); return; }
+    state.adminJoining = true;
+    render();
+    await refreshGroupsState();
+    state.adminJoining = false;
+    state.screen = 'admin';
+    render();
+  }
+
   function stageStatus(stageId, index){
     if(!state.participant) return 'locked';
     var progress = state.groupProgress || {};
@@ -1222,12 +1338,14 @@
     return index === firstUndone ? 'current' : 'locked';
   }
 
+  var quizFocusApplied = false;
   function openQuiz(index){
     state.activeQuizIndex = index;
     state.quizQuestionIndex = 0;
     state.quizSelectedOption = null;
     state.quizAnswered = false;
     state.quizCorrectCount = 0;
+    quizFocusApplied = false;
     render();
   }
 
@@ -1246,7 +1364,9 @@
     state.quizAnswered = true;
     var stage = STAGES[state.activeQuizIndex];
     var q = stage.questions[state.quizQuestionIndex];
-    if(optIndex === q.correct) state.quizCorrectCount++;
+    var isCorrect = optIndex === q.correct;
+    if(isCorrect) state.quizCorrectCount++;
+    try{ if(navigator.vibrate) navigator.vibrate(isCorrect ? 40 : [30,60,30]); }catch(e){}
     render();
   }
 
@@ -1287,6 +1407,7 @@
       }
       await refreshGroupsState();
       state.boardPulseUntil = Date.now() + 1200;
+      announce('Fallakte abgeschlossen: +'+earnedPoints+' Punkte für euer Team.');
 
       showStampFx(earnedPoints);
 
@@ -1475,14 +1596,20 @@
     }, 1600);
   }
 
-  async function leaveGroup(){
-    if(!confirm('Abmelden? Die Anmeldung auf diesem Gerät geht verloren (euer Team-Fortschritt bleibt erhalten). Gib das Gruppen-Passwort erneut ein, um zurückzukehren.')) return;
-    try{ localStorage.removeItem('behoerdenrallye:participant'); }catch(e){ console.warn('Behördenrallye: participant konnte nicht entfernt werden.', e); }
-    state.participant = null;
-    state.groupProgress = {};
-    state.passwordInput = '';
-    state.screen = 'intro';
-    render();
+  function leaveGroup(){
+    showConfirmDialog({
+      title:'Abmelden?',
+      message:'Die Anmeldung auf diesem Gerät geht verloren (euer Team-Fortschritt bleibt erhalten). Gib das Gruppen-Passwort erneut ein, um zurückzukehren.',
+      confirmLabel:'Ja, abmelden',
+      onConfirm:function(){
+        try{ localStorage.removeItem('behoerdenrallye:participant'); }catch(e){ console.warn('Behördenrallye: participant konnte nicht entfernt werden.', e); }
+        state.participant = null;
+        state.groupProgress = {};
+        state.passwordInput = '';
+        state.screen = 'intro';
+        render();
+      }
+    });
   }
 
   function startCountdown(){
@@ -1517,6 +1644,71 @@
       t.classList.add('fadeout');
       setTimeout(function(){ t.remove(); }, 320);
     }, 3400);
+  }
+
+  function announce(text){
+    var el = document.getElementById('srLive');
+    if(el){ el.textContent = ''; setTimeout(function(){ el.textContent = text; }, 30); }
+  }
+
+  // Hält Tab-Fokus innerhalb eines Dialogs und ruft onEscape bei Escape auf -
+  // wird von Quiz-, Bestätigungs- und Info-Dialogen gemeinsam genutzt.
+  function trapFocus(container, onEscape){
+    function onKey(e){
+      if(e.key === 'Escape' && onEscape){ onEscape(); return; }
+      if(e.key !== 'Tab') return;
+      var focusables = container.querySelectorAll('button:not(:disabled), [href], input:not(:disabled), [tabindex]:not([tabindex="-1"])');
+      if(!focusables.length) return;
+      var first = focusables[0], last = focusables[focusables.length-1];
+      if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    }
+    container.addEventListener('keydown', onKey);
+    return function(){ container.removeEventListener('keydown', onKey); };
+  }
+
+  function showConfirmDialog(opts){
+    var ov = document.createElement('div');
+    ov.className = 'overlay';
+    ov.innerHTML = ''+
+      '<div class="quiz-card info-card" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">'+
+        '<h3 id="confirmTitle">'+esc(opts.title)+'</h3>'+
+        '<p>'+esc(opts.message)+'</p>'+
+        '<div class="quiz-actions">'+
+          '<button type="button" class="btn-plain" id="confirmCancelBtn">Abbrechen</button>'+
+          btn(opts.confirmLabel, {id:'confirmOkBtn'})+
+        '</div>'+
+      '</div>';
+    document.body.appendChild(ov);
+    var card = ov.querySelector('.info-card');
+    var cancelBtn = ov.querySelector('#confirmCancelBtn');
+    var okBtn = ov.querySelector('#confirmOkBtn');
+    function close(){ untrap(); ov.remove(); }
+    var untrap = trapFocus(card, close);
+    cancelBtn.addEventListener('click', close);
+    ov.addEventListener('click', function(e){ if(e.target === ov) close(); });
+    okBtn.addEventListener('click', function(){ close(); opts.onConfirm(); });
+    cancelBtn.focus();
+  }
+
+  function showInfoDialog(opts){
+    var ov = document.createElement('div');
+    ov.className = 'overlay';
+    ov.innerHTML = ''+
+      '<div class="quiz-card info-card" role="dialog" aria-modal="true" aria-labelledby="infoTitle">'+
+        '<button class="close-x" id="infoCloseBtn" aria-label="Schließen">'+icon('close')+'</button>'+
+        '<h3 id="infoTitle">'+esc(opts.title)+'</h3>'+
+        opts.bodyHtml+
+        '<div class="quiz-actions">'+btn('Verstanden', {id:'infoOkBtn'})+'</div>'+
+      '</div>';
+    document.body.appendChild(ov);
+    var card = ov.querySelector('.info-card');
+    function close(){ untrap(); ov.remove(); }
+    var untrap = trapFocus(card, close);
+    ov.querySelector('#infoCloseBtn').addEventListener('click', close);
+    ov.querySelector('#infoOkBtn').addEventListener('click', close);
+    ov.addEventListener('click', function(e){ if(e.target === ov) close(); });
+    ov.querySelector('#infoCloseBtn').focus();
   }
 
   /* ---------------- Easter Eggs ----------------
@@ -1608,9 +1800,10 @@
     var pad = function(n){ return String(n).padStart(2,'0'); };
     return 'Wettbewerb läuft in '+days+' Tg '+pad(hours)+':'+pad(minutes)+':'+pad(seconds);
   }
-  setInterval(function(){
+  var countdownInterval = setInterval(function(){
     var el = document.getElementById('heroCountdown');
     if(el) el.textContent = formatCountdown();
+    if(COUNTDOWN_TARGET.getTime() - Date.now() <= 0) clearInterval(countdownInterval);
   }, 1000);
 
   function renderDisclaimer(){
@@ -1621,10 +1814,12 @@
     var showStatus = state.participant && (state.screen==='map' || state.screen==='finished' || state.screen==='countdown');
     var groupDef = showStatus ? GROUPS.filter(function(g){ return g.id === state.participant.groupId; })[0] : null;
     var myPoints = groupDef ? groupPoints(groupDef.id) : 0;
+    var brandTag = state.participant ? 'button' : 'span';
+    var brandAttrs = state.participant ? ' type="button" id="brandHome" aria-label="Zurück zur Fallakten-Übersicht"' : '';
     return ''+
     '<div class="topbar-wave"></div>'+
     '<div class="topbar-inner">'+
-      '<span class="brand"><span class="brand-mark egg-stamp">BR</span><span class="brand-word">Behörden<b>Rallye</b></span></span>'+
+      '<'+brandTag+' class="brand"'+brandAttrs+'><span class="brand-mark egg-stamp">BR</span><span class="brand-word">Behörden<b>Rallye</b></span></'+brandTag+'>'+
       '<div class="topbar-right">'+
         (groupDef ? '<span class="topbar-pill">'+esc(groupDef.name)+' · '+myPoints+' P.</span>' : '')+
         (state.participant ? '<button type="button" class="btn menu-btn" id="menuBtn" aria-haspopup="true" aria-expanded="'+(state.menuOpen?'true':'false')+'" aria-label="Menü öffnen"><span class="blob"></span><span class="inner">'+icon('menu')+'</span></button>' : '')+
@@ -1637,8 +1832,24 @@
     return ''+
     '<div class="menu-panel" role="menu">'+
       '<button type="button" id="menuToggleBoard" role="menuitem">'+icon('list')+'<span>'+(state.boardOpen?'Rangliste ausblenden':'Rangliste anzeigen')+'</span></button>'+
+      '<button type="button" id="menuHelp" role="menuitem">'+icon('info')+'<span>Wie funktioniert\'s?</span></button>'+
       '<button type="button" id="menuLeave" role="menuitem" class="danger">'+icon('logout')+'<span>Neu anmelden / Gerät wechseln</span></button>'+
     '</div>';
+  }
+
+  function showHelpDialog(){
+    showInfoDialog({
+      title:'Wie funktioniert\'s?',
+      bodyHtml:''+
+        '<ul>'+
+          '<li>Euer Team meldet sich mit dem gemeinsamen <b>Gruppen-Passwort</b> auf einem Gerät an - bis zu 5 Mitspieler:innen teilen sich diesen Login.</li>'+
+          '<li>Ihr bearbeitet nacheinander <b>7 Fallakten</b> bei fiktiven Ämtern. Jede Fallakte gilt fürs ganze Team.</li>'+
+          '<li>Jede Fallakte hat eine kurze <b>Quizfrage-Runde</b>. Richtige Antworten bringen Punkte für die Rangliste.</li>'+
+          '<li>Wer eine Fallakte zuerst bearbeitet, schaltet die nächste für das ganze Team frei.</li>'+
+          '<li>In der <b>Rangliste</b> seht ihr live, wie alle neun Teams stehen.</li>'+
+          '<li>Nach der letzten Fallakte gibt es eine kleine Feier - euer Team hat die Rallye abgeschlossen!</li>'+
+        '</ul>'
+    });
   }
 
   function renderIntro(){
@@ -1650,7 +1861,7 @@
         '<div class="field name-field-brutal">'+
           '<span class="shadow__input" aria-hidden="true"></span>'+
           '<label for="passwordField">Gruppen-Passwort</label>'+
-          '<input type="password" id="passwordField" placeholder="Passwort eingeben" value="'+esc(state.passwordInput)+'">'+
+          '<input type="password" id="passwordField" placeholder="Passwort eingeben" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="'+esc(state.passwordInput)+'">'+
         '</div>'+
       '</div>'+
       (state.error ? '<p style="color:var(--error); font-size:14px; margin-top:10px;">'+esc(state.error)+'</p>' : '')+
@@ -1665,13 +1876,121 @@
     return '<p class="offline-banner">⚠ Keine Verbindung zur Live-Rangliste – zeige zwischengespeicherten Stand.</p>';
   }
 
+  function renderAdminLogin(){
+    return ''+
+    '<div class="admin-banner">'+icon('lock')+'<span>Admin-Bereich · nur fürs Orga-Team</span></div>'+
+    '<div class="intro-card">'+
+      '<h2>Admin-Zugang</h2>'+
+      '<p>Interner Bereich fürs Orga-Team der Behördenrallye - nicht für Teilnehmende gedacht.</p>'+
+      '<div class="name-class-row" style="margin-top:24px;">'+
+        '<div class="field name-field-brutal">'+
+          '<span class="shadow__input" aria-hidden="true"></span>'+
+          '<label for="adminPasswordField">Admin-Passwort</label>'+
+          '<input type="password" id="adminPasswordField" placeholder="Passwort eingeben" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="'+esc(state.adminPasswordInput)+'">'+
+        '</div>'+
+      '</div>'+
+      (state.error ? '<p style="color:var(--error); font-size:14px; margin-top:10px;">'+esc(state.error)+'</p>' : '')+
+      '<div style="margin-top:18px;">'+
+        btn(state.adminJoining ? 'Wird geprüft…' : 'Anmelden →', {id:'adminSubmitBtn', cls:'btn-lg'+(state.adminJoining?' is-loading':''), attrs:state.adminJoining?'disabled':''})+
+      '</div>'+
+    '</div>';
+  }
+
+  function renderAdmin(){
+    var rows = GROUPS.map(function(gr, i){
+      var row = state.groupRows.filter(function(r){ return r.id === gr.id; })[0];
+      var progress = row ? (row.progress||{}) : {};
+      var members = (state.groupsState && state.groupsState[gr.id]) ? state.groupsState[gr.id].members.length : 0;
+      return {id:gr.id, name:gr.name, tab:tabClass(i), points:sumPoints(progress), done:countDone(progress), members:members};
+    });
+    var ranked = rows.slice().sort(function(a,b){ return b.points - a.points; });
+
+    var rowsHtml = ranked.map(function(r, idx){
+      return '<tr>'+
+        '<td>'+(idx+1)+'</td>'+
+        '<td><span class="board-dot '+r.tab+'" style="display:inline-block; margin-right:6px;"></span>'+esc(r.name)+'</td>'+
+        '<td>'+r.points+'</td>'+
+        '<td>'+r.done+' / '+STAGES.length+'</td>'+
+        '<td>'+r.members+' / '+CAPACITY+'</td>'+
+      '</tr>';
+    }).join('');
+
+    return ''+
+    '<div class="admin-banner">'+icon('lock')+'<span>Admin-Bereich · nur fürs Orga-Team</span></div>'+
+    renderOfflineBanner()+
+    '<div class="progress-panel">'+
+      '<div class="progress-head">'+
+        '<span class="eyebrow">Admin-Übersicht</span>'+
+        '<div class="who">Live-Stand aller '+GROUPS.length+' Teams</div>'+
+      '</div>'+
+      '<table class="admin-table">'+
+        '<thead><tr><th>Rang</th><th>Team</th><th>Punkte</th><th>Fallakten</th><th>Mitglieder</th></tr></thead>'+
+        '<tbody>'+rowsHtml+'</tbody>'+
+      '</table>'+
+    '</div>'+
+    '<div class="admin-actions">'+
+      btn('Aktualisieren', {id:'adminRefreshBtn'})+
+      btn('Ergebnisse als CSV exportieren '+icon('download'), {id:'adminExportBtn'})+
+    '</div>'+
+    '<div class="intro-card">'+
+      '<h3 style="margin-top:0;">Ankündigung an alle Geräte senden</h3>'+
+      '<p class="muted" style="font-size:13px; margin:0;">Erscheint kurz als Hinweis bei allen gerade aktiven Teilnehmenden. Wird nicht gespeichert - nur aktuell verbundene Geräte sehen sie.</p>'+
+      '<div class="admin-announce">'+
+        '<div class="field"><label for="adminAnnounceInput" class="sr-only">Ankündigungstext</label><input type="text" id="adminAnnounceInput" placeholder="z. B. Rallye endet in 10 Minuten!" value="'+esc(state.adminAnnounceInput)+'"></div>'+
+        btn('Senden', {id:'adminAnnounceBtn'})+
+      '</div>'+
+      (state.adminAnnounceSent ? '<p class="admin-note">✓ Gesendet.</p>' : '')+
+    '</div>';
+  }
+
+  function exportResultsCsv(){
+    var lines = [['Rang','Team','Punkte','Fallakten erledigt','Mitglieder'].join(';')];
+    var rows = GROUPS.map(function(gr){
+      var row = state.groupRows.filter(function(r){ return r.id === gr.id; })[0];
+      var progress = row ? (row.progress||{}) : {};
+      var members = (state.groupsState && state.groupsState[gr.id]) ? state.groupsState[gr.id].members.length : 0;
+      return {name:gr.name, points:sumPoints(progress), done:countDone(progress), members:members};
+    }).sort(function(a,b){ return b.points - a.points; });
+    rows.forEach(function(r, idx){
+      lines.push([idx+1, r.name, r.points, r.done+'/'+STAGES.length, r.members].join(';'));
+    });
+    var blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+    var link = document.createElement('a');
+    link.download = 'behoerdenrallye-ergebnisse.csv';
+    link.href = URL.createObjectURL(blob);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(function(){ URL.revokeObjectURL(link.href); }, 2000);
+  }
+
   var BOARD_ROW_H = 76;
+  var lastRanks = {};
+  var rankFlashInfo = {};
+  var lastBoardPoints = {};
+  function renderPodium(ranked){
+    var slots = [
+      {r: ranked[1], place:'place-2'},
+      {r: ranked[0], place:'place-1'},
+      {r: ranked[2], place:'place-3'}
+    ];
+    return '<div class="podium">'+slots.map(function(s){
+      return '<div class="podium-slot '+s.place+'">'+
+        (s.place==='place-1' ? '<div class="podium-crown" aria-hidden="true">🏆</div>' : '')+
+        '<div class="podium-team">'+esc(s.r.name)+'</div>'+
+        '<div class="podium-pts">'+s.r.points+' P.</div>'+
+        '<div class="podium-block '+s.r.tab+'">'+s.place.slice(-1)+'</div>'+
+      '</div>';
+    }).join('')+'</div>';
+  }
+
   function renderBoard(){
     var rows = GROUPS.map(function(gr, i){ return {id:gr.id, name:gr.name, tab:tabClass(i), points:groupPoints(gr.id)}; });
     var ranked = rows.slice().sort(function(a,b){ return b.points - a.points; });
     var maxPts = Math.max(1, ranked[0].points);
     var mine = state.participant ? state.participant.groupId : null;
     var pulseActive = Date.now() < (state.boardPulseUntil||0);
+    var now = Date.now();
 
     // Reihenfolge im DOM bleibt stabil (nach Gruppe, nicht nach Rang) - nur die
     // Position wird per transform animiert, damit Zeilen beim Umsortieren sanft
@@ -1680,11 +1999,32 @@
       var rank = ranked.findIndex(function(x){ return x.id === r.id; });
       var pct = Math.round(r.points / maxPts * 100);
       var isMine = r.id === mine;
+
+      var prevRank = lastRanks[r.id];
+      if(prevRank !== undefined && prevRank !== rank){
+        rankFlashInfo[r.id] = { dir: rank < prevRank ? 'up' : 'down', until: now + 1400 };
+        setTimeout(function(){ if(document.getElementById('liveBoard')) render(); }, 1450);
+        if(isMine){
+          announce('Euer Team ist jetzt auf Platz '+(rank+1)+'.');
+        }
+      }
+      lastRanks[r.id] = rank;
+      var flash = rankFlashInfo[r.id];
+      var arrowHtml = (flash && now < flash.until)
+        ? '<span class="rank-arrow '+flash.dir+'" aria-hidden="true">'+(flash.dir==='up'?'▲':'▼')+'</span>'
+        : '';
+
+      var prevPoints = lastBoardPoints[r.id];
+      var animateFrom = (prevPoints !== undefined && prevPoints !== r.points) ? prevPoints : null;
+      lastBoardPoints[r.id] = r.points;
+      var pointsAttrs = animateFrom !== null ? ' data-from="'+animateFrom+'" data-to="'+r.points+'"' : '';
+      var pointsDisplay = animateFrom !== null ? animateFrom : r.points;
+
       return ''+
       '<div class="board-row '+r.tab+(rank<3?' place-'+(rank+1):'')+(isMine?' mine':'')+(isMine&&pulseActive?' pulse':'')+'" style="transform:translateY('+(rank*BOARD_ROW_H)+'px)">'+
-        '<div class="board-rank">'+String(rank+1).padStart(2,'0')+'</div>'+
+        '<div class="board-rank">'+String(rank+1).padStart(2,'0')+arrowHtml+'</div>'+
         '<div class="board-name"><span class="board-dot"></span><span>'+esc(r.name)+'</span>'+(isMine?' <span class="du-badge">Du</span>':'')+'</div>'+
-        '<div class="board-points">'+r.points+'</div>'+
+        '<div class="board-points"'+pointsAttrs+'>'+pointsDisplay+'</div>'+
         '<div class="board-bar-wrap"><div class="board-bar" style="width:'+pct+'%"></div></div>'+
       '</div>';
     }).join('');
@@ -1692,6 +2032,7 @@
     return ''+
     '<div class="board" id="liveBoard">'+
       '<div class="board-title">Aktueller Wettbewerbsstand</div>'+
+      renderPodium(ranked)+
       '<div class="board-head"><span class="live-dot"></span><span class="live-label">Rangliste · live</span></div>'+
       '<div class="board-rows" style="height:'+(GROUPS.length*BOARD_ROW_H)+'px">'+rowsHtml+'</div>'+
     '</div>';
@@ -1726,6 +2067,7 @@
         '</div>'+
         '<div class="mission-org">'+s.icon+' '+esc(s.amt)+'</div>'+
         '<div class="mission-title">'+esc(s.title)+'</div>'+
+        (s.address ? '<div class="mission-address">'+icon('pin')+'<span>'+esc(s.address)+'</span></div>' : '')+
         '<div class="mission-footer">'+footer+'</div>'+
       '</'+tag+'>';
     }).join('');
@@ -1785,11 +2127,17 @@
       ? btn(isLast ? 'Fallakte abschließen →' : 'Nächste Frage →', {id:'quizNextBtn'})
       : '';
 
+    var dotsHtml = stage.questions.map(function(_, idx){
+      var dotCls = idx < qi ? 'dot done' : idx === qi ? 'dot current' : 'dot';
+      return '<span class="'+dotCls+'"></span>';
+    }).join('');
+
     return ''+
     '<div class="overlay" id="quizOverlay">'+
       '<div class="quiz-card" role="dialog" aria-modal="true" aria-labelledby="quizQuestion">'+
         '<button class="close-x" id="quizCloseBtn" aria-label="Quiz schließen">'+icon('close')+'</button>'+
         '<div class="quiz-amt">'+stage.icon+' Station '+(i+1)+' · '+esc(stage.amt)+' · Frage '+(qi+1)+'/'+stage.questions.length+'</div>'+
+        '<div class="quiz-dots" aria-hidden="true">'+dotsHtml+'</div>'+
         '<div class="quiz-question" id="quizQuestion">'+esc(s.question)+'</div>'+
         '<div class="options">'+optsHtml+'</div>'+
         feedback+
@@ -1813,8 +2161,65 @@
         '<span class="hero-stat">'+icon('star')+'<span>'+myPoints+' Punkte</span></span>'+
         '<span class="hero-stat">'+icon('trophy')+'<span>'+esc(rankForPoints(myPoints))+'</span></span>'+
       '</div>'+
+      '<div style="margin-top:18px;">'+
+        btn('Team-Zertifikat herunterladen '+icon('download'), {id:'certDownloadBtn'})+
+      '</div>'+
     '</div>'+
     (state.boardOpen ? renderBoard() : '');
+  }
+
+  function downloadCertificate(){
+    var p = state.participant;
+    var groupIdx = GROUPS.findIndex(function(g){ return g.id === p.groupId; });
+    var groupDef = GROUPS[groupIdx];
+    var myPoints = groupPoints(p.groupId);
+    var rankLabel = rankForPoints(myPoints);
+
+    var canvas = document.createElement('canvas');
+    canvas.width = 1200; canvas.height = 800;
+    var ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#F3F5F7'; ctx.fillRect(0, 0, 1200, 800);
+    ctx.strokeStyle = '#17324D'; ctx.lineWidth = 10; ctx.strokeRect(30, 30, 1140, 740);
+    ctx.strokeStyle = '#C8102E'; ctx.lineWidth = 2; ctx.strokeRect(48, 48, 1104, 704);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#17324D';
+    ctx.font = '600 22px "IBM Plex Mono", monospace';
+    ctx.fillText('OFFIZIELLE URKUNDE · BEHÖRDENRALLYE 2026', 600, 150);
+
+    ctx.font = '700 56px "IBM Plex Sans", sans-serif';
+    ctx.fillText('Team ' + groupDef.name, 600, 260);
+
+    ctx.font = '400 26px "IBM Plex Sans", sans-serif';
+    ctx.fillStyle = '#172B3A';
+    ctx.fillText('hat die Behördenrallye erfolgreich abgeschlossen', 600, 320);
+    ctx.fillText('und alle 7 Fallakten bearbeitet.', 600, 358);
+
+    ctx.font = '700 44px "IBM Plex Mono", monospace';
+    ctx.fillStyle = '#C8102E';
+    ctx.fillText(myPoints + ' Punkte', 600, 470);
+
+    ctx.font = '600 26px "IBM Plex Mono", monospace';
+    ctx.fillStyle = '#2B6CA3';
+    ctx.fillText(rankLabel, 600, 520);
+
+    ctx.font = '700 30px "IBM Plex Mono", monospace';
+    ctx.fillStyle = '#17324D';
+    ctx.strokeStyle = '#17324D'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(600, 630, 60, 0, Math.PI*2); ctx.stroke();
+    ctx.fillText('✓', 600, 642);
+
+    ctx.font = '400 15px "IBM Plex Mono", monospace';
+    ctx.fillStyle = '#5A6B78';
+    ctx.fillText('Behördenrallye · Jahrgang 2026', 600, 730);
+
+    var link = document.createElement('a');
+    link.download = 'zertifikat-' + groupDef.id + '.png';
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   }
 
   function renderCountdown(){
@@ -1837,15 +2242,45 @@
     else if(state.screen === 'countdown') html = renderCountdown();
     else if(state.screen === 'map') html = renderMap();
     else if(state.screen === 'finished') html = renderFinished();
+    else if(state.screen === 'adminLogin') html = renderAdminLogin();
+    else if(state.screen === 'admin') html = renderAdmin();
     else html = '<div class="boot-screen"><div class="boot-text">Rallye-System wird initialisiert<span class="boot-dots"></span></div></div>';
 
     var quizHtml = state.activeQuizIndex !== null ? renderQuiz() : '';
 
     app.innerHTML = '<div class="screen">'+html+renderDisclaimer()+'</div>'+quizHtml;
     attachListeners();
+    animatePendingBoardPoints();
 
     var topbar = document.getElementById('topbar');
     if(topbar){ topbar.innerHTML = renderHeaderBar(); attachHeaderListeners(); }
+  }
+
+  function prefersReducedMotion(){
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+
+  function animateCount(el, from, to, duration){
+    if(prefersReducedMotion()){ el.textContent = to; return; }
+    var start = performance.now();
+    function step(now){
+      var t = Math.min(1, (now-start)/duration);
+      var eased = 1 - Math.pow(1-t, 3);
+      el.textContent = Math.round(from + (to-from)*eased);
+      if(t < 1) requestAnimationFrame(step);
+      else el.textContent = to;
+    }
+    requestAnimationFrame(step);
+  }
+
+  function animatePendingBoardPoints(){
+    document.querySelectorAll('.board-points[data-from]').forEach(function(el){
+      var from = parseInt(el.getAttribute('data-from'), 10);
+      var to = parseInt(el.getAttribute('data-to'), 10);
+      el.removeAttribute('data-from');
+      el.removeAttribute('data-to');
+      animateCount(el, from, to, 650);
+    });
   }
 
   function attachHeaderListeners(){
@@ -1860,13 +2295,35 @@
       render();
     });
 
+    var menuHelp = document.getElementById('menuHelp');
+    if(menuHelp) menuHelp.addEventListener('click', function(){ state.menuOpen = false; render(); showHelpDialog(); });
+
     var menuLeave = document.getElementById('menuLeave');
-    if(menuLeave) menuLeave.addEventListener('click', function(){ state.menuOpen = false; leaveGroup(); });
+    if(menuLeave) menuLeave.addEventListener('click', function(){ state.menuOpen = false; render(); leaveGroup(); });
+
+    var brandHome = document.getElementById('brandHome');
+    if(brandHome) brandHome.addEventListener('click', function(){
+      state.menuOpen = false;
+      state.activeQuizIndex = null;
+      state.quizQuestionIndex = 0;
+      state.quizSelectedOption = null;
+      state.quizAnswered = false;
+      state.quizCorrectCount = 0;
+      state.screen = 'map';
+      render();
+    });
 
     document.querySelectorAll('#topbar .egg-stamp').forEach(function(el){
       el.addEventListener('click', handleStampIconClick);
     });
   }
+
+  document.addEventListener('click', function(e){
+    if(!state.menuOpen) return;
+    if(e.target.closest('.menu-panel') || e.target.closest('#menuBtn')) return;
+    state.menuOpen = false;
+    render();
+  });
 
   function attachListeners(){
     var passwordField = document.getElementById('passwordField');
@@ -1876,6 +2333,33 @@
     }
     var passwordSubmitBtn = document.getElementById('passwordSubmitBtn');
     if(passwordSubmitBtn) passwordSubmitBtn.addEventListener('click', handlePasswordSubmit);
+
+    var adminPasswordField = document.getElementById('adminPasswordField');
+    if(adminPasswordField){
+      adminPasswordField.addEventListener('input', function(e){ state.adminPasswordInput = e.target.value; });
+      adminPasswordField.addEventListener('keydown', function(e){ if(e.key==='Enter'){ handleAdminPasswordSubmit(); } });
+    }
+    var adminSubmitBtn = document.getElementById('adminSubmitBtn');
+    if(adminSubmitBtn) adminSubmitBtn.addEventListener('click', handleAdminPasswordSubmit);
+
+    var adminRefreshBtn = document.getElementById('adminRefreshBtn');
+    if(adminRefreshBtn) adminRefreshBtn.addEventListener('click', async function(){ await refreshGroupsState(); render(); });
+
+    var adminExportBtn = document.getElementById('adminExportBtn');
+    if(adminExportBtn) adminExportBtn.addEventListener('click', exportResultsCsv);
+
+    var adminAnnounceInput = document.getElementById('adminAnnounceInput');
+    if(adminAnnounceInput) adminAnnounceInput.addEventListener('input', function(e){ state.adminAnnounceInput = e.target.value; });
+    var adminAnnounceBtn = document.getElementById('adminAnnounceBtn');
+    if(adminAnnounceBtn) adminAnnounceBtn.addEventListener('click', async function(){
+      var text = (state.adminAnnounceInput||'').trim();
+      if(!text) return;
+      await sendAnnouncement(text);
+      state.adminAnnounceInput = '';
+      state.adminAnnounceSent = true;
+      render();
+      setTimeout(function(){ state.adminAnnounceSent = false; }, 4000);
+    });
 
     document.querySelectorAll('[data-stage]').forEach(function(btn){
       btn.addEventListener('click', function(){ openQuiz(parseInt(btn.getAttribute('data-stage'),10)); });
@@ -1889,12 +2373,24 @@
       el.addEventListener('click', handleEyebrowClick);
     });
 
+    var certBtn = document.getElementById('certDownloadBtn');
+    if(certBtn) certBtn.addEventListener('click', downloadCertificate);
+
     var quizClose = document.getElementById('quizCloseBtn');
     if(quizClose) quizClose.addEventListener('click', closeQuiz);
     var quizOverlay = document.getElementById('quizOverlay');
     if(quizOverlay) quizOverlay.addEventListener('click', function(e){ if(e.target === quizOverlay) closeQuiz(); });
     var quizNext = document.getElementById('quizNextBtn');
     if(quizNext) quizNext.addEventListener('click', advanceQuiz);
+
+    var quizCard = quizOverlay ? quizOverlay.querySelector('.quiz-card') : null;
+    if(quizCard){
+      trapFocus(quizCard);
+      if(!quizFocusApplied){
+        quizFocusApplied = true;
+        if(quizClose) quizClose.focus();
+      }
+    }
   }
 
   document.addEventListener('keydown', function(e){
