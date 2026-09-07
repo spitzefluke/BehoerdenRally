@@ -236,8 +236,7 @@
   .hero-status .dot{width:7px; height:7px; border-radius:50%; background:var(--success); flex:0 0 auto;}
   @keyframes livepulse{0%,100%{opacity:1;} 50%{opacity:.4;}}
   .hero-status .dot{animation:livepulse 2s ease-in-out infinite;}
-  .hero-countdown-sep{color:var(--border);}
-  .hero-countdown{font-variant-numeric:tabular-nums; color:var(--navy);}
+  .hero-countdown{font-variant-numeric:tabular-nums; color:var(--text-muted);}
   @media (prefers-reduced-motion: reduce){
     .hero-status .dot{animation:none;}
     .hero-eyebrow, .hero-title, .hero-sub, .hero-stats, .hero-status{animation:none;}
@@ -1591,23 +1590,23 @@
           '<span class="hero-stat"><b>7</b> Fallakten</span>'+
           '<span class="hero-stat"><b>'+(POINTS_PER_STAGE*7)+'</b> XP max.</span>'+
         '</div>'+
-        '<div class="hero-status"><span class="dot"></span><span>Wettbewerb läuft</span><span class="hero-countdown-sep">·</span><span class="hero-countdown" id="heroCountdown">'+esc(formatCountdown())+'</span></div>'+
+        '<div class="hero-status"><span class="dot"></span><span class="hero-countdown" id="heroCountdown">'+esc(formatCountdown())+'</span></div>'+
       '</div>'+
     '</div>';
   }
 
-  // Kleiner Countdown bis zum Rallye-Termin, neben "Wettbewerb läuft".
+  // Countdown bei "Wettbewerb läuft in ..." - zählt auf 0 am 07.10.2026.
   var COUNTDOWN_TARGET = new Date(2026, 9, 7, 0, 0, 0);
   function formatCountdown(){
     var diff = COUNTDOWN_TARGET.getTime() - Date.now();
-    if(diff <= 0) return 'Start erreicht';
+    if(diff <= 0) return 'Wettbewerb läuft!';
     var totalSeconds = Math.floor(diff/1000);
     var days = Math.floor(totalSeconds/86400);
     var hours = Math.floor((totalSeconds%86400)/3600);
     var minutes = Math.floor((totalSeconds%3600)/60);
     var seconds = totalSeconds%60;
     var pad = function(n){ return String(n).padStart(2,'0'); };
-    return 'noch '+days+' Tg '+pad(hours)+':'+pad(minutes)+':'+pad(seconds)+' bis 07.10.2026';
+    return 'Wettbewerb läuft in '+days+' Tg '+pad(hours)+':'+pad(minutes)+':'+pad(seconds);
   }
   setInterval(function(){
     var el = document.getElementById('heroCountdown');
