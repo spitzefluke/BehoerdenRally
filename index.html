@@ -474,6 +474,22 @@
     .board-points{font-size:14.5px;}
   }
 
+  /* ---------- podium (Top 3) ---------- */
+  .podium{display:flex; align-items:flex-end; justify-content:center; gap:10px; padding:20px 14px 0;}
+  .podium-slot{display:flex; flex-direction:column; align-items:center; width:88px; text-align:center; min-width:0;}
+  .podium-team{font-size:12px; font-weight:700; color:var(--navy); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
+  .podium-pts{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-muted); margin-bottom:6px;}
+  .podium-crown{font-size:20px; margin-bottom:2px; line-height:1;}
+  .podium-block{
+    width:100%; border-radius:var(--radius-sm) var(--radius-sm) 0 0;
+    font-family:'IBM Plex Mono',monospace; font-weight:800; color:var(--navy);
+    display:flex; align-items:flex-start; justify-content:center; padding-top:6px;
+  }
+  .podium-slot.place-1 .podium-block{height:64px; background:#E8B923; font-size:20px;}
+  .podium-slot.place-2 .podium-block{height:46px; background:#C3C9D1; font-size:17px;}
+  .podium-slot.place-3 .podium-block{height:34px; background:#D08A4C; font-size:16px;}
+  @media (max-width:380px){ .podium-slot{width:72px;} }
+
   /* ---------- quiz modal ---------- */
   .overlay{
     position:fixed; inset:0; background:rgba(14,42,67,0.5);
@@ -612,6 +628,24 @@
     border-radius:var(--radius); padding:10px 14px; margin-bottom:14px;
   }
 
+  /* ---------- admin (internes Orga-Team) ---------- */
+  .admin-banner{
+    display:flex; align-items:center; gap:8px;
+    font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; letter-spacing:.03em;
+    color:#fff; background:var(--navy); border-radius:var(--radius); padding:10px 14px; margin-bottom:16px;
+  }
+  .admin-table{width:100%; border-collapse:collapse; margin-top:12px; font-size:13.5px;}
+  .admin-table th{
+    text-align:left; font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase;
+    letter-spacing:.05em; color:rgba(255,255,255,.6); padding:8px 10px; border-bottom:2px solid rgba(255,255,255,.18);
+  }
+  .admin-table td{padding:10px; border-bottom:1px solid rgba(255,255,255,.12); color:#fff;}
+  .admin-table tr:last-child td{border-bottom:none;}
+  .admin-actions{display:flex; gap:10px; flex-wrap:wrap; margin:18px 0;}
+  .admin-announce{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:12px;}
+  .admin-announce .field{flex:1 1 220px; margin:0;}
+  .admin-note{font-size:12.5px; color:var(--text-muted); margin-top:8px;}
+
   /* ---------- countdown ---------- */
   .countdown-screen{min-height:52vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
   .countdown-card{
@@ -707,6 +741,10 @@
     'rallye8': 'gruppe-8',
     'rallye9': 'gruppe-9'
   };
+  // Interner Admin-Zugang fürs Orga-Team - erreichbar über die URL mit #admin.
+  // Nur ein Sichtschutz im Browser (wie die Gruppen-Passwörter), kein echter
+  // Server-Schutz. Vor dem Event unbedingt ändern.
+  var ADMIN_PASSWORD = 'orga-2026';
   var CAPACITY = 5;
   var POINTS_PER_STAGE = 10;
   var POINTS_PER_CORRECT = 2; // POINTS_PER_STAGE / 5 Fragen je Station
@@ -997,6 +1035,10 @@
     boardPulseUntil:0,
     menuOpen:false,
     helpOpen:false,
+    adminPasswordInput:'',
+    adminAnnounceInput:'',
+    adminJoining:false,
+    adminAnnounceSent:false,
     error:null
   };
 
@@ -1123,6 +1165,7 @@
 
   var recentlyCompletedByMe = {};
 
+  var announceChannel = null;
   function subscribeRealtime(){
     if(!sb || !sb.channel) return;
     try{
@@ -1132,7 +1175,19 @@
       sb.channel('public:participants')
         .on('postgres_changes', {event:'*', schema:'public', table:'participants'}, handleRemoteParticipantsChange)
         .subscribe();
+      announceChannel = sb.channel('behoerdenrallye:announcements');
+      announceChannel
+        .on('broadcast', {event:'announcement'}, function(msg){
+          var text = msg && msg.payload && msg.payload.text;
+          if(text) showToast('📣 ' + text);
+        })
+        .subscribe();
     }catch(e){ console.warn('Behördenrallye: Live-Verbindung konnte nicht aufgebaut werden.', e); }
+  }
+
+  function sendAnnouncement(text){
+    if(!announceChannel) return Promise.resolve({error:'no-channel'});
+    return announceChannel.send({type:'broadcast', event:'announcement', payload:{text:text}});
   }
 
   function handleRemoteGroupsChange(payload){
@@ -1153,7 +1208,7 @@
 
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
     cacheRemoteState({groups:state.groupRows, participants:state.participantRows});
-    if(state.screen==='map' || state.screen==='finished'){ render(); }
+    if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
   }
 
   function handleRemoteParticipantsChange(payload){
@@ -1163,11 +1218,21 @@
     if(payload.eventType !== 'DELETE'){ state.participantRows = state.participantRows.concat([row]); }
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
     cacheRemoteState({groups:state.groupRows, participants:state.participantRows});
-    if(state.screen==='map' || state.screen==='finished'){ render(); }
+    if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
+  }
+
+  function isAdminUrl(){
+    return location.hash === '#admin';
   }
 
   async function init(){
     sb = initSupabase();
+    if(isAdminUrl()){
+      state.screen = 'adminLogin';
+      render();
+      subscribeRealtime();
+      return;
+    }
     var p = await loadParticipant();
     await refreshGroupsState();
     if(p && p.groupId){
@@ -1188,7 +1253,7 @@
   function startPolling(){
     setInterval(async function(){
       if(document.hidden) return;
-      if(state.screen === 'map' || state.screen === 'finished'){
+      if(state.screen === 'map' || state.screen === 'finished' || state.screen === 'admin'){
         await refreshGroupsState();
         render();
       }
@@ -1250,6 +1315,19 @@
     state.participant = participant;
     await refreshGroupsState();
     startCountdown();
+  }
+
+  async function handleAdminPasswordSubmit(){
+    state.error = null;
+    var pw = (state.adminPasswordInput||'').trim();
+    if(!pw){ state.error = 'Bitte Admin-Passwort eingeben.'; render(); return; }
+    if(pw !== ADMIN_PASSWORD){ state.error = 'Falsches Passwort.'; render(); return; }
+    state.adminJoining = true;
+    render();
+    await refreshGroupsState();
+    state.adminJoining = false;
+    state.screen = 'admin';
+    render();
   }
 
   function stageStatus(stageId, index){
@@ -1798,9 +1876,114 @@
     return '<p class="offline-banner">⚠ Keine Verbindung zur Live-Rangliste – zeige zwischengespeicherten Stand.</p>';
   }
 
+  function renderAdminLogin(){
+    return ''+
+    '<div class="admin-banner">'+icon('lock')+'<span>Admin-Bereich · nur fürs Orga-Team</span></div>'+
+    '<div class="intro-card">'+
+      '<h2>Admin-Zugang</h2>'+
+      '<p>Interner Bereich fürs Orga-Team der Behördenrallye - nicht für Teilnehmende gedacht.</p>'+
+      '<div class="name-class-row" style="margin-top:24px;">'+
+        '<div class="field name-field-brutal">'+
+          '<span class="shadow__input" aria-hidden="true"></span>'+
+          '<label for="adminPasswordField">Admin-Passwort</label>'+
+          '<input type="password" id="adminPasswordField" placeholder="Passwort eingeben" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="'+esc(state.adminPasswordInput)+'">'+
+        '</div>'+
+      '</div>'+
+      (state.error ? '<p style="color:var(--error); font-size:14px; margin-top:10px;">'+esc(state.error)+'</p>' : '')+
+      '<div style="margin-top:18px;">'+
+        btn(state.adminJoining ? 'Wird geprüft…' : 'Anmelden →', {id:'adminSubmitBtn', cls:'btn-lg'+(state.adminJoining?' is-loading':''), attrs:state.adminJoining?'disabled':''})+
+      '</div>'+
+    '</div>';
+  }
+
+  function renderAdmin(){
+    var rows = GROUPS.map(function(gr, i){
+      var row = state.groupRows.filter(function(r){ return r.id === gr.id; })[0];
+      var progress = row ? (row.progress||{}) : {};
+      var members = (state.groupsState && state.groupsState[gr.id]) ? state.groupsState[gr.id].members.length : 0;
+      return {id:gr.id, name:gr.name, tab:tabClass(i), points:sumPoints(progress), done:countDone(progress), members:members};
+    });
+    var ranked = rows.slice().sort(function(a,b){ return b.points - a.points; });
+
+    var rowsHtml = ranked.map(function(r, idx){
+      return '<tr>'+
+        '<td>'+(idx+1)+'</td>'+
+        '<td><span class="board-dot '+r.tab+'" style="display:inline-block; margin-right:6px;"></span>'+esc(r.name)+'</td>'+
+        '<td>'+r.points+'</td>'+
+        '<td>'+r.done+' / '+STAGES.length+'</td>'+
+        '<td>'+r.members+' / '+CAPACITY+'</td>'+
+      '</tr>';
+    }).join('');
+
+    return ''+
+    '<div class="admin-banner">'+icon('lock')+'<span>Admin-Bereich · nur fürs Orga-Team</span></div>'+
+    renderOfflineBanner()+
+    '<div class="progress-panel">'+
+      '<div class="progress-head">'+
+        '<span class="eyebrow">Admin-Übersicht</span>'+
+        '<div class="who">Live-Stand aller '+GROUPS.length+' Teams</div>'+
+      '</div>'+
+      '<table class="admin-table">'+
+        '<thead><tr><th>Rang</th><th>Team</th><th>Punkte</th><th>Fallakten</th><th>Mitglieder</th></tr></thead>'+
+        '<tbody>'+rowsHtml+'</tbody>'+
+      '</table>'+
+    '</div>'+
+    '<div class="admin-actions">'+
+      btn('Aktualisieren', {id:'adminRefreshBtn'})+
+      btn('Ergebnisse als CSV exportieren '+icon('download'), {id:'adminExportBtn'})+
+    '</div>'+
+    '<div class="intro-card">'+
+      '<h3 style="margin-top:0;">Ankündigung an alle Geräte senden</h3>'+
+      '<p class="muted" style="font-size:13px; margin:0;">Erscheint kurz als Hinweis bei allen gerade aktiven Teilnehmenden. Wird nicht gespeichert - nur aktuell verbundene Geräte sehen sie.</p>'+
+      '<div class="admin-announce">'+
+        '<div class="field"><label for="adminAnnounceInput" class="sr-only">Ankündigungstext</label><input type="text" id="adminAnnounceInput" placeholder="z. B. Rallye endet in 10 Minuten!" value="'+esc(state.adminAnnounceInput)+'"></div>'+
+        btn('Senden', {id:'adminAnnounceBtn'})+
+      '</div>'+
+      (state.adminAnnounceSent ? '<p class="admin-note">✓ Gesendet.</p>' : '')+
+    '</div>';
+  }
+
+  function exportResultsCsv(){
+    var lines = [['Rang','Team','Punkte','Fallakten erledigt','Mitglieder'].join(';')];
+    var rows = GROUPS.map(function(gr){
+      var row = state.groupRows.filter(function(r){ return r.id === gr.id; })[0];
+      var progress = row ? (row.progress||{}) : {};
+      var members = (state.groupsState && state.groupsState[gr.id]) ? state.groupsState[gr.id].members.length : 0;
+      return {name:gr.name, points:sumPoints(progress), done:countDone(progress), members:members};
+    }).sort(function(a,b){ return b.points - a.points; });
+    rows.forEach(function(r, idx){
+      lines.push([idx+1, r.name, r.points, r.done+'/'+STAGES.length, r.members].join(';'));
+    });
+    var blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+    var link = document.createElement('a');
+    link.download = 'behoerdenrallye-ergebnisse.csv';
+    link.href = URL.createObjectURL(blob);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(function(){ URL.revokeObjectURL(link.href); }, 2000);
+  }
+
   var BOARD_ROW_H = 76;
   var lastRanks = {};
   var rankFlashInfo = {};
+  var lastBoardPoints = {};
+  function renderPodium(ranked){
+    var slots = [
+      {r: ranked[1], place:'place-2'},
+      {r: ranked[0], place:'place-1'},
+      {r: ranked[2], place:'place-3'}
+    ];
+    return '<div class="podium">'+slots.map(function(s){
+      return '<div class="podium-slot '+s.place+'">'+
+        (s.place==='place-1' ? '<div class="podium-crown" aria-hidden="true">🏆</div>' : '')+
+        '<div class="podium-team">'+esc(s.r.name)+'</div>'+
+        '<div class="podium-pts">'+s.r.points+' P.</div>'+
+        '<div class="podium-block '+s.r.tab+'">'+s.place.slice(-1)+'</div>'+
+      '</div>';
+    }).join('')+'</div>';
+  }
+
   function renderBoard(){
     var rows = GROUPS.map(function(gr, i){ return {id:gr.id, name:gr.name, tab:tabClass(i), points:groupPoints(gr.id)}; });
     var ranked = rows.slice().sort(function(a,b){ return b.points - a.points; });
@@ -1831,11 +2014,17 @@
         ? '<span class="rank-arrow '+flash.dir+'" aria-hidden="true">'+(flash.dir==='up'?'▲':'▼')+'</span>'
         : '';
 
+      var prevPoints = lastBoardPoints[r.id];
+      var animateFrom = (prevPoints !== undefined && prevPoints !== r.points) ? prevPoints : null;
+      lastBoardPoints[r.id] = r.points;
+      var pointsAttrs = animateFrom !== null ? ' data-from="'+animateFrom+'" data-to="'+r.points+'"' : '';
+      var pointsDisplay = animateFrom !== null ? animateFrom : r.points;
+
       return ''+
       '<div class="board-row '+r.tab+(rank<3?' place-'+(rank+1):'')+(isMine?' mine':'')+(isMine&&pulseActive?' pulse':'')+'" style="transform:translateY('+(rank*BOARD_ROW_H)+'px)">'+
         '<div class="board-rank">'+String(rank+1).padStart(2,'0')+arrowHtml+'</div>'+
         '<div class="board-name"><span class="board-dot"></span><span>'+esc(r.name)+'</span>'+(isMine?' <span class="du-badge">Du</span>':'')+'</div>'+
-        '<div class="board-points">'+r.points+'</div>'+
+        '<div class="board-points"'+pointsAttrs+'>'+pointsDisplay+'</div>'+
         '<div class="board-bar-wrap"><div class="board-bar" style="width:'+pct+'%"></div></div>'+
       '</div>';
     }).join('');
@@ -1843,6 +2032,7 @@
     return ''+
     '<div class="board" id="liveBoard">'+
       '<div class="board-title">Aktueller Wettbewerbsstand</div>'+
+      renderPodium(ranked)+
       '<div class="board-head"><span class="live-dot"></span><span class="live-label">Rangliste · live</span></div>'+
       '<div class="board-rows" style="height:'+(GROUPS.length*BOARD_ROW_H)+'px">'+rowsHtml+'</div>'+
     '</div>';
@@ -2052,15 +2242,45 @@
     else if(state.screen === 'countdown') html = renderCountdown();
     else if(state.screen === 'map') html = renderMap();
     else if(state.screen === 'finished') html = renderFinished();
+    else if(state.screen === 'adminLogin') html = renderAdminLogin();
+    else if(state.screen === 'admin') html = renderAdmin();
     else html = '<div class="boot-screen"><div class="boot-text">Rallye-System wird initialisiert<span class="boot-dots"></span></div></div>';
 
     var quizHtml = state.activeQuizIndex !== null ? renderQuiz() : '';
 
     app.innerHTML = '<div class="screen">'+html+renderDisclaimer()+'</div>'+quizHtml;
     attachListeners();
+    animatePendingBoardPoints();
 
     var topbar = document.getElementById('topbar');
     if(topbar){ topbar.innerHTML = renderHeaderBar(); attachHeaderListeners(); }
+  }
+
+  function prefersReducedMotion(){
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+
+  function animateCount(el, from, to, duration){
+    if(prefersReducedMotion()){ el.textContent = to; return; }
+    var start = performance.now();
+    function step(now){
+      var t = Math.min(1, (now-start)/duration);
+      var eased = 1 - Math.pow(1-t, 3);
+      el.textContent = Math.round(from + (to-from)*eased);
+      if(t < 1) requestAnimationFrame(step);
+      else el.textContent = to;
+    }
+    requestAnimationFrame(step);
+  }
+
+  function animatePendingBoardPoints(){
+    document.querySelectorAll('.board-points[data-from]').forEach(function(el){
+      var from = parseInt(el.getAttribute('data-from'), 10);
+      var to = parseInt(el.getAttribute('data-to'), 10);
+      el.removeAttribute('data-from');
+      el.removeAttribute('data-to');
+      animateCount(el, from, to, 650);
+    });
   }
 
   function attachHeaderListeners(){
@@ -2113,6 +2333,33 @@
     }
     var passwordSubmitBtn = document.getElementById('passwordSubmitBtn');
     if(passwordSubmitBtn) passwordSubmitBtn.addEventListener('click', handlePasswordSubmit);
+
+    var adminPasswordField = document.getElementById('adminPasswordField');
+    if(adminPasswordField){
+      adminPasswordField.addEventListener('input', function(e){ state.adminPasswordInput = e.target.value; });
+      adminPasswordField.addEventListener('keydown', function(e){ if(e.key==='Enter'){ handleAdminPasswordSubmit(); } });
+    }
+    var adminSubmitBtn = document.getElementById('adminSubmitBtn');
+    if(adminSubmitBtn) adminSubmitBtn.addEventListener('click', handleAdminPasswordSubmit);
+
+    var adminRefreshBtn = document.getElementById('adminRefreshBtn');
+    if(adminRefreshBtn) adminRefreshBtn.addEventListener('click', async function(){ await refreshGroupsState(); render(); });
+
+    var adminExportBtn = document.getElementById('adminExportBtn');
+    if(adminExportBtn) adminExportBtn.addEventListener('click', exportResultsCsv);
+
+    var adminAnnounceInput = document.getElementById('adminAnnounceInput');
+    if(adminAnnounceInput) adminAnnounceInput.addEventListener('input', function(e){ state.adminAnnounceInput = e.target.value; });
+    var adminAnnounceBtn = document.getElementById('adminAnnounceBtn');
+    if(adminAnnounceBtn) adminAnnounceBtn.addEventListener('click', async function(){
+      var text = (state.adminAnnounceInput||'').trim();
+      if(!text) return;
+      await sendAnnouncement(text);
+      state.adminAnnounceInput = '';
+      state.adminAnnounceSent = true;
+      render();
+      setTimeout(function(){ state.adminAnnounceSent = false; }, 4000);
+    });
 
     document.querySelectorAll('[data-stage]').forEach(function(btn){
       btn.addEventListener('click', function(){ openQuiz(parseInt(btn.getAttribute('data-stage'),10)); });
