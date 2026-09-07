@@ -214,12 +214,13 @@
     box-shadow:var(--card-shadow);
   }
   .hero-inner{position:relative; z-index:2;}
-  .hero-eyebrow{display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;}
+  @keyframes fadeUp{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+  .hero-eyebrow{display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px; animation:fadeUp .55s cubic-bezier(.2,.8,.3,1) .04s both;}
   .hero-eyebrow .eyebrow{color:var(--text-muted);}
-  .hero-title{font-size:clamp(28px,6.5vw,42px); line-height:1.12; letter-spacing:-.01em; margin:0 0 10px; color:var(--navy);}
+  .hero-title{font-size:clamp(28px,6.5vw,42px); line-height:1.12; letter-spacing:-.01em; margin:0 0 10px; color:var(--navy); animation:fadeUp .55s cubic-bezier(.2,.8,.3,1) .12s both;}
   .hero-title b{color:var(--primary); font-weight:800;}
-  .hero-sub{max-width:46ch; margin:0 auto 22px; color:var(--text-muted); font-size:15.5px;}
-  .hero-stats{display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:8px;}
+  .hero-sub{max-width:46ch; margin:0 auto 22px; color:var(--text-muted); font-size:15.5px; animation:fadeUp .55s cubic-bezier(.2,.8,.3,1) .2s both;}
+  .hero-stats{display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:8px; animation:fadeUp .55s cubic-bezier(.2,.8,.3,1) .28s both;}
   .hero-stat{
     font-family:'IBM Plex Mono',monospace; font-size:11.5px; font-weight:600; color:var(--navy);
     border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px 14px;
@@ -228,14 +229,19 @@
   }
   .hero-stat b{color:var(--primary); font-weight:700;}
   .hero-status{
-    display:inline-flex; align-items:center; gap:7px; margin-top:16px;
+    display:inline-flex; align-items:center; gap:7px; margin-top:16px; flex-wrap:wrap; justify-content:center;
     font-family:'IBM Plex Mono',monospace; font-size:11.5px; font-weight:600; color:var(--text-muted);
-    letter-spacing:.03em;
+    letter-spacing:.03em; animation:fadeUp .55s cubic-bezier(.2,.8,.3,1) .36s both;
   }
   .hero-status .dot{width:7px; height:7px; border-radius:50%; background:var(--success); flex:0 0 auto;}
   @keyframes livepulse{0%,100%{opacity:1;} 50%{opacity:.4;}}
   .hero-status .dot{animation:livepulse 2s ease-in-out infinite;}
-  @media (prefers-reduced-motion: reduce){ .hero-status .dot{animation:none;} }
+  .hero-countdown-sep{color:var(--border);}
+  .hero-countdown{font-variant-numeric:tabular-nums; color:var(--navy);}
+  @media (prefers-reduced-motion: reduce){
+    .hero-status .dot{animation:none;}
+    .hero-eyebrow, .hero-title, .hero-sub, .hero-stats, .hero-status{animation:none;}
+  }
 
   /* ---------- intro ---------- */
   .intro-card{
@@ -351,12 +357,18 @@
 
   /* ---------- mission cards ("Fallakten") ---------- */
   .mission-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px;}
+  @keyframes cardIn{from{opacity:0; transform:translateY(12px) scale(.985);} to{opacity:1; transform:translateY(0) scale(1);}}
   .mission-card{
     position:relative; text-align:left; width:100%;
     background:var(--surface); border:1px solid var(--border);
     border-radius:var(--radius); padding:16px 16px 15px;
     box-shadow:var(--card-shadow);
+    transition:transform .18s ease, box-shadow .18s ease;
+    animation:cardIn .5s cubic-bezier(.2,.8,.3,1) both;
+    animation-delay:calc(var(--i, 0) * 55ms);
   }
+  .mission-card.current:hover{transform:translateY(-2px); box-shadow:var(--card-shadow-hover);}
+  @media (prefers-reduced-motion: reduce){ .mission-card{animation:none; transition:none;} .mission-card.current:hover{transform:none;} }
   .mission-num{font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:600; letter-spacing:.1em; color:var(--text-muted); text-transform:uppercase;}
   .mission-card-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:9px; gap:8px;}
   .mission-org{font-size:12.5px; color:var(--text-muted); margin-bottom:4px; display:flex; align-items:center; gap:6px;}
@@ -396,12 +408,21 @@
     font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:700; letter-spacing:.08em;
     text-transform:uppercase; color:var(--primary-dark);
   }
+  .board-rows{position:relative;}
   .board-row{
+    position:absolute; left:0; right:0; top:0;
     display:grid; grid-template-columns:42px minmax(0,1fr) 70px;
     grid-template-rows:auto auto; column-gap:12px; row-gap:8px; align-items:center;
     padding:14px 18px; border-bottom:1px solid var(--border); background:var(--surface);
+    transition:transform .55s cubic-bezier(.2,.8,.3,1);
   }
-  .board-row:last-child{border-bottom:none;}
+  @keyframes boardPulse{
+    0%{box-shadow:inset 4px 0 0 var(--primary), 0 0 0 0 rgba(200,16,46,.35);}
+    60%{box-shadow:inset 4px 0 0 var(--primary), 0 0 0 8px rgba(200,16,46,0);}
+    100%{box-shadow:inset 4px 0 0 var(--primary), 0 0 0 0 rgba(200,16,46,0);}
+  }
+  .board-row.pulse{animation:boardPulse 1.1s ease;}
+  @media (prefers-reduced-motion: reduce){ .board-row{transition:none;} .board-row.pulse{animation:none;} }
   .board-rank{
     grid-row:1 / span 2; display:flex; align-items:center; justify-content:center;
     width:34px; height:34px; background:var(--locked-bg); color:var(--text-muted);
@@ -469,12 +490,16 @@
     min-height:44px;
   }
   .option:hover:not(:disabled){border-color:var(--blue); background:var(--blue-light);}
-  .option.correct{border-color:var(--success); background:var(--success-tint);}
-  .option.wrong{border-color:var(--primary); background:var(--primary-tint);}
+  @keyframes optPop{0%{transform:scale(1);} 45%{transform:scale(1.015);} 100%{transform:scale(1);}}
+  @keyframes optShake{0%,100%{transform:translateX(0);} 25%{transform:translateX(-3px);} 75%{transform:translateX(3px);}}
+  .option.correct{border-color:var(--success); background:var(--success-tint); animation:optPop .4s ease;}
+  .option.wrong{border-color:var(--primary); background:var(--primary-tint); animation:optShake .28s ease;}
   .option:disabled{cursor:default;}
-  .feedback{margin-top:14px; padding:13px 14px; border-radius:var(--radius); font-size:14.5px; line-height:1.5;}
+  @keyframes feedIn{from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:translateY(0);}}
+  .feedback{margin-top:14px; padding:13px 14px; border-radius:var(--radius); font-size:14.5px; line-height:1.5; animation:feedIn .3s cubic-bezier(.2,.8,.3,1) both;}
   .feedback.correct{background:var(--success-tint); color:#154a34; border:1px solid var(--success);}
   .feedback.wrong{background:var(--primary-tint); color:#7A0C1E; border:1px solid var(--primary);}
+  @media (prefers-reduced-motion: reduce){ .option.correct, .option.wrong, .feedback{animation:none;} }
   .quiz-actions{margin-top:16px; display:flex; justify-content:flex-end; gap:10px;}
   .close-x{
     position:absolute; top:4px; right:6px; background:none; border:none;
@@ -483,30 +508,21 @@
   }
   .close-x:hover{background:var(--locked-bg);}
 
-  /* ---------- stamp / approval effect ---------- */
-  .stamp-fx{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:60;}
-  .stamp-fx .stamp-mark{
+  /* ---------- stamp / approval effect ----------
+     Der Ein-/Ausblend-Zeitpunkt wird von der <stamp-overlay>-Komponente per
+     Inline-Style synchron zum 3D-Stempel-Aufprall gesteuert, nicht per
+     CSS-Animation - diese Klassen liefern hier nur noch die Text-Optik. */
+  .stamp-mark{
     font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:30px; letter-spacing:.06em; text-transform:uppercase;
     color:var(--primary); border:3px solid var(--primary); border-radius:var(--radius); padding:14px 30px;
     display:flex; align-items:center; gap:10px;
-    transform:rotate(-8deg) scale(0.4); opacity:0;
-    animation: stampdown .55s cubic-bezier(.2,1.4,.4,1) forwards;
     background:rgba(255,255,255,0.9);
   }
-  @keyframes stampdown{
-    0%{transform:rotate(-8deg) scale(2.2); opacity:0;}
-    55%{transform:rotate(-8deg) scale(0.92); opacity:1;}
-    70%{transform:rotate(-8deg) scale(1.04);}
-    100%{transform:rotate(-8deg) scale(1); opacity:1;}
-  }
-  .stamp-fx.fadeout .stamp-mark{transition:opacity .4s ease; opacity:0;}
   .xp-pop{
     margin-top:10px; text-align:center;
     font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:18px;
-    color:var(--tab-4); opacity:0;
-    animation: xppop .6s ease .25s forwards;
+    color:var(--tab-4);
   }
-  @keyframes xppop{0%{opacity:0; transform:translateY(6px);} 100%{opacity:1; transform:translateY(0);}}
 
   /* ---------- finish celebration (one-shot, transform-only confetti) ---------- */
   .finish-fx{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:61; overflow:hidden;}
@@ -598,8 +614,6 @@
   .site-disclaimer{margin-top:36px; text-align:center; font-size:11.5px; color:rgba(255,255,255,.45); line-height:1.5; padding:0 12px;}
 
   @media (prefers-reduced-motion: reduce){
-    .stamp-fx .stamp-mark{animation:none; opacity:1; transform:rotate(-8deg) scale(1);}
-    .xp-pop{animation:none; opacity:1;}
     .screen{animation:none;}
   }
   .screen{animation:screenIn .38s cubic-bezier(.2,.8,.3,1) both;}
@@ -945,6 +959,7 @@
     quizAnswered:false,
     quizCorrectCount:0,
     boardOpen:false,
+    boardPulseUntil:0,
     menuOpen:false,
     error:null
   };
@@ -1272,6 +1287,7 @@
         }
       }
       await refreshGroupsState();
+      state.boardPulseUntil = Date.now() + 1200;
 
       showStampFx(earnedPoints);
 
@@ -1291,15 +1307,152 @@
   }
 
   function showStampFx(earnedPoints){
-    var fx = document.createElement('div');
-    fx.className = 'stamp-fx';
-    fx.innerHTML = '<div><div class="stamp-mark">GENEHMIGT</div><div class="xp-pop">+'+earnedPoints+' XP</div></div>';
+    var fx = document.createElement('stamp-overlay');
+    fx.setAttribute('xp', '+'+earnedPoints+' XP');
     document.body.appendChild(fx);
-    setTimeout(function(){
-      fx.classList.add('fadeout');
-      setTimeout(function(){ fx.remove(); }, 420);
-    }, 1100);
+    setTimeout(function(){ fx.remove(); }, 2100);
   }
+
+  // ---------------- 3D Amtsstempel (WebGL, Uiverse-artige Ein-Zweck-Komponente) ----------------
+  // Presst einen 3D-Stempel auf die Seite und hinterlässt "GENEHMIGT" + die XP-Zahl.
+  // Lädt three.js dynamisch von CDN nach; scheitert das (kein Netz/WebGL), wird der
+  // Ink-Text trotzdem sofort eingeblendet, so bleibt die Funktion immer nutzbar.
+  var THREE_URL = 'https://unpkg.com/three@0.184.0/build/three.module.js';
+  var threePromise = null;
+  function loadThree(){ threePromise = threePromise || import(THREE_URL); return threePromise; }
+  (function(){
+    var easeIn = function(t){ return t*t*t; };
+    var easeOut = function(t){ return 1 - Math.pow(1-t, 3); };
+    var clamp01 = function(t){ return Math.max(0, Math.min(1, t)); };
+
+    class StampOverlay extends HTMLElement {
+      connectedCallback(){
+        if(this._booted) return;
+        this._booted = true;
+        var xp = this.getAttribute('xp') || '';
+        this.style.cssText = 'position:fixed;inset:0;z-index:60;pointer-events:none;display:block';
+        this.innerHTML =
+          '<canvas data-stamp-canvas style="position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2"></canvas>'+
+          '<div data-ink style="position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;opacity:0">'+
+            '<div class="stamp-mark">GENEHMIGT</div>'+
+            '<div class="xp-pop" data-xp>'+esc(xp)+'</div>'+
+          '</div>';
+        this._ink = this.querySelector('[data-ink]');
+        this._xpEl = this.querySelector('[data-xp]');
+        if(matchMedia('(prefers-reduced-motion: reduce)').matches){
+          this._ink.style.opacity = '1';
+          this._xpEl.style.opacity = '1';
+          return;
+        }
+        this._start();
+      }
+
+      disconnectedCallback(){
+        this._dead = true;
+        if(this._timer) clearInterval(this._timer);
+        if(this._raf) cancelAnimationFrame(this._raf);
+      }
+
+      async _start(){
+        var self = this;
+        var canvas = this.querySelector('[data-stamp-canvas]');
+        var THREE, buildStamp;
+        try{
+          var mods = await Promise.all([loadThree(), import('./stamp-model.js')]);
+          THREE = mods[0]; buildStamp = mods[1].buildStamp;
+        }catch(e){
+          console.warn('Behördenrallye: 3D-Stempel nicht verfügbar, zeige nur den Text-Stempel.', e);
+          this._ink.style.opacity = '1'; this._xpEl.style.opacity = '1';
+          return;
+        }
+        if(this._dead) return;
+
+        var w = this.clientWidth || window.innerWidth, h = this.clientHeight || window.innerHeight;
+        var renderer;
+        try{
+          renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+        }catch(e){
+          console.warn('Behördenrallye: WebGL nicht verfügbar, zeige nur den Text-Stempel.', e);
+          this._ink.style.opacity = '1'; this._xpEl.style.opacity = '1';
+          return;
+        }
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        renderer.setSize(w, h, false);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(34, w/h, 0.01, 10);
+        camera.position.set(0.10, 0.20, 0.52);
+        camera.lookAt(0, 0.07, 0);
+
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x9aa5b1, 0.85));
+        var key = new THREE.DirectionalLight(0xffffff, 1.5);
+        key.position.set(0.28, 0.5, 0.3);
+        key.castShadow = true;
+        key.shadow.mapSize.set(1024, 1024);
+        key.shadow.camera.near = 0.05; key.shadow.camera.far = 1.5;
+        key.shadow.camera.left = -0.2; key.shadow.camera.right = 0.2;
+        key.shadow.camera.top = 0.2; key.shadow.camera.bottom = -0.2;
+        scene.add(key);
+        scene.add(new THREE.DirectionalLight(0xffffff, 0.4).translateX(-0.4));
+
+        var shadowPlane = new THREE.Mesh(
+          new THREE.PlaneGeometry(0.8, 0.8),
+          new THREE.ShadowMaterial({ opacity: 0.26 })
+        );
+        shadowPlane.name = 'contact_shadow';
+        shadowPlane.rotation.x = -Math.PI/2;
+        shadowPlane.receiveShadow = true;
+        scene.add(shadowPlane);
+
+        var stamp = buildStamp(THREE);
+        stamp.traverse(function(o){ if(o.isMesh) o.castShadow = true; });
+        scene.add(stamp);
+
+        var t0 = performance.now();
+        function tick(now){
+          if(self._dead){ clearInterval(self._timer); return; }
+          var t = now - t0;
+          var y, tilt = 0, sy = 1;
+          if(t < 380){ var k1 = easeIn(clamp01(t/380)); y = 0.19 - 0.178*k1; tilt = -0.07*(1-k1); }
+          else if(t < 450){ var k2 = clamp01((t-380)/70); y = 0.012 - 0.012*k2; sy = 1 - 0.02*k2; }
+          else if(t < 560){ y = 0; sy = 0.98; }
+          else { var k3 = easeOut(clamp01((t-560)/420)); y = 0.26*k3; sy = 0.98 + 0.02*k3; }
+          stamp.position.y = y;
+          stamp.rotation.z = tilt;
+          stamp.scale.y = sy;
+          var fade = t > 1500 ? 1 - clamp01((t-1500)/400) : 1;
+          self.style.opacity = String(fade);
+          if(t > 400 && self._ink.style.opacity !== '1'){
+            self._ink.style.transition = 'opacity .18s ease, transform .3s cubic-bezier(.2,1.4,.4,1)';
+            self._ink.style.transform = 'scale(1.05)';
+            self._ink.style.opacity = '1';
+            setTimeout(function(){ self._ink.style.transform = 'scale(1)'; }, 20);
+            self._xpEl.style.transition = 'opacity .4s ease .12s, transform .4s ease .12s';
+            self._xpEl.style.transform = 'translateY(0)';
+            self._xpEl.style.opacity = '1';
+          }
+          renderer.render(scene, camera);
+          self._frames = (self._frames||0) + 1;
+          if(t >= 1950){ self._done = true; clearInterval(self._timer); if(self._raf) cancelAnimationFrame(self._raf); renderer.dispose(); return; }
+          if(self._raf !== undefined) self._raf = requestAnimationFrame(tick);
+        }
+        this._xpEl.style.transform = 'translateY(6px)';
+        this._raf = requestAnimationFrame(tick);
+        tick(performance.now());
+        // Fallback-Takt: manche Hintergrund-Tabs feuern rAF nie.
+        setTimeout(function(){
+          if(self._dead || self._done || self._frames > 2) return;
+          cancelAnimationFrame(self._raf);
+          self._raf = undefined;
+          self._timer = setInterval(function(){ tick(performance.now()); }, 16);
+        }, 120);
+      }
+    }
+
+    if(!customElements.get('stamp-overlay')) customElements.define('stamp-overlay', StampOverlay);
+  })();
 
   function showFinishFx(){
     var fx = document.createElement('div');
@@ -1438,10 +1591,28 @@
           '<span class="hero-stat"><b>7</b> Fallakten</span>'+
           '<span class="hero-stat"><b>'+(POINTS_PER_STAGE*7)+'</b> XP max.</span>'+
         '</div>'+
-        '<div class="hero-status"><span class="dot"></span><span>Wettbewerb läuft</span></div>'+
+        '<div class="hero-status"><span class="dot"></span><span>Wettbewerb läuft</span><span class="hero-countdown-sep">·</span><span class="hero-countdown" id="heroCountdown">'+esc(formatCountdown())+'</span></div>'+
       '</div>'+
     '</div>';
   }
+
+  // Kleiner Countdown bis zum Rallye-Termin, neben "Wettbewerb läuft".
+  var COUNTDOWN_TARGET = new Date(2026, 9, 7, 0, 0, 0);
+  function formatCountdown(){
+    var diff = COUNTDOWN_TARGET.getTime() - Date.now();
+    if(diff <= 0) return 'Start erreicht';
+    var totalSeconds = Math.floor(diff/1000);
+    var days = Math.floor(totalSeconds/86400);
+    var hours = Math.floor((totalSeconds%86400)/3600);
+    var minutes = Math.floor((totalSeconds%3600)/60);
+    var seconds = totalSeconds%60;
+    var pad = function(n){ return String(n).padStart(2,'0'); };
+    return 'noch '+days+' Tg '+pad(hours)+':'+pad(minutes)+':'+pad(seconds)+' bis 07.10.2026';
+  }
+  setInterval(function(){
+    var el = document.getElementById('heroCountdown');
+    if(el) el.textContent = formatCountdown();
+  }, 1000);
 
   function renderDisclaimer(){
     return '<p class="site-disclaimer">Diese Webseite wurde von dem Behördenrally Team erstellt und freut sich darauf euch bei der Stadt Hamburg zu begrüßen.</p>';
@@ -1495,18 +1666,25 @@
     return '<p class="offline-banner">⚠ Keine Verbindung zur Live-Rangliste – zeige zwischengespeicherten Stand.</p>';
   }
 
+  var BOARD_ROW_H = 76;
   function renderBoard(){
     var rows = GROUPS.map(function(gr, i){ return {id:gr.id, name:gr.name, tab:tabClass(i), points:groupPoints(gr.id)}; });
-    rows.sort(function(a,b){ return b.points - a.points; });
-    var maxPts = Math.max(1, rows[0].points);
+    var ranked = rows.slice().sort(function(a,b){ return b.points - a.points; });
+    var maxPts = Math.max(1, ranked[0].points);
     var mine = state.participant ? state.participant.groupId : null;
+    var pulseActive = Date.now() < (state.boardPulseUntil||0);
 
-    var rowsHtml = rows.map(function(r, i){
+    // Reihenfolge im DOM bleibt stabil (nach Gruppe, nicht nach Rang) - nur die
+    // Position wird per transform animiert, damit Zeilen beim Umsortieren sanft
+    // an ihren neuen Platz gleiten statt hart neu gerendert zu wirken.
+    var rowsHtml = rows.map(function(r){
+      var rank = ranked.findIndex(function(x){ return x.id === r.id; });
       var pct = Math.round(r.points / maxPts * 100);
+      var isMine = r.id === mine;
       return ''+
-      '<div class="board-row '+r.tab+(i<3?' place-'+(i+1):'')+(r.id===mine?' mine':'')+'">'+
-        '<div class="board-rank">'+String(i+1).padStart(2,'0')+'</div>'+
-        '<div class="board-name"><span class="board-dot"></span><span>'+esc(r.name)+'</span>'+(r.id===mine?' <span class="du-badge">Du</span>':'')+'</div>'+
+      '<div class="board-row '+r.tab+(rank<3?' place-'+(rank+1):'')+(isMine?' mine':'')+(isMine&&pulseActive?' pulse':'')+'" style="transform:translateY('+(rank*BOARD_ROW_H)+'px)">'+
+        '<div class="board-rank">'+String(rank+1).padStart(2,'0')+'</div>'+
+        '<div class="board-name"><span class="board-dot"></span><span>'+esc(r.name)+'</span>'+(isMine?' <span class="du-badge">Du</span>':'')+'</div>'+
         '<div class="board-points">'+r.points+'</div>'+
         '<div class="board-bar-wrap"><div class="board-bar" style="width:'+pct+'%"></div></div>'+
       '</div>';
@@ -1516,7 +1694,7 @@
     '<div class="board" id="liveBoard">'+
       '<div class="board-title">Aktueller Wettbewerbsstand</div>'+
       '<div class="board-head"><span class="live-dot"></span><span class="live-label">Rangliste · live</span></div>'+
-      rowsHtml+
+      '<div class="board-rows" style="height:'+(GROUPS.length*BOARD_ROW_H)+'px">'+rowsHtml+'</div>'+
     '</div>';
   }
 
