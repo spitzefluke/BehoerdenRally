@@ -673,24 +673,73 @@
   .countdown-team b{color:#fff;}
 
   /* ---------- wait screen (Zeitplan: Fahrt/Pause zwischen Stationen) ---------- */
-  .wait-card{padding-top:34px;}
-  .wait-anim{position:relative; height:90px; margin-bottom:18px; display:flex; align-items:flex-end; justify-content:center;}
-  .wait-anim-bus .bus-body{font-size:44px; line-height:1; animation:busBounce 1.1s ease-in-out infinite;}
-  .wait-anim-bus .bus-road{position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:120px; height:3px; background:rgba(255,255,255,.25); border-radius:2px;}
-  @keyframes busBounce{0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);}}
-  .wait-anim-break{flex-direction:column; align-items:center; justify-content:flex-end;}
-  .wait-anim-break .break-cup{font-size:44px; line-height:1;}
-  .wait-anim-break .break-steam{
-    position:absolute; bottom:58px; width:3px; height:14px; border-radius:2px;
+  .wait-card{padding-top:24px;}
+  .wait-anim{
+    position:relative; height:116px; margin-bottom:18px; border-radius:10px; overflow:hidden;
+    background:linear-gradient(180deg, #1c3a57 0%, #17324d 60%, #142a40 100%);
+  }
+
+  /* Wolken (beide Szenen) */
+  .wait-cloud{position:absolute; top:14px; width:34px; height:11px; border-radius:20px; background:rgba(255,255,255,.2);}
+  .wait-cloud::before, .wait-cloud::after{content:''; position:absolute; border-radius:50%; background:rgba(255,255,255,.2);}
+  .wait-cloud::before{width:16px; height:16px; top:-7px; left:4px;}
+  .wait-cloud::after{width:12px; height:12px; top:-4px; left:18px;}
+  .wait-cloud.c1{left:-15%; animation:cloudDrift 16s linear infinite;}
+  .wait-cloud.c2{left:-15%; top:34px; transform:scale(.8); animation:cloudDrift 22s linear infinite; animation-delay:-9s;}
+  @keyframes cloudDrift{from{transform:translateX(0);} to{transform:translateX(480px);}}
+
+  /* Bus-Szene: parallaxe Skyline + Bäume + Straße mit fahrendem Bus */
+  .bus-far{position:absolute; left:0; bottom:34px; height:34px; width:200%; display:flex; align-items:flex-end; gap:16px; animation:scrollFar 10s linear infinite;}
+  .bus-far span{display:block; width:18px; background:rgba(255,255,255,.12); border-radius:2px 2px 0 0;}
+  .bus-far span:nth-child(odd){height:22px;}
+  .bus-far span:nth-child(even){height:32px;}
+  @keyframes scrollFar{from{transform:translateX(0);} to{transform:translateX(-50%);}}
+
+  .bus-near{position:absolute; left:0; bottom:34px; height:24px; width:200%; display:flex; align-items:flex-end; gap:30px; animation:scrollNear 4.2s linear infinite;}
+  .bus-near span{display:block; position:relative; width:4px; height:14px; background:rgba(255,255,255,.22);}
+  .bus-near span::before{content:''; position:absolute; bottom:11px; left:50%; transform:translateX(-50%); width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,.22);}
+  @keyframes scrollNear{from{transform:translateX(0);} to{transform:translateX(-50%);}}
+
+  .bus-road-strip{position:absolute; left:0; right:0; bottom:26px; height:3px; background:rgba(255,255,255,.25);}
+  .bus-dashes{position:absolute; left:0; right:0; bottom:24px; height:2px; overflow:hidden;}
+  .bus-dashes span{position:absolute; top:0; width:16px; height:2px; background:rgba(255,255,255,.4); animation:dashMove 0.85s linear infinite;}
+  .bus-dashes span:nth-child(1){left:5%; animation-delay:0s;}
+  .bus-dashes span:nth-child(2){left:40%; animation-delay:-.28s;}
+  .bus-dashes span:nth-child(3){left:75%; animation-delay:-.56s;}
+  @keyframes dashMove{from{transform:translateX(0);} to{transform:translateX(-46px);}}
+
+  .bus-scene{position:absolute; left:50%; bottom:22px; transform:translateX(-50%); width:120px; height:50px; text-align:center;}
+  .bus-body{position:relative; z-index:2; font-size:40px; line-height:1; animation:busBounce 1s ease-in-out infinite;}
+  @keyframes busBounce{0%,100%{transform:translateY(0) rotate(0deg);} 50%{transform:translateY(-5px) rotate(-1.5deg);}}
+  .bus-exhaust{position:absolute; bottom:8px; right:calc(50% + 22px); width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.45); opacity:0; animation:exhaustPuff 1.3s ease-out infinite;}
+  .bus-exhaust.e2{animation-delay:.65s;}
+  @keyframes exhaustPuff{0%{opacity:.5; transform:translate(0,0) scale(.6);} 100%{opacity:0; transform:translate(-20px,-12px) scale(1.4);}}
+
+  /* Pause-Szene: Sonne, Bank, dampfende Tasse */
+  .break-sun{
+    position:absolute; top:10px; right:16px; width:20px; height:20px; border-radius:50%;
+    background:radial-gradient(circle, #ffe27a, #ffb84d); box-shadow:0 0 14px 4px rgba(255,200,90,.3);
+    animation:sunPulse 3s ease-in-out infinite;
+  }
+  @keyframes sunPulse{0%,100%{transform:scale(1);} 50%{transform:scale(1.08);}}
+  .break-scene{position:absolute; left:50%; bottom:22px; transform:translateX(-50%); width:120px; height:56px; text-align:center;}
+  .break-bench{position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:56px; height:4px; background:rgba(255,255,255,.32); border-radius:2px;}
+  .break-bench::before, .break-bench::after{content:''; position:absolute; bottom:-9px; width:4px; height:9px; background:rgba(255,255,255,.28);}
+  .break-bench::before{left:4px;}
+  .break-bench::after{right:4px;}
+  .break-cup{position:absolute; z-index:2; bottom:2px; left:50%; transform:translateX(-50%); font-size:34px; line-height:1;}
+  .break-steam{
+    position:absolute; bottom:52px; width:3px; height:14px; border-radius:2px;
     background:rgba(255,255,255,.5); opacity:0; animation:steamRise 2.2s ease-in-out infinite;
   }
-  .wait-anim-break .s1{left:calc(50% - 10px); animation-delay:0s;}
-  .wait-anim-break .s2{left:50%; animation-delay:.5s;}
-  .wait-anim-break .s3{left:calc(50% + 10px); animation-delay:1s;}
+  .break-steam.s1{left:calc(50% - 16px); animation-delay:0s;}
+  .break-steam.s2{left:50%; animation-delay:.5s;}
+  .break-steam.s3{left:calc(50% + 16px); animation-delay:1s;}
   @keyframes steamRise{0%{opacity:0; transform:translateY(0) scale(1);} 30%{opacity:.7;} 100%{opacity:0; transform:translateY(-26px) scale(1.4);}}
+
   @media (prefers-reduced-motion: reduce){
-    .wait-anim-bus .bus-body{animation:none;}
-    .wait-anim-break .break-steam{animation:none; opacity:.4;}
+    .wait-cloud, .bus-far, .bus-near, .bus-dashes span, .bus-body, .bus-exhaust, .break-sun, .break-steam{animation:none;}
+    .break-steam{opacity:.4;}
   }
   .wait-label{font-size:15px; color:rgba(255,255,255,.85); margin-bottom:4px;}
   .wait-label b{color:#fff;}
@@ -2593,9 +2642,29 @@
     var timeText = esc(formatDuration(remaining));
     var isBreak = state.waitIsBreak;
     var address = stageAddress(stage.id);
+    var farBuildings = '<span></span><span></span><span></span><span></span><span></span><span></span>';
+    var nearTrees = '<span></span><span></span><span></span><span></span>';
     var animHtml = isBreak
-      ? '<div class="wait-anim wait-anim-break" aria-hidden="true"><span class="break-steam s1"></span><span class="break-steam s2"></span><span class="break-steam s3"></span><div class="break-cup">☕</div></div>'
-      : '<div class="wait-anim wait-anim-bus" aria-hidden="true"><div class="bus-road"></div><div class="bus-body">🚌</div></div>';
+      ? '<div class="wait-anim wait-anim-break" aria-hidden="true">'+
+          '<span class="wait-cloud c1"></span><span class="wait-cloud c2"></span>'+
+          '<div class="break-sun"></div>'+
+          '<div class="break-scene">'+
+            '<span class="break-steam s1"></span><span class="break-steam s2"></span><span class="break-steam s3"></span>'+
+            '<div class="break-cup">☕</div>'+
+            '<div class="break-bench"></div>'+
+          '</div>'+
+        '</div>'
+      : '<div class="wait-anim wait-anim-bus" aria-hidden="true">'+
+          '<span class="wait-cloud c1"></span><span class="wait-cloud c2"></span>'+
+          '<div class="bus-far">'+farBuildings+farBuildings+'</div>'+
+          '<div class="bus-near">'+nearTrees+nearTrees+'</div>'+
+          '<div class="bus-road-strip"></div>'+
+          '<div class="bus-dashes"><span></span><span></span><span></span></div>'+
+          '<div class="bus-scene">'+
+            '<span class="bus-exhaust e1"></span><span class="bus-exhaust e2"></span>'+
+            '<div class="bus-body">🚌</div>'+
+          '</div>'+
+        '</div>';
     var textHtml = isBreak
       ? '<div class="wait-label">Ihr habt nun Pause, genießt es.</div><div class="wait-timer" id="waitTimer">'+timeText+'</div>'
       : '<div class="wait-label">Ihr müsst in <b id="waitTimer">'+timeText+'</b> bei</div>'+
