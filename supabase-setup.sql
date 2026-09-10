@@ -126,3 +126,79 @@ begin
     alter publication supabase_realtime add table public.participants;
   end if;
 end $$;
+
+-- Zeitpläne fürs Admin-Panel: pro Gruppe optionale Ankunftszeiten je
+-- Fallakte (stage_times), welche Übergänge davon Pausen statt Fahrten sind
+-- (break_stages), sowie eine gemeinsame Zeile '_global' mit den Stations-
+-- Adressen (stage_addresses), die für alle Gruppen gleich sind. Ist für
+-- eine Gruppe kein stage_times-Eintrag gesetzt, verhält sich die App wie
+-- ohne Zeitplan (keine Sperre) - diese Tabelle ist rein optional.
+create table if not exists public.schedules (
+  id text primary key check (id in (
+    'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
+    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','_global'
+  )),
+  stage_times jsonb not null default '{}'::jsonb,
+  break_stages jsonb not null default '[]'::jsonb,
+  stage_addresses jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+insert into public.schedules (id) values
+  ('gruppe-1'),('gruppe-2'),('gruppe-3'),('gruppe-4'),('gruppe-5'),
+  ('gruppe-6'),('gruppe-7'),('gruppe-8'),('gruppe-9'),('_global')
+on conflict (id) do nothing;
+
+alter table public.schedules enable row level security;
+
+drop policy if exists "schedules public read" on public.schedules;
+create policy "schedules public read"
+  on public.schedules for select
+  using (true);
+
+-- Kein direktes UPDATE für anon - Schreiben läuft nur über die
+-- save_schedule()-Funktion (SECURITY DEFINER), gleiches Prinzip wie
+-- complete_stage() oben. Das Admin-Panel selbst ist nur durch ein
+-- einfaches Passwort im Browser geschützt (kein echtes Server-Login) -
+-- für ein einmaliges Event unkritisch, siehe supabase-setup.sql-Hinweis
+-- oben zum generellen Sicherheitsmodell dieser App.
+drop function if exists public.save_schedule(text, jsonb, jsonb, jsonb);
+
+create or replace function public.save_schedule(
+  p_id text,
+  p_stage_times jsonb,
+  p_break_stages jsonb,
+  p_stage_addresses jsonb
+)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  insert into public.schedules (id, stage_times, break_stages, stage_addresses, updated_at)
+  values (
+    p_id,
+    coalesce(p_stage_times, '{}'::jsonb),
+    coalesce(p_break_stages, '[]'::jsonb),
+    coalesce(p_stage_addresses, '{}'::jsonb),
+    now()
+  )
+  on conflict (id) do update
+    set stage_times = coalesce(p_stage_times, public.schedules.stage_times),
+        break_stages = coalesce(p_break_stages, public.schedules.break_stages),
+        stage_addresses = coalesce(p_stage_addresses, public.schedules.stage_addresses),
+        updated_at = now()
+  returning to_jsonb(public.schedules.*);
+$$;
+
+grant execute on function public.save_schedule(text, jsonb, jsonb, jsonb) to anon;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'schedules'
+  ) then
+    alter publication supabase_realtime add table public.schedules;
+  end if;
+end $$;

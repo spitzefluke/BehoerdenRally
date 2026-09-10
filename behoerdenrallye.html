@@ -645,6 +645,18 @@
   .admin-announce{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:12px;}
   .admin-announce .field{flex:1 1 220px; margin:0;}
   .admin-note{font-size:12.5px; color:var(--text-muted); margin-top:8px;}
+  .admin-schedule-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:9px 0; border-bottom:1px solid var(--border);}
+  .admin-schedule-row:last-of-type{border-bottom:none;}
+  .admin-schedule-row label{font-size:13px; color:var(--text-muted); flex:1 1 220px; min-width:0;}
+  .admin-schedule-row input[type=text],
+  .admin-schedule-row input[type=datetime-local]{flex:1 1 200px; min-height:38px; padding:8px 10px; font-size:13.5px;}
+  .admin-schedule-row input[type=number]{min-height:38px; padding:8px 10px; font-size:13.5px; width:80px; flex:0 0 auto;}
+  .admin-schedule-group{border:1px solid var(--border); border-radius:var(--radius); margin-bottom:10px; overflow:hidden;}
+  .admin-schedule-group summary{
+    cursor:pointer; padding:12px 14px; font-weight:700; font-size:14px; color:var(--navy);
+    display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--bg);
+  }
+  .admin-schedule-fields{padding:6px 14px 16px;}
 
   /* ---------- countdown ---------- */
   .countdown-screen{min-height:52vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
@@ -659,6 +671,32 @@
   }
   .countdown-team{font-size:14.5px; color:rgba(255,255,255,.85);}
   .countdown-team b{color:#fff;}
+
+  /* ---------- wait screen (Zeitplan: Fahrt/Pause zwischen Stationen) ---------- */
+  .wait-card{padding-top:34px;}
+  .wait-anim{position:relative; height:90px; margin-bottom:18px; display:flex; align-items:flex-end; justify-content:center;}
+  .wait-anim-bus .bus-body{font-size:44px; line-height:1; animation:busBounce 1.1s ease-in-out infinite;}
+  .wait-anim-bus .bus-road{position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:120px; height:3px; background:rgba(255,255,255,.25); border-radius:2px;}
+  @keyframes busBounce{0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);}}
+  .wait-anim-break{flex-direction:column; align-items:center; justify-content:flex-end;}
+  .wait-anim-break .break-cup{font-size:44px; line-height:1;}
+  .wait-anim-break .break-steam{
+    position:absolute; bottom:58px; width:3px; height:14px; border-radius:2px;
+    background:rgba(255,255,255,.5); opacity:0; animation:steamRise 2.2s ease-in-out infinite;
+  }
+  .wait-anim-break .s1{left:calc(50% - 10px); animation-delay:0s;}
+  .wait-anim-break .s2{left:50%; animation-delay:.5s;}
+  .wait-anim-break .s3{left:calc(50% + 10px); animation-delay:1s;}
+  @keyframes steamRise{0%{opacity:0; transform:translateY(0) scale(1);} 30%{opacity:.7;} 100%{opacity:0; transform:translateY(-26px) scale(1.4);}}
+  @media (prefers-reduced-motion: reduce){
+    .wait-anim-bus .bus-body{animation:none;}
+    .wait-anim-break .break-steam{animation:none; opacity:.4;}
+  }
+  .wait-label{font-size:15px; color:rgba(255,255,255,.85); margin-bottom:4px;}
+  .wait-label b{color:#fff;}
+  .wait-timer{font-family:'IBM Plex Mono',monospace; font-size:34px; font-weight:800; color:#fff; font-variant-numeric:tabular-nums; margin:6px 0 4px;}
+  .wait-address{font-family:'IBM Plex Mono',monospace; font-size:17px; font-weight:700; color:#fff; margin:2px 0;}
+  .wait-label-sub{font-size:15px; color:rgba(255,255,255,.85);}
 
   /* ---------- finished ---------- */
   .finished-card{
@@ -713,7 +751,8 @@
     trophy: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4a3 3 0 0 0 3 5M17 5h3a3 3 0 0 1-3 5"/><path d="M12 14v3M9 21h6M9 21c0-1.5.7-3 3-3s3 1.5 3 3"/></svg>',
     pin: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.3 7-12a7 7 0 0 0-14 0c0 5.7 7 12 7 12Z"/><circle cx="12" cy="9" r="2.4"/></svg>',
     info: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16.5"/><circle cx="12" cy="7.7" r="0.6" fill="currentColor" stroke="none"/></svg>',
-    download: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><polyline points="7 11 12 16 17 11"/><line x1="4" y1="20" x2="20" y2="20"/></svg>'
+    download: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><polyline points="7 11 12 16 17 11"/><line x1="4" y1="20" x2="20" y2="20"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>'
   };
   function icon(name){ return '<span class="icon">'+(ICONS[name]||'')+'</span>'; }
 
@@ -1039,6 +1078,10 @@
     adminAnnounceInput:'',
     adminJoining:false,
     adminAnnounceSent:false,
+    schedules:{},
+    waitStageIndex:null,
+    waitTargetTime:0,
+    waitIsBreak:false,
     error:null
   };
 
@@ -1078,6 +1121,28 @@
     var total = 0;
     for(var k in (progress||{})){ total += stagePoints(progress[k]); }
     return total;
+  }
+
+  // ---------------- Zeitpläne (Admin-Panel) ----------------
+  // Optionale, im Admin-Panel gepflegte Ankunftszeiten pro Gruppe/Station und
+  // gemeinsame Stations-Adressen. Ist für eine Station/Gruppe nichts hinterlegt,
+  // verhält sich die App exakt wie ohne Zeitplan (keine Sperre, Platzhalter-Adresse).
+  function stageAddress(stageId){
+    var global = state.schedules && state.schedules['_global'];
+    var custom = global && global.stage_addresses && global.stage_addresses[stageId];
+    if(custom) return custom;
+    var stage = STAGES.filter(function(s){ return s.id === stageId; })[0];
+    return stage ? stage.address : '';
+  }
+
+  function stageDueTime(groupId, stageId){
+    var sched = state.schedules && state.schedules[groupId];
+    return (sched && sched.stage_times && sched.stage_times[stageId]) || null;
+  }
+
+  function stageIsBreak(groupId, stageId){
+    var sched = state.schedules && state.schedules[groupId];
+    return !!(sched && Array.isArray(sched.break_stages) && sched.break_stages.indexOf(stageId) !== -1);
   }
 
   function deriveGroupsState(groupRows, participantRows){
@@ -1120,7 +1185,17 @@
         console.warn('Behördenrallye: Laden von Supabase fehlgeschlagen.', groupsRes.error || participantsRes.error);
         return null;
       }
-      return { groups: groupsRes.data, participants: participantsRes.data };
+      // Zeitpläne sind optional (eigene Tabelle, siehe supabase-setup.sql) -
+      // ein Fehler hier (z.B. Tabelle noch nicht angelegt) darf die Rallye
+      // selbst nicht offline werfen, es gibt dann einfach keine Zeitsperren.
+      var schedules = {};
+      try{
+        var schedulesRes = await sb.from('schedules').select('*');
+        if(!schedulesRes.error && schedulesRes.data){
+          schedulesRes.data.forEach(function(row){ schedules[row.id] = row; });
+        }
+      }catch(e){ /* Zeitplan-Tabelle evtl. noch nicht angelegt - kein Problem */ }
+      return { groups: groupsRes.data, participants: participantsRes.data, schedules: schedules };
     }catch(e){
       console.warn('Behördenrallye: Laden von Supabase fehlgeschlagen.', e);
       return null;
@@ -1132,6 +1207,7 @@
     if(remote){
       state.groupRows = remote.groups || [];
       state.participantRows = remote.participants || [];
+      state.schedules = remote.schedules || {};
       if(state.offline) showToast('✓ Verbindung wiederhergestellt – Rangliste ist wieder live.');
       state.offline = false;
       cacheRemoteState(remote);
@@ -1139,6 +1215,7 @@
       var cached = loadCachedRemoteState();
       state.groupRows = cached ? cached.groups : [];
       state.participantRows = cached ? cached.participants : [];
+      state.schedules = cached ? (cached.schedules || {}) : (state.schedules || {});
       state.offline = true;
     }
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
@@ -1175,6 +1252,9 @@
       sb.channel('public:participants')
         .on('postgres_changes', {event:'*', schema:'public', table:'participants'}, handleRemoteParticipantsChange)
         .subscribe();
+      sb.channel('public:schedules')
+        .on('postgres_changes', {event:'*', schema:'public', table:'schedules'}, handleRemoteScheduleChange)
+        .subscribe();
       announceChannel = sb.channel('behoerdenrallye:announcements');
       announceChannel
         .on('broadcast', {event:'announcement'}, function(msg){
@@ -1207,7 +1287,7 @@
     }
 
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules});
     if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
   }
 
@@ -1217,8 +1297,34 @@
     state.participantRows = (state.participantRows||[]).filter(function(r){ return r.id !== row.id; });
     if(payload.eventType !== 'DELETE'){ state.participantRows = state.participantRows.concat([row]); }
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules});
     if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
+  }
+
+  function handleRemoteScheduleChange(payload){
+    var row = payload.eventType === 'DELETE' ? payload.old : payload.new;
+    if(!row || !row.id) return;
+    if(payload.eventType === 'DELETE'){ delete state.schedules[row.id]; }
+    else { state.schedules[row.id] = row; }
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules});
+
+    if(state.participant && row.id === state.participant.groupId){
+      if(state.screen === 'waiting'){
+        // Admin könnte den Zeitplan gerade angepasst haben - neu bewerten.
+        var gate = nextGateCheck();
+        if(gate){
+          state.waitTargetTime = gate.dueMs;
+          state.waitIsBreak = stageIsBreak(state.participant.groupId, STAGES[gate.index].id);
+          render();
+        } else {
+          enterMap();
+        }
+      } else if(state.screen === 'map'){
+        render();
+      }
+    } else if(state.screen === 'admin'){
+      render();
+    }
   }
 
   function isAdminUrl(){
@@ -1248,6 +1354,10 @@
     render();
     subscribeRealtime();
     startPolling();
+    if(state.screen === 'map'){
+      var gate = nextGateCheck();
+      if(gate) startWaitScreen(gate.index);
+    }
   }
 
   function startPolling(){
@@ -1335,7 +1445,65 @@
     var progress = state.groupProgress || {};
     if(progress[stageId]) return 'done';
     var firstUndone = STAGES.findIndex(function(s){ return !progress[s.id]; });
-    return index === firstUndone ? 'current' : 'locked';
+    if(index !== firstUndone) return 'locked';
+    // Stationen ab der zweiten können per Zeitplan gesperrt sein, bis die
+    // Gruppe an der Adresse sein sollte (siehe Wartebildschirm/Admin-Zeitplan).
+    // Die erste Station bleibt bewusst immer sofort verfügbar.
+    if(index > 0){
+      var due = stageDueTime(state.participant.groupId, stageId);
+      if(due){
+        var dueMs = new Date(due).getTime();
+        if(!isNaN(dueMs) && Date.now() < dueMs) return 'locked';
+      }
+    }
+    return 'current';
+  }
+
+  // Prüft, ob die nächste noch offene Station zeitlich gesperrt ist.
+  // Gibt {index, dueMs} zurück, wenn ein Wartebildschirm gezeigt werden soll,
+  // sonst null (kein Zeitplan hinterlegt, oder Zeit bereits erreicht).
+  function nextGateCheck(){
+    if(!state.participant) return null;
+    var progress = state.groupProgress || {};
+    var firstUndone = STAGES.findIndex(function(s){ return !progress[s.id]; });
+    if(firstUndone <= 0) return null;
+    var stage = STAGES[firstUndone];
+    var due = stageDueTime(state.participant.groupId, stage.id);
+    if(!due) return null;
+    var dueMs = new Date(due).getTime();
+    if(isNaN(dueMs) || Date.now() >= dueMs) return null;
+    return { index: firstUndone, dueMs: dueMs };
+  }
+
+  var waitInterval = null;
+  function startWaitScreen(index){
+    if(waitInterval){ clearInterval(waitInterval); waitInterval = null; }
+    var stage = STAGES[index];
+    var due = stageDueTime(state.participant.groupId, stage.id);
+    var dueMs = due ? new Date(due).getTime() : NaN;
+    if(!due || isNaN(dueMs) || Date.now() >= dueMs){ enterMap(); return; }
+    state.screen = 'waiting';
+    state.waitStageIndex = index;
+    state.waitTargetTime = dueMs;
+    state.waitIsBreak = stageIsBreak(state.participant.groupId, stage.id);
+    render();
+    waitInterval = setInterval(function(){
+      if(Date.now() >= state.waitTargetTime){
+        clearInterval(waitInterval);
+        waitInterval = null;
+        enterMap();
+        return;
+      }
+      render();
+    }, 1000);
+  }
+
+  function enterMap(){
+    if(waitInterval){ clearInterval(waitInterval); waitInterval = null; }
+    state.screen = 'map';
+    var gate = nextGateCheck();
+    if(gate) startWaitScreen(gate.index);
+    else render();
   }
 
   var quizFocusApplied = false;
@@ -1424,6 +1592,8 @@
       }
     }
     closeQuiz();
+    var gate = nextGateCheck();
+    if(gate) startWaitScreen(gate.index);
   }
 
   function showStampFx(earnedPoints){
@@ -1603,6 +1773,7 @@
       confirmLabel:'Ja, abmelden',
       onConfirm:function(){
         try{ localStorage.removeItem('behoerdenrallye:participant'); }catch(e){ console.warn('Behördenrallye: participant konnte nicht entfernt werden.', e); }
+        if(waitInterval){ clearInterval(waitInterval); waitInterval = null; }
         state.participant = null;
         state.groupProgress = {};
         state.passwordInput = '';
@@ -1620,8 +1791,7 @@
       state.countdownNumber--;
       if(state.countdownNumber < 0){
         clearInterval(iv);
-        state.screen = 'map';
-        render();
+        enterMap();
         return;
       }
       render();
@@ -1806,12 +1976,28 @@
     if(COUNTDOWN_TARGET.getTime() - Date.now() <= 0) clearInterval(countdownInterval);
   }, 1000);
 
+  function formatClockTime(iso){
+    var d = new Date(iso);
+    if(isNaN(d.getTime())) return '--:--';
+    var pad = function(n){ return String(n).padStart(2,'0'); };
+    return pad(d.getHours())+':'+pad(d.getMinutes());
+  }
+
+  function formatDuration(ms){
+    var totalSeconds = Math.max(0, Math.floor(ms/1000));
+    var h = Math.floor(totalSeconds/3600);
+    var m = Math.floor((totalSeconds%3600)/60);
+    var s = totalSeconds%60;
+    var pad = function(n){ return String(n).padStart(2,'0'); };
+    return (h > 0 ? h+':'+pad(m) : m)+':'+pad(s);
+  }
+
   function renderDisclaimer(){
     return '<p class="site-disclaimer">Diese Webseite wurde von dem Behördenrally Team erstellt und freut sich darauf euch bei der Stadt Hamburg zu begrüßen.</p>';
   }
 
   function renderHeaderBar(){
-    var showStatus = state.participant && (state.screen==='map' || state.screen==='finished' || state.screen==='countdown');
+    var showStatus = state.participant && (state.screen==='map' || state.screen==='finished' || state.screen==='countdown' || state.screen==='waiting');
     var groupDef = showStatus ? GROUPS.filter(function(g){ return g.id === state.participant.groupId; })[0] : null;
     var myPoints = groupDef ? groupPoints(groupDef.id) : 0;
     var brandTag = state.participant ? 'button' : 'span';
@@ -1940,7 +2126,168 @@
         btn('Senden', {id:'adminAnnounceBtn'})+
       '</div>'+
       (state.adminAnnounceSent ? '<p class="admin-note">✓ Gesendet.</p>' : '')+
+    '</div>'+
+    renderAdminAddresses()+
+    renderScheduleGenerator()+
+    renderGroupScheduleEditor();
+  }
+
+  function renderAdminAddresses(){
+    var rows = STAGES.map(function(s, i){
+      return '<div class="admin-schedule-row">'+
+        '<label for="addr_'+s.id+'">Fallakte '+(i+1)+' · '+esc(s.amt)+'</label>'+
+        '<input type="text" id="addr_'+s.id+'" data-address-stage="'+s.id+'" value="'+esc(stageAddress(s.id))+'">'+
+      '</div>';
+    }).join('');
+    return ''+
+    '<div class="intro-card">'+
+      '<h3 style="margin-top:0;">Stations-Adressen</h3>'+
+      '<p class="muted" style="font-size:13px; margin:0 0 12px;">Gilt für alle Gruppen gleich - dieselbe Adresse pro Fallakte.</p>'+
+      rows+
+      '<div style="margin-top:14px;">'+btn('Adressen speichern', {id:'adminSaveAddressesBtn'})+'</div>'+
     '</div>';
+  }
+
+  function renderScheduleGenerator(){
+    var gapsHtml = '';
+    for(var i=1;i<STAGES.length;i++){
+      gapsHtml += '<div class="admin-schedule-row">'+
+        '<label for="gen_gap_'+i+'">Nach Fallakte '+i+' → Fallakte '+(i+1)+' verfügbar in (Minuten)</label>'+
+        '<input type="number" min="0" id="gen_gap_'+i+'" value="15">'+
+        '<label style="flex:0 0 auto; display:flex; align-items:center; gap:6px;"><input type="checkbox" id="gen_break_'+i+'"> Pause</label>'+
+      '</div>';
+    }
+    return ''+
+    '<div class="intro-card">'+
+      '<h3 style="margin-top:0;">Zeitplan-Generator</h3>'+
+      '<p class="muted" style="font-size:13px; margin:0 0 12px;">Erzeugt für alle 9 Gruppen automatisch einen zeitlich versetzten Zeitplan: Gruppe 1 startet zur eingegebenen Uhrzeit mit Fallakte 1, jede weitere Gruppe folgt versetzt um den angegebenen Abstand. Danach lässt sich jede Gruppe unten noch einzeln feinjustieren.</p>'+
+      '<div class="admin-schedule-row">'+
+        '<label for="genStart">Start Fallakte 1 (Gruppe 1)</label>'+
+        '<input type="datetime-local" id="genStart">'+
+      '</div>'+
+      gapsHtml+
+      '<div class="admin-schedule-row">'+
+        '<label for="genOffset">Versatz zwischen den Gruppen (Minuten)</label>'+
+        '<input type="number" min="0" id="genOffset" value="10">'+
+      '</div>'+
+      '<div style="margin-top:14px;">'+btn('Für alle 9 Gruppen generieren', {id:'adminGenerateBtn'})+'</div>'+
+    '</div>';
+  }
+
+  function renderGroupScheduleEditor(){
+    var blocks = GROUPS.map(function(gr){
+      var sched = state.schedules[gr.id] || {};
+      var times = sched.stage_times || {};
+      var breaks = sched.break_stages || [];
+      var hasSchedule = Object.keys(times).length > 0;
+      var rows = STAGES.map(function(s, i){
+        var checked = breaks.indexOf(s.id) !== -1 ? ' checked' : '';
+        var breakToggle = i > 0
+          ? '<label style="flex:0 0 auto; display:flex; align-items:center; gap:6px;"><input type="checkbox" data-sched-break="'+gr.id+'|'+s.id+'"'+checked+'> Pause davor</label>'
+          : '';
+        return '<div class="admin-schedule-row">'+
+          '<label>Fallakte '+(i+1)+'</label>'+
+          '<input type="datetime-local" data-sched-time="'+gr.id+'|'+s.id+'" value="'+esc(times[s.id]||'')+'">'+
+          breakToggle+
+        '</div>';
+      }).join('');
+      return ''+
+      '<details class="admin-schedule-group">'+
+        '<summary><span>'+esc(gr.name)+'</span><span class="admin-note" style="margin:0;">'+(hasSchedule?'Zeitplan gesetzt':'kein Zeitplan')+'</span></summary>'+
+        '<div class="admin-schedule-fields">'+
+          rows+
+          '<div style="margin-top:12px;">'+btn('Speichern', {attrs:'data-save-schedule-group="'+gr.id+'"'})+'</div>'+
+        '</div>'+
+      '</details>';
+    }).join('');
+    return '<div class="intro-card"><h3 style="margin-top:0;">Zeitpläne je Gruppe (Feinjustierung)</h3>'+blocks+'</div>';
+  }
+
+  function toDatetimeLocalString(d){
+    var pad = function(n){ return String(n).padStart(2,'0'); };
+    return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());
+  }
+
+  async function saveSchedule(id, stageTimes, breakStages, stageAddresses){
+    if(!sb) { showToast('Keine Verbindung zur Datenbank.'); return {error:'no-sb'}; }
+    try{
+      var res = await sb.rpc('save_schedule', {
+        p_id: id,
+        p_stage_times: stageTimes || null,
+        p_break_stages: breakStages || null,
+        p_stage_addresses: stageAddresses || null
+      });
+      if(res.error){
+        console.warn('Behördenrallye: Zeitplan konnte nicht gespeichert werden.', res.error);
+        showToast('Speichern fehlgeschlagen: Tabelle "schedules" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
+      }
+      return res;
+    }catch(e){
+      console.warn('Behördenrallye: Zeitplan konnte nicht gespeichert werden.', e);
+      showToast('Speichern fehlgeschlagen: Tabelle "schedules" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
+      return {error:e};
+    }
+  }
+
+  async function saveAdminAddresses(){
+    var addresses = {};
+    STAGES.forEach(function(s){
+      var el = document.getElementById('addr_'+s.id);
+      if(el && el.value.trim()) addresses[s.id] = el.value.trim();
+    });
+    var res = await saveSchedule('_global', null, null, addresses);
+    if(!res.error){ await refreshGroupsState(); render(); showToast('✓ Adressen gespeichert.'); }
+  }
+
+  async function generateAllSchedules(){
+    var startEl = document.getElementById('genStart');
+    if(!startEl || !startEl.value){ showToast('Bitte zuerst eine Startzeit für Fallakte 1 eingeben.'); return; }
+    var baseStart = new Date(startEl.value);
+    if(isNaN(baseStart.getTime())){ showToast('Ungültige Startzeit.'); return; }
+    var offsetMin = parseInt((document.getElementById('genOffset')||{}).value, 10) || 0;
+    var gapMin = [0];
+    var gapBreak = [false];
+    for(var i=1;i<STAGES.length;i++){
+      gapMin.push(parseInt((document.getElementById('gen_gap_'+i)||{}).value, 10) || 0);
+      gapBreak.push(!!(document.getElementById('gen_break_'+i)||{}).checked);
+    }
+
+    var calls = GROUPS.map(function(gr, g){
+      var t = new Date(baseStart.getTime() + g*offsetMin*60000);
+      var stageTimes = {};
+      var breakStages = [];
+      STAGES.forEach(function(s, i){
+        if(i > 0) t = new Date(t.getTime() + gapMin[i]*60000);
+        stageTimes[s.id] = toDatetimeLocalString(t);
+        if(i > 0 && gapBreak[i]) breakStages.push(s.id);
+      });
+      return saveSchedule(gr.id, stageTimes, breakStages, null);
+    });
+
+    var results = await Promise.all(calls);
+    await refreshGroupsState();
+    render();
+    if(!results.some(function(r){ return r && r.error; })){
+      showToast('✓ Zeitpläne für alle 9 Gruppen erzeugt.');
+    }
+  }
+
+  async function saveGroupSchedule(groupId){
+    var stageTimes = {};
+    var breakStages = [];
+    STAGES.forEach(function(s){
+      var timeEl = document.querySelector('[data-sched-time="'+groupId+'|'+s.id+'"]');
+      if(timeEl && timeEl.value) stageTimes[s.id] = timeEl.value;
+      var breakEl = document.querySelector('[data-sched-break="'+groupId+'|'+s.id+'"]');
+      if(breakEl && breakEl.checked) breakStages.push(s.id);
+    });
+    var res = await saveSchedule(groupId, stageTimes, breakStages, null);
+    if(!res.error){
+      await refreshGroupsState();
+      render();
+      var groupDef = GROUPS.filter(function(g){ return g.id === groupId; })[0];
+      showToast('✓ Zeitplan für '+(groupDef?groupDef.name:groupId)+' gespeichert.');
+    }
   }
 
   function exportResultsCsv(){
@@ -2059,6 +2406,9 @@
       var ariaLabel = status === 'current' ? ' aria-label="Fallakte '+(i+1)+' bearbeiten: '+esc(s.title)+'"' :
                        status === 'done' ? ' aria-label="Fallakte '+(i+1)+' abgeschlossen: '+esc(s.title)+'"' :
                        ' aria-label="Fallakte '+(i+1)+' gesperrt: '+esc(s.title)+'"';
+      var address = stageAddress(s.id);
+      var due = stageDueTime(p.groupId, s.id);
+      var dueHint = due ? '<div class="mission-address">'+icon('clock')+'<span>Ziel-Ankunft: '+formatClockTime(due)+' Uhr'+(stageIsBreak(p.groupId, s.id)?' · danach Pause':'')+'</span></div>' : '';
       return ''+
       '<'+tag+' class="mission-card '+status+'" style="--i:'+i+'"'+clickAttr+ariaLabel+'>'+
         '<div class="mission-card-head">'+
@@ -2067,7 +2417,8 @@
         '</div>'+
         '<div class="mission-org">'+s.icon+' '+esc(s.amt)+'</div>'+
         '<div class="mission-title">'+esc(s.title)+'</div>'+
-        (s.address ? '<div class="mission-address">'+icon('pin')+'<span>'+esc(s.address)+'</span></div>' : '')+
+        (address ? '<div class="mission-address">'+icon('pin')+'<span>'+esc(address)+'</span></div>' : '')+
+        dueHint+
         '<div class="mission-footer">'+footer+'</div>'+
       '</'+tag+'>';
     }).join('');
@@ -2236,11 +2587,35 @@
     '</div>';
   }
 
+  function renderWaiting(){
+    var stage = STAGES[state.waitStageIndex];
+    var remaining = Math.max(0, state.waitTargetTime - Date.now());
+    var timeText = esc(formatDuration(remaining));
+    var isBreak = state.waitIsBreak;
+    var address = stageAddress(stage.id);
+    var animHtml = isBreak
+      ? '<div class="wait-anim wait-anim-break" aria-hidden="true"><span class="break-steam s1"></span><span class="break-steam s2"></span><span class="break-steam s3"></span><div class="break-cup">☕</div></div>'
+      : '<div class="wait-anim wait-anim-bus" aria-hidden="true"><div class="bus-road"></div><div class="bus-body">🚌</div></div>';
+    var textHtml = isBreak
+      ? '<div class="wait-label">Ihr habt nun Pause, genießt es.</div><div class="wait-timer" id="waitTimer">'+timeText+'</div>'
+      : '<div class="wait-label">Ihr müsst in <b id="waitTimer">'+timeText+'</b> bei</div>'+
+        '<div class="wait-address">'+esc(address)+'</div>'+
+        '<div class="wait-label-sub">sein.</div>';
+    return ''+
+    '<div class="countdown-screen">'+
+      '<div class="countdown-card wait-card" role="status" aria-live="polite">'+
+        animHtml+
+        textHtml+
+      '</div>'+
+    '</div>';
+  }
+
   function render(){
     var html = '';
     if(state.screen === 'intro') html = renderIntro();
     else if(state.screen === 'countdown') html = renderCountdown();
     else if(state.screen === 'map') html = renderMap();
+    else if(state.screen === 'waiting') html = renderWaiting();
     else if(state.screen === 'finished') html = renderFinished();
     else if(state.screen === 'adminLogin') html = renderAdminLogin();
     else if(state.screen === 'admin') html = renderAdmin();
@@ -2309,8 +2684,7 @@
       state.quizSelectedOption = null;
       state.quizAnswered = false;
       state.quizCorrectCount = 0;
-      state.screen = 'map';
-      render();
+      enterMap();
     });
 
     document.querySelectorAll('#topbar .egg-stamp').forEach(function(el){
@@ -2359,6 +2733,16 @@
       state.adminAnnounceSent = true;
       render();
       setTimeout(function(){ state.adminAnnounceSent = false; }, 4000);
+    });
+
+    var adminSaveAddressesBtn = document.getElementById('adminSaveAddressesBtn');
+    if(adminSaveAddressesBtn) adminSaveAddressesBtn.addEventListener('click', saveAdminAddresses);
+
+    var adminGenerateBtn = document.getElementById('adminGenerateBtn');
+    if(adminGenerateBtn) adminGenerateBtn.addEventListener('click', generateAllSchedules);
+
+    document.querySelectorAll('[data-save-schedule-group]').forEach(function(btn){
+      btn.addEventListener('click', function(){ saveGroupSchedule(btn.getAttribute('data-save-schedule-group')); });
     });
 
     document.querySelectorAll('[data-stage]').forEach(function(btn){
