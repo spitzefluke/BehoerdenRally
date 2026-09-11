@@ -658,6 +658,29 @@
   }
   .admin-schedule-fields{padding:6px 14px 16px;}
 
+  .admin-nav{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; overflow-x:auto; padding-bottom:2px;}
+  .admin-nav-btn{
+    display:inline-flex; align-items:center; gap:7px; padding:9px 14px; border:1px solid var(--border);
+    border-radius:var(--radius); background:var(--surface); color:var(--text-muted);
+    font-size:13px; font-weight:600; white-space:nowrap; flex:0 0 auto; min-height:40px;
+  }
+  .admin-nav-btn:hover{background:var(--locked-bg);}
+  .admin-nav-btn.active{background:var(--navy); border-color:var(--navy); color:#fff;}
+
+  .admin-questions-picker{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:6px;}
+  .admin-questions-picker select{flex:1 1 200px; min-height:44px; padding:9px 10px; font-size:14px; border:1.5px solid var(--border); border-radius:var(--radius); background:var(--surface); color:var(--text);}
+  .admin-questions-source{font-size:12.5px; color:var(--text-muted); margin:0 0 16px;}
+  .admin-question-block{border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin-bottom:12px; background:var(--bg);}
+  .admin-question-num{font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px;}
+  .admin-question-block label{display:block; font-size:11.5px; font-weight:600; color:var(--text-muted); margin:10px 0 5px;}
+  .admin-question-block textarea, .admin-question-block input[type=text]{
+    width:100%; font-family:'IBM Plex Sans',sans-serif; font-size:13.5px; padding:9px 10px;
+    border:1.5px solid var(--border); border-radius:var(--radius); background:var(--surface); color:var(--text); resize:vertical;
+  }
+  .admin-option-row{display:flex; align-items:center; gap:8px; margin-bottom:6px;}
+  .admin-option-row input[type=text]{flex:1;}
+  .admin-option-row input[type=radio]{flex:0 0 auto; width:18px; height:18px;}
+
   /* ---------- countdown ---------- */
   .countdown-screen{min-height:52vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
   .countdown-card{
@@ -801,7 +824,9 @@
     pin: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.3 7-12a7 7 0 0 0-14 0c0 5.7 7 12 7 12Z"/><circle cx="12" cy="9" r="2.4"/></svg>',
     info: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16.5"/><circle cx="12" cy="7.7" r="0.6" fill="currentColor" stroke="none"/></svg>',
     download: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><polyline points="7 11 12 16 17 11"/><line x1="4" y1="20" x2="20" y2="20"/></svg>',
-    clock: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>'
+    clock: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>',
+    megaphone: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a2 2 0 0 0 2 2h1l3 5V6L6 9H5a2 2 0 0 0-2 2Z"/><path d="M13 8a4 4 0 0 1 0 8M17 5a8.5 8.5 0 0 1 0 14"/></svg>',
+    question: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1.2 1-1.2 1.9"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg>'
   };
   function icon(name){ return '<span class="icon">'+(ICONS[name]||'')+'</span>'; }
 
@@ -1128,6 +1153,10 @@
     adminJoining:false,
     adminAnnounceSent:false,
     schedules:{},
+    groupQuestions:{},
+    adminTab:'overview',
+    adminQuestionsGroup:'_default',
+    adminQuestionsStage:0,
     waitStageIndex:null,
     waitTargetTime:0,
     waitIsBreak:false,
@@ -1194,6 +1223,21 @@
     return !!(sched && Array.isArray(sched.break_stages) && sched.break_stages.indexOf(stageId) !== -1);
   }
 
+  // ---------------- Fragen je Gruppe (Admin-Panel) ----------------
+  // Optionale, im Admin-Panel gepflegte Frage-Sets pro Gruppe+Station.
+  // Reihenfolge: eigene Fragen der Gruppe -> gemeinsamer Standard-Satz
+  // ('_default', ebenfalls im Admin-Panel editierbar) -> im Code
+  // hinterlegte Standardfragen (STAGES). So bleibt alles ohne Eingriff
+  // im Admin-Panel exakt beim bisherigen, gemeinsamen Fragenkatalog.
+  function stageQuestions(groupId, stageId){
+    var custom = state.groupQuestions[groupId+'|'+stageId];
+    if(custom && custom.length) return custom;
+    var def = state.groupQuestions['_default|'+stageId];
+    if(def && def.length) return def;
+    var stage = STAGES.filter(function(s){ return s.id === stageId; })[0];
+    return stage ? stage.questions : [];
+  }
+
   function deriveGroupsState(groupRows, participantRows){
     var gs = emptyGroupsState();
     (participantRows||[]).forEach(function(p){
@@ -1244,7 +1288,19 @@
           schedulesRes.data.forEach(function(row){ schedules[row.id] = row; });
         }
       }catch(e){ /* Zeitplan-Tabelle evtl. noch nicht angelegt - kein Problem */ }
-      return { groups: groupsRes.data, participants: participantsRes.data, schedules: schedules };
+
+      // Eigene Fragen je Gruppe/Station sind ebenso optional (siehe
+      // group_questions in supabase-setup.sql) - fehlt die Tabelle, gelten
+      // einfach die im Code hinterlegten Standardfragen weiter.
+      var groupQuestions = {};
+      try{
+        var questionsRes = await sb.from('group_questions').select('*');
+        if(!questionsRes.error && questionsRes.data){
+          questionsRes.data.forEach(function(row){ groupQuestions[row.group_id+'|'+row.stage_id] = row.questions; });
+        }
+      }catch(e){ /* Tabelle evtl. noch nicht angelegt - kein Problem */ }
+
+      return { groups: groupsRes.data, participants: participantsRes.data, schedules: schedules, groupQuestions: groupQuestions };
     }catch(e){
       console.warn('Behördenrallye: Laden von Supabase fehlgeschlagen.', e);
       return null;
@@ -1257,6 +1313,7 @@
       state.groupRows = remote.groups || [];
       state.participantRows = remote.participants || [];
       state.schedules = remote.schedules || {};
+      state.groupQuestions = remote.groupQuestions || {};
       if(state.offline) showToast('✓ Verbindung wiederhergestellt – Rangliste ist wieder live.');
       state.offline = false;
       cacheRemoteState(remote);
@@ -1265,6 +1322,7 @@
       state.groupRows = cached ? cached.groups : [];
       state.participantRows = cached ? cached.participants : [];
       state.schedules = cached ? (cached.schedules || {}) : (state.schedules || {});
+      state.groupQuestions = cached ? (cached.groupQuestions || {}) : (state.groupQuestions || {});
       state.offline = true;
     }
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
@@ -1336,7 +1394,7 @@
     }
 
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, groupQuestions:state.groupQuestions});
     if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
   }
 
@@ -1346,7 +1404,7 @@
     state.participantRows = (state.participantRows||[]).filter(function(r){ return r.id !== row.id; });
     if(payload.eventType !== 'DELETE'){ state.participantRows = state.participantRows.concat([row]); }
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, groupQuestions:state.groupQuestions});
     if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
   }
 
@@ -1355,7 +1413,7 @@
     if(!row || !row.id) return;
     if(payload.eventType === 'DELETE'){ delete state.schedules[row.id]; }
     else { state.schedules[row.id] = row; }
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, groupQuestions:state.groupQuestions});
 
     if(state.participant && row.id === state.participant.groupId){
       if(state.screen === 'waiting'){
@@ -1580,7 +1638,7 @@
     state.quizSelectedOption = optIndex;
     state.quizAnswered = true;
     var stage = STAGES[state.activeQuizIndex];
-    var q = stage.questions[state.quizQuestionIndex];
+    var q = stageQuestions(state.participant.groupId, stage.id)[state.quizQuestionIndex];
     var isCorrect = optIndex === q.correct;
     if(isCorrect) state.quizCorrectCount++;
     try{ if(navigator.vibrate) navigator.vibrate(isCorrect ? 40 : [30,60,30]); }catch(e){}
@@ -1589,7 +1647,8 @@
 
   function advanceQuiz(){
     var stage = STAGES[state.activeQuizIndex];
-    if(state.quizQuestionIndex < stage.questions.length - 1){
+    var qList = stageQuestions(state.participant.groupId, stage.id);
+    if(state.quizQuestionIndex < qList.length - 1){
       state.quizQuestionIndex++;
       state.quizSelectedOption = null;
       state.quizAnswered = false;
@@ -2131,7 +2190,34 @@
     '</div>';
   }
 
+  var ADMIN_TABS = [
+    {id:'overview', label:'Übersicht', icon:'list'},
+    {id:'announce', label:'Durchsage', icon:'megaphone'},
+    {id:'addresses', label:'Adressen', icon:'pin'},
+    {id:'schedules', label:'Zeitpläne', icon:'clock'},
+    {id:'questions', label:'Fragen', icon:'question'}
+  ];
+
   function renderAdmin(){
+    var navHtml = '<div class="admin-nav" role="tablist">'+ADMIN_TABS.map(function(t){
+      return '<button type="button" class="admin-nav-btn'+(state.adminTab===t.id?' active':'')+'" data-admin-tab="'+t.id+'" role="tab" aria-selected="'+(state.adminTab===t.id?'true':'false')+'">'+icon(t.icon)+'<span>'+t.label+'</span></button>';
+    }).join('')+'</div>';
+
+    var content = '';
+    if(state.adminTab === 'announce') content = renderAdminAnnounce();
+    else if(state.adminTab === 'addresses') content = renderAdminAddresses();
+    else if(state.adminTab === 'schedules') content = renderScheduleGenerator()+renderGroupScheduleEditor();
+    else if(state.adminTab === 'questions') content = renderAdminQuestions();
+    else content = renderAdminOverview();
+
+    return ''+
+    '<div class="admin-banner">'+icon('lock')+'<span>Admin-Bereich · nur fürs Orga-Team</span></div>'+
+    navHtml+
+    renderOfflineBanner()+
+    content;
+  }
+
+  function renderAdminOverview(){
     var rows = GROUPS.map(function(gr, i){
       var row = state.groupRows.filter(function(r){ return r.id === gr.id; })[0];
       var progress = row ? (row.progress||{}) : {};
@@ -2151,8 +2237,6 @@
     }).join('');
 
     return ''+
-    '<div class="admin-banner">'+icon('lock')+'<span>Admin-Bereich · nur fürs Orga-Team</span></div>'+
-    renderOfflineBanner()+
     '<div class="progress-panel">'+
       '<div class="progress-head">'+
         '<span class="eyebrow">Admin-Übersicht</span>'+
@@ -2166,7 +2250,11 @@
     '<div class="admin-actions">'+
       btn('Aktualisieren', {id:'adminRefreshBtn'})+
       btn('Ergebnisse als CSV exportieren '+icon('download'), {id:'adminExportBtn'})+
-    '</div>'+
+    '</div>';
+  }
+
+  function renderAdminAnnounce(){
+    return ''+
     '<div class="intro-card">'+
       '<h3 style="margin-top:0;">Ankündigung an alle Geräte senden</h3>'+
       '<p class="muted" style="font-size:13px; margin:0;">Erscheint kurz als Hinweis bei allen gerade aktiven Teilnehmenden. Wird nicht gespeichert - nur aktuell verbundene Geräte sehen sie.</p>'+
@@ -2175,10 +2263,7 @@
         btn('Senden', {id:'adminAnnounceBtn'})+
       '</div>'+
       (state.adminAnnounceSent ? '<p class="admin-note">✓ Gesendet.</p>' : '')+
-    '</div>'+
-    renderAdminAddresses()+
-    renderScheduleGenerator()+
-    renderGroupScheduleEditor();
+    '</div>';
   }
 
   function renderAdminAddresses(){
@@ -2195,6 +2280,96 @@
       rows+
       '<div style="margin-top:14px;">'+btn('Adressen speichern', {id:'adminSaveAddressesBtn'})+'</div>'+
     '</div>';
+  }
+
+  function questionsSourceLabel(groupId, stageId){
+    if(state.groupQuestions[groupId+'|'+stageId]) return groupId === '_default' ? 'Eigener Standard-Fragensatz (überschreibt die Code-Standardfragen für alle Gruppen ohne eigene Fragen).' : 'Eigene Fragen für diese Gruppe.';
+    if(groupId !== '_default' && state.groupQuestions['_default|'+stageId]) return 'Noch keine eigenen Fragen für diese Gruppe - zeigt aktuell den gemeinsamen Standard-Fragensatz.';
+    return 'Noch nicht angepasst - zeigt aktuell die eingebauten Standardfragen aus dem Code.';
+  }
+
+  function renderAdminQuestions(){
+    var groupId = state.adminQuestionsGroup;
+    var stageIdx = state.adminQuestionsStage;
+    var stage = STAGES[stageIdx];
+    var questions = stageQuestions(groupId, stage.id);
+
+    var groupOptions = '<option value="_default"'+(groupId==='_default'?' selected':'')+'>Standard (alle Gruppen ohne eigene Fragen)</option>'+
+      GROUPS.map(function(gr){ return '<option value="'+gr.id+'"'+(groupId===gr.id?' selected':'')+'>'+esc(gr.name)+'</option>'; }).join('');
+    var stageOptions = STAGES.map(function(s, i){ return '<option value="'+i+'"'+(i===stageIdx?' selected':'')+'>Fallakte '+(i+1)+' · '+esc(s.amt)+'</option>'; }).join('');
+
+    var questionBlocks = questions.map(function(q, qi){
+      var optionsHtml = q.options.map(function(opt, oi){
+        return '<div class="admin-option-row">'+
+          '<input type="radio" name="qcorrect_'+qi+'" data-qfield="correct" data-qidx="'+qi+'" value="'+oi+'"'+(q.correct===oi?' checked':'')+'>'+
+          '<input type="text" data-qfield="opt" data-qidx="'+qi+'" data-optidx="'+oi+'" value="'+esc(opt)+'">'+
+        '</div>';
+      }).join('');
+      return ''+
+      '<div class="admin-question-block">'+
+        '<div class="admin-question-num">Frage '+(qi+1)+' von '+questions.length+'</div>'+
+        '<label for="q_'+qi+'_text">Frage</label>'+
+        '<textarea id="q_'+qi+'_text" rows="2" data-qfield="question" data-qidx="'+qi+'">'+esc(q.question)+'</textarea>'+
+        '<label>Antwortoptionen (Punkt = richtige Antwort)</label>'+
+        optionsHtml+
+        '<label for="q_'+qi+'_expl">Erklärung (wird bei richtiger Antwort gezeigt)</label>'+
+        '<textarea id="q_'+qi+'_expl" rows="2" data-qfield="explanation" data-qidx="'+qi+'">'+esc(q.explanation||'')+'</textarea>'+
+      '</div>';
+    }).join('');
+
+    return ''+
+    '<div class="intro-card">'+
+      '<h3 style="margin-top:0;">Fragen &amp; Antworten</h3>'+
+      '<div class="admin-questions-picker">'+
+        '<div><label for="adminQGroup" class="sr-only">Gruppe</label><select id="adminQGroup">'+groupOptions+'</select></div>'+
+        '<div><label for="adminQStage" class="sr-only">Fallakte</label><select id="adminQStage">'+stageOptions+'</select></div>'+
+      '</div>'+
+      '<p class="admin-questions-source">'+esc(questionsSourceLabel(groupId, stage.id))+'</p>'+
+      '<div id="adminQuestionBlocks">'+questionBlocks+'</div>'+
+      '<div style="margin-top:6px;">'+btn('Fragen speichern', {id:'adminSaveQuestionsBtn'})+'</div>'+
+    '</div>';
+  }
+
+  async function saveGroupQuestions(){
+    var groupId = state.adminQuestionsGroup;
+    var stageId = STAGES[state.adminQuestionsStage].id;
+    var count = document.querySelectorAll('#adminQuestionBlocks .admin-question-block').length;
+    var questions = [];
+    for(var qi=0; qi<count; qi++){
+      var questionEl = document.querySelector('[data-qfield="question"][data-qidx="'+qi+'"]');
+      var explEl = document.querySelector('[data-qfield="explanation"][data-qidx="'+qi+'"]');
+      var options = [];
+      for(var oi=0; oi<4; oi++){
+        var optEl = document.querySelector('[data-qfield="opt"][data-qidx="'+qi+'"][data-optidx="'+oi+'"]');
+        options.push(optEl ? optEl.value.trim() : '');
+      }
+      var correctEl = document.querySelector('[data-qfield="correct"][data-qidx="'+qi+'"]:checked');
+      questions.push({
+        question: questionEl ? questionEl.value.trim() : '',
+        options: options,
+        correct: correctEl ? parseInt(correctEl.value, 10) : 0,
+        explanation: explEl ? explEl.value.trim() : ''
+      });
+    }
+    if(questions.some(function(q){ return !q.question || q.options.some(function(o){ return !o; }); })){
+      showToast('Bitte alle Fragen und Antwortoptionen ausfüllen.');
+      return;
+    }
+    if(!sb){ showToast('Keine Verbindung zur Datenbank.'); return; }
+    try{
+      var res = await sb.rpc('save_group_questions', {p_group_id: groupId, p_stage_id: stageId, p_questions: questions});
+      if(res.error){
+        console.warn('Behördenrallye: Fragen konnten nicht gespeichert werden.', res.error);
+        showToast('Speichern fehlgeschlagen: Tabelle "group_questions" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
+        return;
+      }
+      await refreshGroupsState();
+      render();
+      showToast('✓ Fragen gespeichert.');
+    }catch(e){
+      console.warn('Behördenrallye: Fragen konnten nicht gespeichert werden.', e);
+      showToast('Speichern fehlgeschlagen: Tabelle "group_questions" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
+    }
   }
 
   function renderScheduleGenerator(){
@@ -2502,9 +2677,10 @@
   function renderQuiz(){
     var i = state.activeQuizIndex;
     var stage = STAGES[i];
+    var qList = stageQuestions(state.participant.groupId, stage.id);
     var qi = state.quizQuestionIndex;
-    var s = stage.questions[qi];
-    var isLast = qi === stage.questions.length - 1;
+    var s = qList[qi];
+    var isLast = qi === qList.length - 1;
 
     var optsHtml = s.options.map(function(opt, idx){
       var cls = 'option';
@@ -2527,7 +2703,7 @@
       ? btn(isLast ? 'Fallakte abschließen →' : 'Nächste Frage →', {id:'quizNextBtn'})
       : '';
 
-    var dotsHtml = stage.questions.map(function(_, idx){
+    var dotsHtml = qList.map(function(_, idx){
       var dotCls = idx < qi ? 'dot done' : idx === qi ? 'dot current' : 'dot';
       return '<span class="'+dotCls+'"></span>';
     }).join('');
@@ -2536,7 +2712,7 @@
     '<div class="overlay" id="quizOverlay">'+
       '<div class="quiz-card" role="dialog" aria-modal="true" aria-labelledby="quizQuestion">'+
         '<button class="close-x" id="quizCloseBtn" aria-label="Quiz schließen">'+icon('close')+'</button>'+
-        '<div class="quiz-amt">'+stage.icon+' Station '+(i+1)+' · '+esc(stage.amt)+' · Frage '+(qi+1)+'/'+stage.questions.length+'</div>'+
+        '<div class="quiz-amt">'+stage.icon+' Station '+(i+1)+' · '+esc(stage.amt)+' · Frage '+(qi+1)+'/'+qList.length+'</div>'+
         '<div class="quiz-dots" aria-hidden="true">'+dotsHtml+'</div>'+
         '<div class="quiz-question" id="quizQuestion">'+esc(s.question)+'</div>'+
         '<div class="options">'+optsHtml+'</div>'+
@@ -2813,6 +2989,17 @@
     document.querySelectorAll('[data-save-schedule-group]').forEach(function(btn){
       btn.addEventListener('click', function(){ saveGroupSchedule(btn.getAttribute('data-save-schedule-group')); });
     });
+
+    document.querySelectorAll('[data-admin-tab]').forEach(function(btn){
+      btn.addEventListener('click', function(){ state.adminTab = btn.getAttribute('data-admin-tab'); render(); });
+    });
+
+    var adminQGroup = document.getElementById('adminQGroup');
+    if(adminQGroup) adminQGroup.addEventListener('change', function(e){ state.adminQuestionsGroup = e.target.value; render(); });
+    var adminQStage = document.getElementById('adminQStage');
+    if(adminQStage) adminQStage.addEventListener('change', function(e){ state.adminQuestionsStage = parseInt(e.target.value, 10); render(); });
+    var adminSaveQuestionsBtn = document.getElementById('adminSaveQuestionsBtn');
+    if(adminSaveQuestionsBtn) adminSaveQuestionsBtn.addEventListener('click', saveGroupQuestions);
 
     document.querySelectorAll('[data-stage]').forEach(function(btn){
       btn.addEventListener('click', function(){ openQuiz(parseInt(btn.getAttribute('data-stage'),10)); });

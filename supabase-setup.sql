@@ -202,3 +202,48 @@ begin
     alter publication supabase_realtime add table public.schedules;
   end if;
 end $$;
+
+-- Eigene Quizfragen je Gruppe/Station fürs Admin-Panel. group_id ist eine
+-- echte Gruppe ODER '_default' für den gemeinsamen Standard-Fragensatz, der
+-- für alle Gruppen ohne eigene Fragen gilt. Ist für eine Gruppe+Station gar
+-- nichts hinterlegt (weder eigene Fragen noch '_default'), nutzt die App die
+-- im Code eingebauten Standardfragen weiter - auch diese Tabelle ist rein
+-- optional.
+create table if not exists public.group_questions (
+  group_id text not null check (group_id in (
+    'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
+    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','_default'
+  )),
+  stage_id text not null,
+  questions jsonb not null,
+  updated_at timestamptz not null default now(),
+  primary key (group_id, stage_id)
+);
+
+alter table public.group_questions enable row level security;
+
+drop policy if exists "group_questions public read" on public.group_questions;
+create policy "group_questions public read"
+  on public.group_questions for select
+  using (true);
+
+-- Kein direktes UPDATE für anon - Schreiben läuft nur über die
+-- save_group_questions()-Funktion (SECURITY DEFINER), gleiches Prinzip wie
+-- save_schedule() oben.
+drop function if exists public.save_group_questions(text, text, jsonb);
+
+create or replace function public.save_group_questions(p_group_id text, p_stage_id text, p_questions jsonb)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  insert into public.group_questions (group_id, stage_id, questions, updated_at)
+  values (p_group_id, p_stage_id, p_questions, now())
+  on conflict (group_id, stage_id) do update
+    set questions = excluded.questions,
+        updated_at = now()
+  returning to_jsonb(public.group_questions.*);
+$$;
+
+grant execute on function public.save_group_questions(text, text, jsonb) to anon;
