@@ -547,6 +547,18 @@
   .info-card ul{margin:0 0 16px; padding-left:20px;}
   .info-card li{font-size:14.5px; line-height:1.55; margin-bottom:6px; color:var(--text);}
   .info-card .quiz-actions{justify-content:flex-end;}
+  .fb-question{margin-bottom:18px;}
+  .fb-question > label{display:block; font-weight:700; font-size:14px; color:var(--navy); margin-bottom:8px;}
+  .fb-question textarea{
+    width:100%; font-family:'IBM Plex Sans',sans-serif; font-size:14px; padding:10px 12px;
+    border:1.5px solid var(--border); border-radius:var(--radius); background:var(--surface); color:var(--text); resize:vertical;
+  }
+  .fb-option{
+    display:flex; align-items:center; gap:9px; padding:10px 12px; margin-bottom:6px;
+    border:1.5px solid var(--border); border-radius:var(--radius); font-size:14px; cursor:pointer;
+  }
+  .fb-option:hover{border-color:var(--blue); background:var(--blue-light);}
+  .fb-option input{flex:0 0 auto; width:18px; height:18px;}
   .btn-plain{
     background:none; border:none; padding:11px 16px; min-height:44px;
     font-weight:600; font-size:14px; color:var(--text-muted); border-radius:var(--radius);
@@ -597,6 +609,11 @@
   @media (prefers-reduced-motion: reduce){
     .finish-fx .stamp-mark{animation:none; opacity:1; transform:scale(1);}
     .finish-fx .confetti{display:none;}
+  }
+  .winner-stamp .stamp-mark{
+    font-size:32px; padding:22px 34px; color:#8a5a00; border-color:#E8B923;
+    background:linear-gradient(180deg, #fff8e6, #fff);
+    box-shadow:0 8px 30px rgba(232,185,35,.45);
   }
 
   /* ---------- boot screen ---------- */
@@ -680,6 +697,34 @@
   .admin-option-row{display:flex; align-items:center; gap:8px; margin-bottom:6px;}
   .admin-option-row input[type=text]{flex:1;}
   .admin-option-row input[type=radio]{flex:0 0 auto; width:18px; height:18px;}
+
+  .btn-sm .inner{padding:8px 14px; font-size:12.5px;}
+  .admin-template-list{display:flex; flex-direction:column; gap:8px;}
+  .admin-template-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    border:1px solid var(--border); border-radius:var(--radius); padding:10px 12px; background:var(--bg);
+  }
+  .admin-template-info{display:flex; align-items:center; gap:10px; min-width:0;}
+  .admin-template-icon{font-size:22px; flex:0 0 auto;}
+  .admin-template-title{font-weight:700; font-size:14px; color:var(--navy);}
+  .admin-template-sub{font-size:12px; color:var(--text-muted);}
+  .admin-template-form{border:1.5px solid var(--navy); border-radius:var(--radius); padding:16px; margin-top:16px; background:var(--surface);}
+  .admin-template-form h4{margin:0 0 12px;}
+  .admin-template-form label{display:block; font-size:11.5px; font-weight:600; color:var(--text-muted); margin:10px 0 5px;}
+  .admin-template-form input[type=text], .admin-template-form input[type=number]{
+    width:100%; font-family:'IBM Plex Sans',sans-serif; font-size:13.5px; padding:9px 10px;
+    border:1.5px solid var(--border); border-radius:var(--radius); background:var(--surface); color:var(--text);
+  }
+
+  .admin-fb-section{margin-bottom:22px;}
+  .admin-fb-section h4{margin:0 0 10px; font-size:14.5px; color:var(--navy);}
+  .admin-fb-bar-row{display:grid; grid-template-columns:minmax(80px,140px) 1fr 70px; align-items:center; gap:10px; margin-bottom:8px;}
+  .admin-fb-bar-label{font-size:13px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .admin-fb-bar-track{height:14px; background:var(--locked-bg); border-radius:var(--radius-sm); overflow:hidden;}
+  .admin-fb-bar-fill{height:100%; background:var(--blue); transition:width .4s ease;}
+  .admin-fb-bar-count{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text-muted); text-align:right;}
+  .admin-fb-textlist{margin:0; padding-left:20px;}
+  .admin-fb-textlist li{font-size:13.5px; line-height:1.5; margin-bottom:6px; color:var(--text);}
 
   /* ---------- countdown ---------- */
   .countdown-screen{min-height:52vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
@@ -826,41 +871,31 @@
     download: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><polyline points="7 11 12 16 17 11"/><line x1="4" y1="20" x2="20" y2="20"/></svg>',
     clock: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>',
     megaphone: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a2 2 0 0 0 2 2h1l3 5V6L6 9H5a2 2 0 0 0-2 2Z"/><path d="M13 8a4 4 0 0 1 0 8M17 5a8.5 8.5 0 0 1 0 14"/></svg>',
-    question: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1.2 1-1.2 1.9"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg>'
+    question: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1.2 1-1.2 1.9"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg>',
+    chart: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="12" width="3" height="8"/><rect x="11" y="7" width="3" height="13"/><rect x="16" y="15" width="3" height="5"/></svg>'
   };
   function icon(name){ return '<span class="icon">'+(ICONS[name]||'')+'</span>'; }
 
-  var GROUPS = [
-    {id:'gruppe-1', name:'Gruppe 1'},
-    {id:'gruppe-2', name:'Gruppe 2'},
-    {id:'gruppe-3', name:'Gruppe 3'},
-    {id:'gruppe-4', name:'Gruppe 4'},
-    {id:'gruppe-5', name:'Gruppe 5'},
-    {id:'gruppe-6', name:'Gruppe 6'},
-    {id:'gruppe-7', name:'Gruppe 7'},
-    {id:'gruppe-8', name:'Gruppe 8'},
-    {id:'gruppe-9', name:'Gruppe 9'}
-  ];
+  var GROUPS = [];
+  for(var _gi=1; _gi<=12; _gi++){ GROUPS.push({id:'gruppe-'+_gi, name:'Gruppe '+_gi}); }
+
   // Jede Gruppe hat ein festes Passwort statt freier Team-Wahl - wer das
   // Passwort kennt, wird direkt der zugehörigen Gruppe zugewiesen.
-  var GROUP_PASSWORDS = {
-    'rallye1': 'gruppe-1',
-    'rallye2': 'gruppe-2',
-    'rallye3': 'gruppe-3',
-    'rallye4': 'gruppe-4',
-    'rallye5': 'gruppe-5',
-    'rallye6': 'gruppe-6',
-    'rallye7': 'gruppe-7',
-    'rallye8': 'gruppe-8',
-    'rallye9': 'gruppe-9'
-  };
+  var GROUP_PASSWORDS = {};
+  for(var _pi=1; _pi<=12; _pi++){ GROUP_PASSWORDS['rallye'+_pi] = 'gruppe-'+_pi; }
+
   // Interner Admin-Zugang fürs Orga-Team - erreichbar über die URL mit #admin.
-  // Nur ein Sichtschutz im Browser (wie die Gruppen-Passwörter), kein echter
-  // Server-Schutz. Vor dem Event unbedingt ändern.
-  var ADMIN_PASSWORD = 'orga-2026';
-  var CAPACITY = 5;
-  var POINTS_PER_STAGE = 10;
-  var POINTS_PER_CORRECT = 2; // POINTS_PER_STAGE / 5 Fragen je Station
+  // Zwei Rollen: 'full' sieht/bearbeitet alles, 'viewer' sieht im Panel nur
+  // die Übersicht (Rangliste) und kann die Sieger-Animation auslösen - z.B.
+  // für die Siegerehrung, ohne Zugriff auf Stationen/Zeitpläne/Feedback zu
+  // geben. Nur ein Sichtschutz im Browser (wie die Gruppen-Passwörter), kein
+  // echter Server-Schutz. Vor dem Event unbedingt ändern.
+  var ADMIN_PASSWORDS = {
+    'orga-2026': 'full',
+    'sieger-2026': 'viewer'
+  };
+  var CAPACITY = 9;
+  var STATIONS_PER_GROUP = 4;
 
   function tabClass(index){ return 'tab-' + ((index % 6) + 1); }
 
@@ -879,38 +914,38 @@
 
   // Platzhalter-Adressen (Musterstraße) - vor dem echten Event durch die
   // tatsächlichen Stationen ersetzen, siehe address je Fallakte.
-  var STAGES = [
+  var DEFAULT_TEMPLATES = [
     {
       id:'anmeldung', title:'Anmeldung nach Umzug', amt:'Bürgeramt', address:'Musterstraße 1, 20095 Hamburg', icon:'🪪',
       questions:[
         {
           question:'Innerhalb welcher Frist muss man sich nach einem Umzug in Deutschland ummelden?',
           options:['48 Stunden','2 Wochen','1 Monat','Es gibt keine Frist'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Nach dem Bundesmeldegesetz hat man 2 Wochen (14 Tage) Zeit, sich beim Bürgeramt umzumelden.'
         },
         {
           question:'Welches Dokument braucht man beim Ummelden zusätzlich zum Ausweis meist noch?',
           options:['Wohnungsgeberbestätigung','Kontoauszug','Führerschein','Impfpass'],
-          correct:0,
+          correct:0, points:2,
           explanation:'Richtig: Die Vermieterin oder der Vermieter muss den Einzug schriftlich bestätigen – diese Wohnungsgeberbestätigung ist Pflicht.'
         },
         {
           question:'Was kann passieren, wenn man die Ummeldefrist verpasst?',
           options:['Nichts, es gibt keine Konsequenzen','Ein Bußgeld ist möglich','Der Perso wird automatisch ungültig','Man muss die Stadt verlassen'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Die Meldebehörde kann bei verspäteter Anmeldung ein Bußgeld verhängen.'
         },
         {
           question:'Muss man sich auch ummelden, wenn man nur innerhalb derselben Stadt umzieht?',
           options:['Ja, jeder Adresswechsel muss gemeldet werden','Nein, nur bei einem Stadtwechsel','Nur wenn man mehr als 5 km weiterzieht','Nur bei einem Wohnungswechsel über 50 m²'],
-          correct:0,
+          correct:0, points:2,
           explanation:'Richtig: Jede neue Adresse muss gemeldet werden – auch ein Umzug innerhalb derselben Stadt.'
         },
         {
           question:'Wo meldet man sich in der Regel um?',
           options:['Beim Bürgeramt der neuen Adresse','Beim Finanzamt','Bei der Polizei','Per Brief ans Rathaus der alten Stadt'],
-          correct:0,
+          correct:0, points:2,
           explanation:'Richtig: Zuständig ist das Bürgeramt bzw. Einwohnermeldeamt am neuen Wohnort.'
         }
       ]
@@ -921,31 +956,31 @@
         {
           question:'Wer bekommt in Deutschland automatisch eine Steuer-ID zugeschickt?',
           options:['Nur Selbstständige','Jeder, der beim Bürgeramt gemeldet ist','Nur Rentner:innen','Nur Unternehmen'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Die Steuer-ID wird automatisch an jede gemeldete Person vergeben – unabhängig vom Beruf.'
         },
         {
           question:'Aus wie vielen Ziffern besteht die deutsche Steuer-ID?',
           options:['8','11','13','16'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Die Steuer-Identifikationsnummer besteht aus 11 Ziffern.'
         },
         {
           question:'Ändert sich die Steuer-ID, wenn man umzieht oder heiratet?',
           options:['Ja, bei jedem Umzug','Ja, aber nur bei Heirat','Nein, sie bleibt lebenslang gleich','Nein, aber sie wird jährlich erneuert'],
-          correct:2,
+          correct:2, points:2,
           explanation:'Richtig: Die Steuer-ID bleibt ein Leben lang unverändert, egal wie oft man umzieht oder den Namen ändert.'
         },
         {
           question:'Wofür wird die Steuer-ID unter anderem gebraucht?',
           options:['Beim neuen Arbeitgeber für die Lohnsteuer','Nur beim Autokauf','Nur für den Reisepass','Nur für die Rundfunkanmeldung'],
-          correct:0,
+          correct:0, points:2,
           explanation:'Richtig: Arbeitgeber, Familienkasse und Finanzamt brauchen die Steuer-ID unter anderem für die Lohnsteuer.'
         },
         {
           question:'Was ist der Unterschied zwischen Steuer-ID und Steuernummer?',
           options:['Es gibt keinen Unterschied','Die Steuer-ID bleibt lebenslang gleich, die Steuernummer kann sich z. B. bei Umzug ändern','Die Steuernummer ist nur für Firmen gedacht','Die Steuer-ID gilt nur ein Jahr'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Die Steuer-ID ist dauerhaft, während sich die Steuernummer etwa bei einem Zuständigkeitswechsel des Finanzamts ändern kann.'
         }
       ]
@@ -956,31 +991,31 @@
         {
           question:'Welches Dokument regelt, ob und wie lange sich eine Person ohne EU-Pass in Deutschland aufhalten darf?',
           options:['Meldebescheinigung','Aufenthaltstitel','Führungszeugnis','Lohnsteuerbescheinigung'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Der Aufenthaltstitel wird von der Ausländerbehörde erteilt und regelt Dauer und Zweck des Aufenthalts.'
         },
         {
           question:'Was bescheinigt eine Fiktionsbescheinigung?',
           options:['Dass der Aufenthalt vorläufig als erlaubt gilt, bis über den Antrag entschieden ist','Dass der Antrag abgelehnt wurde','Dass keine Ausländerbehörde zuständig ist','Dass der Reisepass verloren gegangen ist'],
-          correct:0,
+          correct:0, points:2,
           explanation:'Richtig: Sie überbrückt die Zeit zwischen Antragstellung und Entscheidung, in der der Aufenthalt vorläufig als erlaubt gilt.'
         },
         {
           question:'Was ist der Unterschied zwischen Aufenthaltserlaubnis und Niederlassungserlaubnis?',
           options:['Kein Unterschied','Die Niederlassungserlaubnis ist zeitlich befristet, die Aufenthaltserlaubnis nicht','Die Aufenthaltserlaubnis ist meist befristet, die Niederlassungserlaubnis unbefristet','Nur EU-Bürger:innen bekommen eine Aufenthaltserlaubnis'],
-          correct:2,
+          correct:2, points:2,
           explanation:'Richtig: Die Aufenthaltserlaubnis gilt meist zeitlich befristet, die Niederlassungserlaubnis ist ein unbefristeter Aufenthaltstitel.'
         },
         {
           question:'Sollte man einen Termin zur Verlängerung des Aufenthaltstitels lieber früh oder erst am letzten Tag beantragen?',
           options:['Frühzeitig, da Termine oft knapp sind','Erst am letzten Tag, das reicht immer','Termine sind dafür nicht nötig','Nur einmal im Leben nötig'],
-          correct:0,
+          correct:0, points:2,
           explanation:'Richtig: Da Termine bei der Ausländerbehörde oft ausgebucht sind, lohnt sich eine frühzeitige Anfrage.'
         },
         {
           question:'Muss der Aufenthaltstitel bei einer Ausweiskontrolle mitgeführt werden?',
           options:['Nein, niemals nötig','Ja, das ist in der Regel Pflicht','Nur bei Grenzübertritten','Nur für Minderjährige'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Wer keinen deutschen Pass besitzt, muss den Aufenthaltstitel in der Regel mit sich führen können.'
         }
       ]
@@ -991,31 +1026,31 @@
         {
           question:'Der Rundfunkbeitrag (früher „GEZ“) wird in Deutschland erhoben pro...',
           options:['Person','Fernsehgerät','Wohnung','Straßenzug'],
-          correct:2,
+          correct:2, points:2,
           explanation:'Richtig: Seit 2013 zahlt jede Wohnung pauschal einen Beitrag – egal wie viele Geräte oder Personen dort leben.'
         },
         {
           question:'Muss man sich für den Rundfunkbeitrag extra irgendwo anmelden?',
           options:['Ja, immer persönlich beim Amt','Meist nicht – die Anmeldung läuft oft automatisch über die Meldedaten','Nur online über das Finanzamt','Nur wenn man einen Fernseher besitzt'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Der Beitragsservice gleicht die Adressdaten oft direkt mit den Meldebehörden ab.'
         },
         {
           question:'Wer zieht den Rundfunkbeitrag ein?',
           options:['Das Finanzamt','Der Beitragsservice von ARD, ZDF und Deutschlandradio','Das Bürgeramt','Die Stadtwerke'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Zuständig ist der gemeinsame Beitragsservice von ARD, ZDF und Deutschlandradio.'
         },
         {
           question:'Zahlt eine Wohngemeinschaft (WG) den Beitrag pro Person oder einmal pro Wohnung?',
           options:['Pro Person einzeln','Einmal pro Wohnung, unabhängig von der Personenzahl','Doppelt, wenn mehr als 2 Personen dort wohnen','Gar nicht, WGs sind befreit'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Der Beitrag fällt einmal pro Wohnung an, egal wie viele Personen dort gemeldet sind.'
         },
         {
           question:'Gibt es Möglichkeiten, sich vom Rundfunkbeitrag befreien zu lassen?',
           options:['Nein, niemals','Ja, z. B. bei bestimmten Sozialleistungen auf Antrag','Nur für Personen über 80 Jahre','Nur für Studierende automatisch'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Wer z. B. Bürgergeld oder bestimmte andere Sozialleistungen bezieht, kann eine Befreiung beantragen.'
         }
       ]
@@ -1026,31 +1061,31 @@
         {
           question:'Nach einem Umzug aus einem Nicht-EU-Land: Wie lange gilt der ausländische Führerschein in Deutschland meist noch, bevor man umschreiben muss?',
           options:['3 Monate','6 Monate','2 Jahre','Er bleibt für immer gültig'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: In der Regel gilt eine Frist von 6 Monaten ab Wohnsitznahme – danach ist eine Umschreibung nötig (Details variieren je nach Herkunftsland).'
         },
         {
           question:'Muss ein EU-Führerschein nach einem Umzug innerhalb Deutschlands umgeschrieben werden?',
           options:['Ja, immer','Nein, er bleibt unbegrenzt gültig','Nur nach 5 Jahren','Nur bei einem Bundeslandwechsel'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: EU-Führerscheine gelten in ganz Deutschland unbegrenzt, eine Umschreibung ist nicht nötig.'
         },
         {
           question:'Was wird für die Umschreibung eines Nicht-EU-Führerscheins häufig zusätzlich verlangt?',
           options:['Eine amtliche Übersetzung des Führerscheins','Ein neuer Reisepass','Ein Auto muss bereits angemeldet sein','Ein Führungszeugnis vom Arbeitgeber'],
-          correct:0,
+          correct:0, points:2,
           explanation:'Richtig: Meist ist eine beglaubigte Übersetzung nötig, je nach Herkunftsland manchmal auch eine Prüfung.'
         },
         {
           question:'Ersetzt ein internationaler Führerschein die Umschreibung?',
           options:['Ja, komplett','Nein, er ist nur eine amtliche Übersetzung des nationalen Führerscheins','Nur für Motorräder','Nur für einen Monat'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Der internationale Führerschein ist keine eigenständige Fahrerlaubnis, sondern nur eine Übersetzungshilfe.'
         },
         {
           question:'Wohin wendet man sich für die Umschreibung des Führerscheins?',
           options:['Ans Bürgeramt','An die Führerscheinstelle bzw. das Straßenverkehrsamt','Ans Finanzamt','An die Polizei'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Zuständig ist die Führerscheinstelle, oft Teil des Straßenverkehrsamts.'
         }
       ]
@@ -1061,31 +1096,31 @@
         {
           question:'Welche Tonne ist in Deutschland typischerweise für Verpackungen aus Kunststoff und Metall gedacht?',
           options:['Blaue Tonne','Gelbe Tonne','Biotonne','Schwarze Restmülltonne'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Leichtverpackungen aus Plastik und Metall gehören in die Gelbe Tonne bzw. den Gelben Sack.'
         },
         {
           question:'Wohin gehört Altpapier wie Zeitungen und Kartons?',
           options:['Blaue Tonne','Gelbe Tonne','Biotonne','Glascontainer'],
-          correct:0,
+          correct:0, points:2,
           explanation:'Richtig: Papier, Pappe und Kartons gehören in die Blaue Tonne.'
         },
         {
           question:'Wohin gehören Essensreste und Gartenabfälle?',
           options:['Restmülltonne','Biotonne','Gelbe Tonne','Glascontainer'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Bioabfall wie Essensreste und Gartenschnitt kommt in die Biotonne.'
         },
         {
           question:'Wie entsorgt man Altglas meist?',
           options:['Über die Restmülltonne','Über nach Farben getrennte Glascontainer','Über die Biotonne','Über die Gelbe Tonne'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Altglas wird meist farblich getrennt (weiß, braun, grün) in öffentlichen Containern gesammelt.'
         },
         {
           question:'Wohin mit alten Batterien oder kleinen Elektrogeräten?',
           options:['In den Restmüll','Zu Sammelstellen, z. B. im Handel oder am Wertstoffhof','In die Biotonne','In die Gelbe Tonne'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Batterien und Elektroschrott gehören nicht in den Hausmüll, sondern zu speziellen Sammelstellen.'
         }
       ]
@@ -1096,31 +1131,31 @@
         {
           question:'Was ist bei einem Behördentermin in Deutschland besonders wichtig?',
           options:['Pünktlich sein und alle Unterlagen vollständig mitbringen','Spontan ohne Termin vorbeikommen','Anzugpflicht beachten','Termine sind beliebig verschiebbar'],
-          correct:0,
+          correct:0, points:2,
           explanation:'Richtig: Pünktlichkeit und vollständige Unterlagen sparen den meisten Ärger – ohne Termin kommt man meist gar nicht weiter.'
         },
         {
           question:'Kommt man bei den meisten Ämtern ohne Termin einfach so weiter?',
           options:['Ja, immer problemlos','Meist nein, ein Termin ist in der Regel nötig','Nur montags','Nur mit Voranmeldung per Post'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Viele Ämter bearbeiten Anliegen nur noch mit vorher vereinbartem Termin.'
         },
         {
           question:'Was sollte man tun, wenn man einen Behördentermin nicht wahrnehmen kann?',
           options:['Einfach nicht hingehen','Frühzeitig absagen und neuen Termin vereinbaren','Eine andere Person unangekündigt schicken','Das Amt anrufen ist nicht nötig'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Eine rechtzeitige Absage gibt den Termin für andere frei und erspart unnötigen Ärger.'
         },
         {
           question:'Welches Dokument sollte man zu praktisch jedem Behördentermin mitbringen?',
           options:['Einen gültigen Ausweis','Den Impfpass','Die letzte Gehaltsabrechnung','Den Mietvertrag der Vorvorwohnung'],
-          correct:0,
+          correct:0, points:2,
           explanation:'Richtig: Ein gültiger Personalausweis oder Reisepass wird so gut wie immer verlangt.'
         },
         {
           question:'Was ist bei Sprachschwierigkeiten für einen Behördentermin sinnvoll?',
           options:['Einfach hoffen, dass es klappt','Frühzeitig an eine Begleitung oder Dolmetscher:in denken','Termine gibt es nur auf Deutsch, das lässt sich nicht ändern','Das Amt spricht automatisch jede Sprache'],
-          correct:1,
+          correct:1, points:2,
           explanation:'Richtig: Wer unsicher ist, sollte vorab klären, ob eine Begleitperson oder ein Dolmetscher mitgebracht werden darf.'
         }
       ]
@@ -1143,7 +1178,7 @@
     quizQuestionIndex:0,
     quizSelectedOption:null,
     quizAnswered:false,
-    quizCorrectCount:0,
+    quizEarnedPoints:0,
     boardOpen:false,
     boardPulseUntil:0,
     menuOpen:false,
@@ -1153,10 +1188,16 @@
     adminJoining:false,
     adminAnnounceSent:false,
     schedules:{},
-    groupQuestions:{},
+    stationTemplates:{},
+    groupRoutes:{},
     adminTab:'overview',
-    adminQuestionsGroup:'_default',
-    adminQuestionsStage:0,
+    adminRole:null,
+    adminEditTemplate:null,
+    adminRouteGroup:'gruppe-1',
+    adminWinnerSent:false,
+    feedbackForm:{questions:[], trigger_hours:3},
+    feedbackSubmitted:false,
+    feedbackResponses:[],
     waitStageIndex:null,
     waitTargetTime:0,
     waitIsBreak:false,
@@ -1201,18 +1242,56 @@
     return total;
   }
 
-  // ---------------- Zeitpläne (Admin-Panel) ----------------
-  // Optionale, im Admin-Panel gepflegte Ankunftszeiten pro Gruppe/Station und
-  // gemeinsame Stations-Adressen. Ist für eine Station/Gruppe nichts hinterlegt,
-  // verhält sich die App exakt wie ohne Zeitplan (keine Sperre, Platzhalter-Adresse).
-  function stageAddress(stageId){
-    var global = state.schedules && state.schedules['_global'];
-    var custom = global && global.stage_addresses && global.stage_addresses[stageId];
-    if(custom) return custom;
-    var stage = STAGES.filter(function(s){ return s.id === stageId; })[0];
-    return stage ? stage.address : '';
+  // ---------------- Stations-Vorlagen & Routen (Admin-Panel) ----------------
+  // Der Admin pflegt einen Vorrat an "Amt"-Vorlagen (Titel, Amt, Icon,
+  // Adresse, 5 Fragen mit je eigenen Punkten) und weist jeder Gruppe eine
+  // eigene Route von 4 Vorlagen in beliebiger Reihenfolge zu.
+  // DEFAULT_TEMPLATES dient nur als Startbestand, damit die Seite auch ohne
+  // jede Admin-Pflege sofort spielbar ist - sobald der Admin eine Vorlage
+  // mit derselben ID bearbeitet oder neue anlegt, gewinnt state.stationTemplates.
+  function allTemplates(){
+    var map = {};
+    DEFAULT_TEMPLATES.forEach(function(t){ map[t.id] = t; });
+    Object.keys(state.stationTemplates||{}).forEach(function(id){ map[id] = state.stationTemplates[id]; });
+    return Object.keys(map).map(function(id){ return map[id]; });
   }
 
+  function getTemplate(id){
+    if(state.stationTemplates && state.stationTemplates[id]) return state.stationTemplates[id];
+    return DEFAULT_TEMPLATES.filter(function(t){ return t.id === id; })[0] || null;
+  }
+
+  function groupRoute(groupId){
+    var route = state.groupRoutes && state.groupRoutes[groupId];
+    if(route && route.length === STATIONS_PER_GROUP && route.every(function(id){ return getTemplate(id); })){
+      return route;
+    }
+    // Fallback ohne konfigurierte Route: die ersten 4 Vorlagen, damit die
+    // Rallye auch vor jeder Admin-Pflege sofort spielbar ist.
+    return allTemplates().slice(0, STATIONS_PER_GROUP).map(function(t){ return t.id; });
+  }
+
+  function groupStages(groupId){
+    return groupRoute(groupId).map(function(id){ return getTemplate(id); }).filter(Boolean);
+  }
+
+  function stageAddress(stageId){
+    var t = getTemplate(stageId);
+    return t ? t.address : '';
+  }
+
+  // groupId wird nicht mehr für die Fragenauswahl gebraucht (Fragen hängen
+  // jetzt an der Vorlage, nicht mehr an der Gruppe) - Parameter bleibt aus
+  // Kompatibilitätsgründen an den Aufrufstellen erhalten.
+  function stageQuestions(groupId, stageId){
+    var t = getTemplate(stageId);
+    return t ? t.questions : [];
+  }
+
+  // ---------------- Zeitpläne (Admin-Panel) ----------------
+  // Optionale, im Admin-Panel gepflegte Ankunftszeiten pro Gruppe/Station.
+  // Ist für eine Station/Gruppe nichts hinterlegt, verhält sich die App
+  // exakt wie ohne Zeitplan (keine Sperre).
   function stageDueTime(groupId, stageId){
     var sched = state.schedules && state.schedules[groupId];
     return (sched && sched.stage_times && sched.stage_times[stageId]) || null;
@@ -1221,21 +1300,6 @@
   function stageIsBreak(groupId, stageId){
     var sched = state.schedules && state.schedules[groupId];
     return !!(sched && Array.isArray(sched.break_stages) && sched.break_stages.indexOf(stageId) !== -1);
-  }
-
-  // ---------------- Fragen je Gruppe (Admin-Panel) ----------------
-  // Optionale, im Admin-Panel gepflegte Frage-Sets pro Gruppe+Station.
-  // Reihenfolge: eigene Fragen der Gruppe -> gemeinsamer Standard-Satz
-  // ('_default', ebenfalls im Admin-Panel editierbar) -> im Code
-  // hinterlegte Standardfragen (STAGES). So bleibt alles ohne Eingriff
-  // im Admin-Panel exakt beim bisherigen, gemeinsamen Fragenkatalog.
-  function stageQuestions(groupId, stageId){
-    var custom = state.groupQuestions[groupId+'|'+stageId];
-    if(custom && custom.length) return custom;
-    var def = state.groupQuestions['_default|'+stageId];
-    if(def && def.length) return def;
-    var stage = STAGES.filter(function(s){ return s.id === stageId; })[0];
-    return stage ? stage.questions : [];
   }
 
   function deriveGroupsState(groupRows, participantRows){
@@ -1289,18 +1353,41 @@
         }
       }catch(e){ /* Zeitplan-Tabelle evtl. noch nicht angelegt - kein Problem */ }
 
-      // Eigene Fragen je Gruppe/Station sind ebenso optional (siehe
-      // group_questions in supabase-setup.sql) - fehlt die Tabelle, gelten
-      // einfach die im Code hinterlegten Standardfragen weiter.
-      var groupQuestions = {};
+      // Stations-Vorlagen (Amt-Pool) sind ebenso optional (siehe
+      // station_templates in supabase-setup.sql) - fehlt die Tabelle, gelten
+      // einfach die im Code hinterlegten Standardvorlagen weiter.
+      var stationTemplates = {};
       try{
-        var questionsRes = await sb.from('group_questions').select('*');
-        if(!questionsRes.error && questionsRes.data){
-          questionsRes.data.forEach(function(row){ groupQuestions[row.group_id+'|'+row.stage_id] = row.questions; });
+        var templatesRes = await sb.from('station_templates').select('*');
+        if(!templatesRes.error && templatesRes.data){
+          templatesRes.data.forEach(function(row){
+            stationTemplates[row.id] = {id:row.id, title:row.title, amt:row.amt, icon:row.icon, address:row.address, questions:row.questions};
+          });
         }
       }catch(e){ /* Tabelle evtl. noch nicht angelegt - kein Problem */ }
 
-      return { groups: groupsRes.data, participants: participantsRes.data, schedules: schedules, groupQuestions: groupQuestions };
+      // Pro-Gruppe-Routen (welche 4 Vorlagen in welcher Reihenfolge) sind
+      // ebenso optional - ohne Eintrag nutzt groupRoute() automatisch die
+      // ersten 4 verfügbaren Vorlagen.
+      var groupRoutes = {};
+      try{
+        var routesRes = await sb.from('group_routes').select('*');
+        if(!routesRes.error && routesRes.data){
+          routesRes.data.forEach(function(row){ groupRoutes[row.group_id] = row.template_ids || []; });
+        }
+      }catch(e){ /* Tabelle evtl. noch nicht angelegt - kein Problem */ }
+
+      // Feedback-Formular (Fragenkatalog + Zeitpunkt) ist ebenso optional -
+      // ohne Tabelle gibt es einfach kein Feedback-Popup.
+      var feedbackForm = null;
+      try{
+        var feedbackRes = await sb.from('feedback_form').select('*').eq('id', 'main').maybeSingle();
+        if(!feedbackRes.error && feedbackRes.data){
+          feedbackForm = feedbackRes.data;
+        }
+      }catch(e){ /* Tabelle evtl. noch nicht angelegt - kein Problem */ }
+
+      return { groups: groupsRes.data, participants: participantsRes.data, schedules: schedules, stationTemplates: stationTemplates, groupRoutes: groupRoutes, feedbackForm: feedbackForm };
     }catch(e){
       console.warn('Behördenrallye: Laden von Supabase fehlgeschlagen.', e);
       return null;
@@ -1313,7 +1400,9 @@
       state.groupRows = remote.groups || [];
       state.participantRows = remote.participants || [];
       state.schedules = remote.schedules || {};
-      state.groupQuestions = remote.groupQuestions || {};
+      state.stationTemplates = remote.stationTemplates || {};
+      state.groupRoutes = remote.groupRoutes || {};
+      state.feedbackForm = remote.feedbackForm || state.feedbackForm;
       if(state.offline) showToast('✓ Verbindung wiederhergestellt – Rangliste ist wieder live.');
       state.offline = false;
       cacheRemoteState(remote);
@@ -1322,7 +1411,9 @@
       state.groupRows = cached ? cached.groups : [];
       state.participantRows = cached ? cached.participants : [];
       state.schedules = cached ? (cached.schedules || {}) : (state.schedules || {});
-      state.groupQuestions = cached ? (cached.groupQuestions || {}) : (state.groupQuestions || {});
+      state.stationTemplates = cached ? (cached.stationTemplates || {}) : (state.stationTemplates || {});
+      state.groupRoutes = cached ? (cached.groupRoutes || {}) : (state.groupRoutes || {});
+      state.feedbackForm = cached ? (cached.feedbackForm || state.feedbackForm) : state.feedbackForm;
       state.offline = true;
     }
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
@@ -1330,6 +1421,7 @@
       var myRow = state.groupRows.filter(function(r){ return r.id === state.participant.groupId; })[0];
       state.groupProgress = myRow ? (myRow.progress || {}) : (state.groupProgress || {});
     }
+    maybeShowFeedback();
   }
 
   async function loadParticipant(){
@@ -1362,11 +1454,21 @@
       sb.channel('public:schedules')
         .on('postgres_changes', {event:'*', schema:'public', table:'schedules'}, handleRemoteScheduleChange)
         .subscribe();
+      sb.channel('public:station_templates')
+        .on('postgres_changes', {event:'*', schema:'public', table:'station_templates'}, handleRemoteTemplateChange)
+        .subscribe();
+      sb.channel('public:group_routes')
+        .on('postgres_changes', {event:'*', schema:'public', table:'group_routes'}, handleRemoteRouteChange)
+        .subscribe();
       announceChannel = sb.channel('behoerdenrallye:announcements');
       announceChannel
         .on('broadcast', {event:'announcement'}, function(msg){
           var text = msg && msg.payload && msg.payload.text;
           if(text) showToast('📣 ' + text);
+        })
+        .on('broadcast', {event:'winner'}, function(msg){
+          var groupId = msg && msg.payload && msg.payload.groupId;
+          if(state.participant && groupId === state.participant.groupId) showWinnerFx();
         })
         .subscribe();
     }catch(e){ console.warn('Behördenrallye: Live-Verbindung konnte nicht aufgebaut werden.', e); }
@@ -1375,6 +1477,21 @@
   function sendAnnouncement(text){
     if(!announceChannel) return Promise.resolve({error:'no-channel'});
     return announceChannel.send({type:'broadcast', event:'announcement', payload:{text:text}});
+  }
+
+  // Löst bei der Siegerehrung auf dem Gerät des aktuell führenden Teams eine
+  // große Sieger-Animation aus (per Realtime-Broadcast, nichts wird
+  // gespeichert). Andere Teams bekommen nichts angezeigt.
+  async function triggerWinnerAnimation(){
+    var ranked = GROUPS.map(function(gr){ return {id: gr.id, name: gr.name, points: groupPoints(gr.id)}; })
+      .sort(function(a,b){ return b.points - a.points; });
+    var leader = ranked[0];
+    if(!leader || leader.points <= 0){ showToast('Noch keine Punkte - es gibt noch kein führendes Team.'); return; }
+    if(!announceChannel){ showToast('Keine Live-Verbindung.'); return; }
+    await announceChannel.send({type:'broadcast', event:'winner', payload:{groupId: leader.id}});
+    state.adminWinnerSent = true;
+    render();
+    setTimeout(function(){ state.adminWinnerSent = false; render(); }, 5000);
   }
 
   function handleRemoteGroupsChange(payload){
@@ -1388,13 +1505,13 @@
       state.groupProgress = row.progress || {};
       newlyDone.forEach(function(stageId){
         if(recentlyCompletedByMe[stageId]) return;
-        var stage = STAGES.filter(function(s){ return s.id === stageId; })[0];
+        var stage = getTemplate(stageId);
         if(stage) showToast('⚡ Euer Team hat „' + stage.title + '" abgeschlossen!');
       });
     }
 
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, groupQuestions:state.groupQuestions});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes});
     if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
   }
 
@@ -1404,7 +1521,7 @@
     state.participantRows = (state.participantRows||[]).filter(function(r){ return r.id !== row.id; });
     if(payload.eventType !== 'DELETE'){ state.participantRows = state.participantRows.concat([row]); }
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, groupQuestions:state.groupQuestions});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes});
     if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
   }
 
@@ -1413,7 +1530,7 @@
     if(!row || !row.id) return;
     if(payload.eventType === 'DELETE'){ delete state.schedules[row.id]; }
     else { state.schedules[row.id] = row; }
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, groupQuestions:state.groupQuestions});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes});
 
     if(state.participant && row.id === state.participant.groupId){
       if(state.screen === 'waiting'){
@@ -1421,7 +1538,7 @@
         var gate = nextGateCheck();
         if(gate){
           state.waitTargetTime = gate.dueMs;
-          state.waitIsBreak = stageIsBreak(state.participant.groupId, STAGES[gate.index].id);
+          state.waitIsBreak = stageIsBreak(state.participant.groupId, groupStages(state.participant.groupId)[gate.index].id);
           render();
         } else {
           enterMap();
@@ -1434,12 +1551,31 @@
     }
   }
 
+  function handleRemoteTemplateChange(payload){
+    var row = payload.eventType === 'DELETE' ? payload.old : payload.new;
+    if(!row || !row.id) return;
+    if(payload.eventType === 'DELETE'){ delete state.stationTemplates[row.id]; }
+    else { state.stationTemplates[row.id] = {id:row.id, title:row.title, amt:row.amt, icon:row.icon, address:row.address, questions:row.questions}; }
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes});
+    if(state.screen === 'map' || state.screen === 'admin'){ render(); }
+  }
+
+  function handleRemoteRouteChange(payload){
+    var row = payload.eventType === 'DELETE' ? payload.old : payload.new;
+    if(!row || !row.group_id) return;
+    if(payload.eventType === 'DELETE'){ delete state.groupRoutes[row.group_id]; }
+    else { state.groupRoutes[row.group_id] = row.template_ids || []; }
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes});
+    if(state.screen === 'map' || state.screen === 'admin'){ render(); }
+  }
+
   function isAdminUrl(){
     return location.hash === '#admin';
   }
 
   async function init(){
     sb = initSupabase();
+    try{ state.feedbackSubmitted = localStorage.getItem('behoerdenrallye:feedback_done') === '1'; }catch(e){}
     if(isAdminUrl()){
       state.screen = 'adminLogin';
       render();
@@ -1452,7 +1588,7 @@
       state.participant = p;
       var myRow = state.groupRows.filter(function(r){ return r.id === p.groupId; })[0];
       state.groupProgress = myRow ? (myRow.progress || {}) : {};
-      var allDone = STAGES.every(function(s){ return state.groupProgress[s.id]; });
+      var allDone = groupStages(p.groupId).every(function(s){ return state.groupProgress[s.id]; });
       if(allDone){ state.screen = 'finished'; state.boardOpen = true; }
       else { state.screen = 'map'; }
     } else {
@@ -1465,6 +1601,7 @@
       var gate = nextGateCheck();
       if(gate) startWaitScreen(gate.index);
     }
+    maybeShowFeedback();
   }
 
   function startPolling(){
@@ -1538,7 +1675,10 @@
     state.error = null;
     var pw = (state.adminPasswordInput||'').trim();
     if(!pw){ state.error = 'Bitte Admin-Passwort eingeben.'; render(); return; }
-    if(pw !== ADMIN_PASSWORD){ state.error = 'Falsches Passwort.'; render(); return; }
+    var role = ADMIN_PASSWORDS[pw];
+    if(!role){ state.error = 'Falsches Passwort.'; render(); return; }
+    state.adminRole = role;
+    state.adminTab = 'overview';
     state.adminJoining = true;
     render();
     await refreshGroupsState();
@@ -1551,7 +1691,7 @@
     if(!state.participant) return 'locked';
     var progress = state.groupProgress || {};
     if(progress[stageId]) return 'done';
-    var firstUndone = STAGES.findIndex(function(s){ return !progress[s.id]; });
+    var firstUndone = groupStages(state.participant.groupId).findIndex(function(s){ return !progress[s.id]; });
     if(index !== firstUndone) return 'locked';
     // Stationen ab der zweiten können per Zeitplan gesperrt sein, bis die
     // Gruppe an der Adresse sein sollte (siehe Wartebildschirm/Admin-Zeitplan).
@@ -1572,9 +1712,10 @@
   function nextGateCheck(){
     if(!state.participant) return null;
     var progress = state.groupProgress || {};
-    var firstUndone = STAGES.findIndex(function(s){ return !progress[s.id]; });
+    var stages = groupStages(state.participant.groupId);
+    var firstUndone = stages.findIndex(function(s){ return !progress[s.id]; });
     if(firstUndone <= 0) return null;
-    var stage = STAGES[firstUndone];
+    var stage = stages[firstUndone];
     var due = stageDueTime(state.participant.groupId, stage.id);
     if(!due) return null;
     var dueMs = new Date(due).getTime();
@@ -1585,7 +1726,7 @@
   var waitInterval = null;
   function startWaitScreen(index){
     if(waitInterval){ clearInterval(waitInterval); waitInterval = null; }
-    var stage = STAGES[index];
+    var stage = groupStages(state.participant.groupId)[index];
     var due = stageDueTime(state.participant.groupId, stage.id);
     var dueMs = due ? new Date(due).getTime() : NaN;
     if(!due || isNaN(dueMs) || Date.now() >= dueMs){ enterMap(); return; }
@@ -1619,7 +1760,7 @@
     state.quizQuestionIndex = 0;
     state.quizSelectedOption = null;
     state.quizAnswered = false;
-    state.quizCorrectCount = 0;
+    state.quizEarnedPoints = 0;
     quizFocusApplied = false;
     render();
   }
@@ -1629,7 +1770,7 @@
     state.quizQuestionIndex = 0;
     state.quizSelectedOption = null;
     state.quizAnswered = false;
-    state.quizCorrectCount = 0;
+    state.quizEarnedPoints = 0;
     render();
   }
 
@@ -1637,16 +1778,16 @@
     if(state.quizAnswered) return;
     state.quizSelectedOption = optIndex;
     state.quizAnswered = true;
-    var stage = STAGES[state.activeQuizIndex];
+    var stage = groupStages(state.participant.groupId)[state.activeQuizIndex];
     var q = stageQuestions(state.participant.groupId, stage.id)[state.quizQuestionIndex];
     var isCorrect = optIndex === q.correct;
-    if(isCorrect) state.quizCorrectCount++;
+    if(isCorrect) state.quizEarnedPoints += (q.points || 0);
     try{ if(navigator.vibrate) navigator.vibrate(isCorrect ? 40 : [30,60,30]); }catch(e){}
     render();
   }
 
   function advanceQuiz(){
-    var stage = STAGES[state.activeQuizIndex];
+    var stage = groupStages(state.participant.groupId)[state.activeQuizIndex];
     var qList = stageQuestions(state.participant.groupId, stage.id);
     if(state.quizQuestionIndex < qList.length - 1){
       state.quizQuestionIndex++;
@@ -1659,10 +1800,10 @@
   }
 
   async function finishStageQuiz(){
-    var stage = STAGES[state.activeQuizIndex];
+    var stage = groupStages(state.participant.groupId)[state.activeQuizIndex];
 
     if(!(state.groupProgress && state.groupProgress[stage.id])){
-      var earnedPoints = state.quizCorrectCount * POINTS_PER_CORRECT;
+      var earnedPoints = state.quizEarnedPoints;
       state.groupProgress = Object.assign({}, state.groupProgress);
       state.groupProgress[stage.id] = {done:true, points:earnedPoints};
       recentlyCompletedByMe[stage.id] = Date.now();
@@ -1687,7 +1828,7 @@
 
       showStampFx(earnedPoints);
 
-      var allDone = STAGES.every(function(s){ return state.groupProgress[s.id]; });
+      var allDone = groupStages(state.participant.groupId).every(function(s){ return state.groupProgress[s.id]; });
       if(allDone){
         setTimeout(function(){
           state.screen = 'finished';
@@ -1874,6 +2015,30 @@
     }, 1600);
   }
 
+  // Große Sieger-Feier, per Admin-Panel bei der Siegerehrung auf dem Gerät
+  // des führenden Teams ausgelöst (Realtime-Broadcast, siehe triggerWinnerAnimation).
+  function showWinnerFx(){
+    var fx = document.createElement('div');
+    fx.className = 'finish-fx winner-fx';
+    var colors = ['var(--bgfx-yellow)','var(--bgfx-pink)','var(--bgfx-purple)','var(--bgfx-green)','var(--primary)','var(--blue)'];
+    var confetti = '';
+    for(var i=0;i<48;i++){
+      var angle = Math.random()*Math.PI*2;
+      var dist = 140 + Math.random()*220;
+      var dx = Math.round(Math.cos(angle)*dist);
+      var dy = Math.round(Math.sin(angle)*dist - 60);
+      var rot = Math.round(Math.random()*720-360);
+      var delay = (Math.random()*0.3).toFixed(2);
+      confetti += '<span class="confetti" style="--dx:'+dx+'px; --dy:'+dy+'px; --rot:'+rot+'deg; animation-delay:'+delay+'s; background:'+colors[i % colors.length]+';"></span>';
+    }
+    fx.innerHTML = '<div class="finish-stamp winner-stamp"><div class="stamp-mark">🏆<span>Ihr habt gewonnen!</span></div></div>'+confetti;
+    document.body.appendChild(fx);
+    setTimeout(function(){
+      fx.classList.add('fadeout');
+      setTimeout(function(){ fx.remove(); }, 420);
+    }, 4000);
+  }
+
   function leaveGroup(){
     showConfirmDialog({
       title:'Abmelden?',
@@ -1989,6 +2154,99 @@
     ov.querySelector('#infoCloseBtn').focus();
   }
 
+  // ---------------- Anonymes Feedback ----------------
+  // Erscheint für jede Gruppe automatisch, sobald die im Admin-Panel
+  // hinterlegte Stundenzahl seit dem globalen Rallye-Start (COUNTDOWN_TARGET)
+  // erreicht ist. Die Antworten werden ohne jeden Bezug zu Gruppe/Gerät
+  // gespeichert (siehe feedback_responses in supabase-setup.sql) - "erledigt"
+  // wird ausschließlich lokal im Browser gemerkt, nie an den Server gemeldet.
+  function feedbackDueTime(){
+    var hours = (state.feedbackForm && typeof state.feedbackForm.trigger_hours === 'number') ? state.feedbackForm.trigger_hours : 3;
+    return COUNTDOWN_TARGET.getTime() + hours*3600000;
+  }
+
+  var feedbackDialogOpen = false;
+  function maybeShowFeedback(){
+    if(feedbackDialogOpen) return;
+    if(!state.participant) return;
+    if(state.feedbackSubmitted) return;
+    var questions = (state.feedbackForm && state.feedbackForm.questions) || [];
+    if(!questions.length) return;
+    if(Date.now() < feedbackDueTime()) return;
+    showFeedbackDialog();
+  }
+
+  function showFeedbackDialog(){
+    feedbackDialogOpen = true;
+    var questions = state.feedbackForm.questions;
+    var fieldsHtml = questions.map(function(q, qi){
+      if(q.type === 'text'){
+        return '<div class="fb-question">'+
+          '<label>'+esc(q.question)+'</label>'+
+          '<textarea rows="3" data-fb-field="'+q.id+'"></textarea>'+
+        '</div>';
+      }
+      var optsHtml = (q.options||[]).map(function(opt){
+        return '<label class="fb-option"><input type="radio" name="fbq_'+qi+'" data-fb-field="'+q.id+'" value="'+esc(opt)+'"><span>'+esc(opt)+'</span></label>';
+      }).join('');
+      return '<div class="fb-question">'+
+        '<label>'+esc(q.question)+'</label>'+
+        optsHtml+
+      '</div>';
+    }).join('');
+
+    var ov = document.createElement('div');
+    ov.className = 'overlay';
+    ov.innerHTML = ''+
+      '<div class="quiz-card info-card fb-card" role="dialog" aria-modal="true" aria-labelledby="fbTitle">'+
+        '<button class="close-x" id="fbCloseBtn" aria-label="Später">'+icon('close')+'</button>'+
+        '<h3 id="fbTitle">Kurzes Feedback</h3>'+
+        '<p class="muted" style="font-size:13.5px;">Eure Antworten sind komplett anonym - wir können nicht sehen, welches Team sie abgegeben hat.</p>'+
+        '<div id="fbFields">'+fieldsHtml+'</div>'+
+        '<div class="quiz-actions">'+btn('Absenden', {id:'fbSubmitBtn'})+'</div>'+
+      '</div>';
+    document.body.appendChild(ov);
+    var card = ov.querySelector('.fb-card');
+    function close(){ untrap(); ov.remove(); feedbackDialogOpen = false; }
+    var untrap = trapFocus(card, close);
+    ov.querySelector('#fbCloseBtn').addEventListener('click', function(){
+      try{ localStorage.setItem('behoerdenrallye:feedback_done', '1'); }catch(e){}
+      state.feedbackSubmitted = true;
+      close();
+    });
+    ov.querySelector('#fbSubmitBtn').addEventListener('click', function(){ submitFeedback(close); });
+    ov.querySelector('#fbCloseBtn').focus();
+  }
+
+  async function submitFeedback(closeFn){
+    var answers = {};
+    (state.feedbackForm.questions||[]).forEach(function(q){
+      if(q.type === 'text'){
+        var el = document.querySelector('[data-fb-field="'+q.id+'"]');
+        answers[q.id] = el ? el.value.trim() : '';
+      } else {
+        var checked = document.querySelector('input[data-fb-field="'+q.id+'"]:checked');
+        answers[q.id] = checked ? checked.value : null;
+      }
+    });
+    if(!sb){ showToast('Keine Verbindung - Feedback kann gerade nicht gesendet werden.'); return; }
+    try{
+      var res = await sb.from('feedback_responses').insert({answers: answers});
+      if(res.error){
+        console.warn('Behördenrallye: Feedback konnte nicht gesendet werden.', res.error);
+        showToast('Feedback konnte gerade nicht gesendet werden.');
+        return;
+      }
+      try{ localStorage.setItem('behoerdenrallye:feedback_done', '1'); }catch(e){}
+      state.feedbackSubmitted = true;
+      closeFn();
+      showToast('✓ Danke für euer Feedback!');
+    }catch(e){
+      console.warn('Behördenrallye: Feedback konnte nicht gesendet werden.', e);
+      showToast('Feedback konnte gerade nicht gesendet werden.');
+    }
+  }
+
   /* ---------------- Easter Eggs ----------------
      Rein kosmetisch, blockieren keine bestehende Funktion. */
   var EASTER_MESSAGES = [
@@ -2056,9 +2314,9 @@
         '<h1 class="hero-title">Willkommen bei Behörden<b>Rallye</b></h1>'+
         '<p class="hero-sub">Dein digitales Behörden-Abenteuer beginnt hier. Mit dem Gruppen-Passwort anmelden, Fallakten bearbeiten, gemeinsam die Rallye abschließen.</p>'+
         '<div class="hero-stats">'+
-          '<span class="hero-stat"><b>9</b> Teams</span>'+
-          '<span class="hero-stat"><b>7</b> Fallakten</span>'+
-          '<span class="hero-stat"><b>'+(POINTS_PER_STAGE*7)+'</b> XP max.</span>'+
+          '<span class="hero-stat"><b>'+GROUPS.length+'</b> Teams</span>'+
+          '<span class="hero-stat"><b>'+STATIONS_PER_GROUP+'</b> Fallakten</span>'+
+          '<span class="hero-stat">'+icon('trophy')+'<span>Live-Rangliste</span></span>'+
         '</div>'+
         '<div class="hero-status"><span class="dot"></span><span class="hero-countdown" id="heroCountdown">'+esc(formatCountdown())+'</span></div>'+
       '</div>'+
@@ -2193,25 +2451,31 @@
   var ADMIN_TABS = [
     {id:'overview', label:'Übersicht', icon:'list'},
     {id:'announce', label:'Durchsage', icon:'megaphone'},
-    {id:'addresses', label:'Adressen', icon:'pin'},
+    {id:'stations', label:'Stationen', icon:'pin'},
     {id:'schedules', label:'Zeitpläne', icon:'clock'},
-    {id:'questions', label:'Fragen', icon:'question'}
+    {id:'feedback', label:'Feedback', icon:'question'},
+    {id:'evaluation', label:'Auswertung', icon:'chart'}
   ];
 
   function renderAdmin(){
-    var navHtml = '<div class="admin-nav" role="tablist">'+ADMIN_TABS.map(function(t){
+    var isViewer = state.adminRole === 'viewer';
+    var visibleTabs = isViewer ? ADMIN_TABS.filter(function(t){ return t.id === 'overview'; }) : ADMIN_TABS;
+    if(isViewer) state.adminTab = 'overview';
+    var navHtml = '<div class="admin-nav" role="tablist">'+visibleTabs.map(function(t){
       return '<button type="button" class="admin-nav-btn'+(state.adminTab===t.id?' active':'')+'" data-admin-tab="'+t.id+'" role="tab" aria-selected="'+(state.adminTab===t.id?'true':'false')+'">'+icon(t.icon)+'<span>'+t.label+'</span></button>';
     }).join('')+'</div>';
 
     var content = '';
-    if(state.adminTab === 'announce') content = renderAdminAnnounce();
-    else if(state.adminTab === 'addresses') content = renderAdminAddresses();
+    if(isViewer) content = renderAdminOverview();
+    else if(state.adminTab === 'announce') content = renderAdminAnnounce();
+    else if(state.adminTab === 'stations') content = renderAdminStations();
     else if(state.adminTab === 'schedules') content = renderScheduleGenerator()+renderGroupScheduleEditor();
-    else if(state.adminTab === 'questions') content = renderAdminQuestions();
+    else if(state.adminTab === 'feedback') content = renderAdminFeedback();
+    else if(state.adminTab === 'evaluation') content = renderAdminEvaluation();
     else content = renderAdminOverview();
 
     return ''+
-    '<div class="admin-banner">'+icon('lock')+'<span>Admin-Bereich · nur fürs Orga-Team</span></div>'+
+    '<div class="admin-banner">'+icon('lock')+'<span>Admin-Bereich · '+(isViewer?'nur Rangliste':'nur fürs Orga-Team')+'</span></div>'+
     navHtml+
     renderOfflineBanner()+
     content;
@@ -2231,10 +2495,12 @@
         '<td>'+(idx+1)+'</td>'+
         '<td><span class="board-dot '+r.tab+'" style="display:inline-block; margin-right:6px;"></span>'+esc(r.name)+'</td>'+
         '<td>'+r.points+'</td>'+
-        '<td>'+r.done+' / '+STAGES.length+'</td>'+
+        '<td>'+r.done+' / '+STATIONS_PER_GROUP+'</td>'+
         '<td>'+r.members+' / '+CAPACITY+'</td>'+
       '</tr>';
     }).join('');
+
+    var leaderName = ranked.length && ranked[0].points > 0 ? ranked[0].name : null;
 
     return ''+
     '<div class="progress-panel">'+
@@ -2249,7 +2515,13 @@
     '</div>'+
     '<div class="admin-actions">'+
       btn('Aktualisieren', {id:'adminRefreshBtn'})+
-      btn('Ergebnisse als CSV exportieren '+icon('download'), {id:'adminExportBtn'})+
+      (state.adminRole!=='viewer' ? btn('Ergebnisse als CSV exportieren '+icon('download'), {id:'adminExportBtn'}) : '')+
+    '</div>'+
+    '<div class="intro-card">'+
+      '<h3 style="margin-top:0;">Siegerehrung</h3>'+
+      '<p class="muted" style="font-size:13px; margin:0 0 12px;">'+(leaderName ? 'Aktuell in Führung: <b>'+esc(leaderName)+'</b>. ' : '')+'Löst auf dem Gerät des aktuell führenden Teams eine große Sieger-Animation aus - für die Siegerehrung.</p>'+
+      btn('🏆 Sieger-Animation auslösen', {id:'adminTriggerWinnerBtn', attrs: leaderName?'':'disabled'})+
+      (state.adminWinnerSent ? '<p class="admin-note">✓ Ausgelöst für '+esc(leaderName)+'.</p>' : '')+
     '</div>';
   }
 
@@ -2266,115 +2538,352 @@
     '</div>';
   }
 
-  function renderAdminAddresses(){
-    var rows = STAGES.map(function(s, i){
-      return '<div class="admin-schedule-row">'+
-        '<label for="addr_'+s.id+'">Fallakte '+(i+1)+' · '+esc(s.amt)+'</label>'+
-        '<input type="text" id="addr_'+s.id+'" data-address-stage="'+s.id+'" value="'+esc(stageAddress(s.id))+'">'+
+  function ensureFeedbackDraft(){
+    if(!state.feedbackDraftQuestions){
+      state.feedbackDraftQuestions = (state.feedbackForm.questions||[]).map(function(q){ return Object.assign({}, q); });
+    }
+  }
+
+  function syncFeedbackDraftFromDom(){
+    if(!state.feedbackDraftQuestions) return;
+    var count = document.querySelectorAll('#fbQuestionBlocks .admin-question-block').length;
+    for(var qi=0; qi<count; qi++){
+      if(!state.feedbackDraftQuestions[qi]) continue;
+      var textEl = document.querySelector('[data-fbq-text="'+qi+'"]');
+      var optsEl = document.querySelector('[data-fbq-options="'+qi+'"]');
+      if(textEl) state.feedbackDraftQuestions[qi].question = textEl.value;
+      if(optsEl) state.feedbackDraftQuestions[qi].options = optsEl.value.split('\n');
+    }
+  }
+
+  function renderAdminFeedback(){
+    ensureFeedbackDraft();
+    var questions = state.feedbackDraftQuestions;
+    var hours = (state.feedbackForm && state.feedbackForm.trigger_hours != null) ? state.feedbackForm.trigger_hours : 3;
+
+    var blocksHtml = questions.map(function(q, qi){
+      return ''+
+      '<div class="admin-question-block">'+
+        '<div class="admin-question-num">Frage '+(qi+1)+'</div>'+
+        '<label>Fragetyp</label>'+
+        '<select data-fbq-type="'+qi+'">'+
+          '<option value="choice"'+(q.type!=='text'?' selected':'')+'>Auswahl (Multiple Choice)</option>'+
+          '<option value="text"'+(q.type==='text'?' selected':'')+'>Freitext</option>'+
+        '</select>'+
+        '<label>Frage</label>'+
+        '<textarea rows="2" data-fbq-text="'+qi+'">'+esc(q.question||'')+'</textarea>'+
+        (q.type !== 'text'
+          ? '<label>Antwortoptionen (eine pro Zeile)</label><textarea rows="4" data-fbq-options="'+qi+'">'+esc((q.options||[]).join('\n'))+'</textarea>'
+          : '')+
+        '<div style="margin-top:10px;">'+btn('Frage entfernen', {cls:'btn-sm', attrs:'data-remove-fbq="'+qi+'"'})+'</div>'+
       '</div>';
     }).join('');
+
     return ''+
     '<div class="intro-card">'+
-      '<h3 style="margin-top:0;">Stations-Adressen</h3>'+
-      '<p class="muted" style="font-size:13px; margin:0 0 12px;">Gilt für alle Gruppen gleich - dieselbe Adresse pro Fallakte.</p>'+
-      rows+
-      '<div style="margin-top:14px;">'+btn('Adressen speichern', {id:'adminSaveAddressesBtn'})+'</div>'+
+      '<h3 style="margin-top:0;">Feedback-Formular</h3>'+
+      '<p class="muted" style="font-size:13px; margin:0 0 12px;">Erscheint automatisch bei jedem Team, sobald die eingestellte Stundenzahl seit Rallye-Start (07.10.2026) erreicht ist. Antworten sind komplett anonym - es wird nirgends gespeichert, welches Team geantwortet hat.</p>'+
+      '<div class="admin-schedule-row">'+
+        '<label for="fbTriggerHours">Erscheint nach (Stunden seit Rallye-Start)</label>'+
+        '<input type="number" min="0" step="0.5" id="fbTriggerHours" value="'+hours+'">'+
+      '</div>'+
+      '<div id="fbQuestionBlocks">'+(blocksHtml || '<p class="muted" style="font-size:13px;">Noch keine Fragen - fügt welche hinzu.</p>')+'</div>'+
+      '<div class="admin-actions" style="margin-top:14px;">'+
+        btn('+ Frage hinzufügen', {id:'adminAddFbQuestionBtn', cls:'btn-sm'})+
+        btn('Formular speichern', {id:'adminSaveFeedbackBtn'})+
+      '</div>'+
     '</div>';
   }
 
-  function questionsSourceLabel(groupId, stageId){
-    if(state.groupQuestions[groupId+'|'+stageId]) return groupId === '_default' ? 'Eigener Standard-Fragensatz (überschreibt die Code-Standardfragen für alle Gruppen ohne eigene Fragen).' : 'Eigene Fragen für diese Gruppe.';
-    if(groupId !== '_default' && state.groupQuestions['_default|'+stageId]) return 'Noch keine eigenen Fragen für diese Gruppe - zeigt aktuell den gemeinsamen Standard-Fragensatz.';
-    return 'Noch nicht angepasst - zeigt aktuell die eingebauten Standardfragen aus dem Code.';
+  function addFeedbackQuestion(){
+    ensureFeedbackDraft();
+    syncFeedbackDraftFromDom();
+    state.feedbackDraftQuestions.push({id:'q'+Date.now(), type:'choice', question:'', options:['','']});
+    render();
   }
 
-  function renderAdminQuestions(){
-    var groupId = state.adminQuestionsGroup;
-    var stageIdx = state.adminQuestionsStage;
-    var stage = STAGES[stageIdx];
-    var questions = stageQuestions(groupId, stage.id);
+  function removeFeedbackQuestion(idx){
+    ensureFeedbackDraft();
+    syncFeedbackDraftFromDom();
+    state.feedbackDraftQuestions.splice(idx, 1);
+    render();
+  }
 
-    var groupOptions = '<option value="_default"'+(groupId==='_default'?' selected':'')+'>Standard (alle Gruppen ohne eigene Fragen)</option>'+
-      GROUPS.map(function(gr){ return '<option value="'+gr.id+'"'+(groupId===gr.id?' selected':'')+'>'+esc(gr.name)+'</option>'; }).join('');
-    var stageOptions = STAGES.map(function(s, i){ return '<option value="'+i+'"'+(i===stageIdx?' selected':'')+'>Fallakte '+(i+1)+' · '+esc(s.amt)+'</option>'; }).join('');
+  async function saveFeedbackForm(){
+    var hoursEl = document.getElementById('fbTriggerHours');
+    var hours = hoursEl ? parseFloat(hoursEl.value) : 3;
+    if(isNaN(hours) || hours < 0) hours = 0;
 
-    var questionBlocks = questions.map(function(q, qi){
+    var count = document.querySelectorAll('#fbQuestionBlocks .admin-question-block').length;
+    var questions = [];
+    for(var qi=0; qi<count; qi++){
+      var typeEl = document.querySelector('[data-fbq-type="'+qi+'"]');
+      var textEl = document.querySelector('[data-fbq-text="'+qi+'"]');
+      var optsEl = document.querySelector('[data-fbq-options="'+qi+'"]');
+      var type = typeEl ? typeEl.value : 'choice';
+      var questionText = textEl ? textEl.value.trim() : '';
+      if(!questionText) continue;
+      var q = {
+        id: (state.feedbackDraftQuestions[qi] && state.feedbackDraftQuestions[qi].id) || ('q'+Date.now()+qi),
+        type: type,
+        question: questionText
+      };
+      if(type !== 'text'){
+        q.options = optsEl ? optsEl.value.split('\n').map(function(s){ return s.trim(); }).filter(Boolean) : [];
+      }
+      questions.push(q);
+    }
+
+    if(!sb){ showToast('Keine Verbindung zur Datenbank.'); return; }
+    try{
+      var res = await sb.rpc('save_feedback_form', {p_questions: questions, p_trigger_hours: hours});
+      if(res.error){
+        console.warn('Behördenrallye: Feedback-Formular konnte nicht gespeichert werden.', res.error);
+        showToast('Speichern fehlgeschlagen: Tabelle "feedback_form" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
+        return;
+      }
+      state.feedbackForm = (res.data && res.data.length ? res.data[0] : res.data) || {questions:questions, trigger_hours:hours};
+      state.feedbackDraftQuestions = null;
+      render();
+      showToast('✓ Feedback-Formular gespeichert.');
+    }catch(e){
+      console.warn('Behördenrallye: Feedback-Formular konnte nicht gespeichert werden.', e);
+      showToast('Speichern fehlgeschlagen: Tabelle "feedback_form" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
+    }
+  }
+
+  async function loadFeedbackResponses(){
+    if(!sb) return;
+    try{
+      var res = await sb.from('feedback_responses').select('answers').order('created_at', {ascending:false}).limit(500);
+      if(!res.error && res.data) state.feedbackResponses = res.data;
+    }catch(e){ console.warn('Behördenrallye: Feedback-Antworten konnten nicht geladen werden.', e); }
+  }
+
+  function renderAdminEvaluation(){
+    var questions = (state.feedbackForm && state.feedbackForm.questions) || [];
+    if(!questions.length){
+      return '<div class="intro-card"><h3 style="margin-top:0;">Auswertung</h3><p class="muted" style="font-size:13px;">Es ist noch kein Feedback-Formular eingerichtet (siehe Feedback-Tab).</p></div>';
+    }
+    var responses = state.feedbackResponses || [];
+
+    var sections = questions.map(function(q){
+      if(q.type === 'text'){
+        var texts = responses.map(function(r){ return r.answers && r.answers[q.id]; }).filter(function(t){ return t && String(t).trim(); });
+        var listHtml = texts.length
+          ? '<ul class="admin-fb-textlist">'+texts.map(function(t){ return '<li>'+esc(t)+'</li>'; }).join('')+'</ul>'
+          : '<p class="muted" style="font-size:13px;">Noch keine Antworten.</p>';
+        return '<div class="admin-fb-section"><h4>'+esc(q.question)+'</h4>'+listHtml+'</div>';
+      }
+      var counts = {};
+      (q.options||[]).forEach(function(o){ counts[o] = 0; });
+      responses.forEach(function(r){
+        var a = r.answers && r.answers[q.id];
+        if(a == null) return;
+        counts[a] = (counts[a]||0) + 1;
+      });
+      var total = Object.keys(counts).reduce(function(sum,k){ return sum + counts[k]; }, 0);
+      var barsHtml = Object.keys(counts).map(function(opt){
+        var n = counts[opt];
+        var pct = total > 0 ? Math.round(n/total*100) : 0;
+        return ''+
+        '<div class="admin-fb-bar-row">'+
+          '<div class="admin-fb-bar-label">'+esc(opt)+'</div>'+
+          '<div class="admin-fb-bar-track"><div class="admin-fb-bar-fill" style="width:'+pct+'%"></div></div>'+
+          '<div class="admin-fb-bar-count">'+n+' ('+pct+'%)</div>'+
+        '</div>';
+      }).join('');
+      return '<div class="admin-fb-section"><h4>'+esc(q.question)+'</h4>'+(total ? barsHtml : '<p class="muted" style="font-size:13px;">Noch keine Antworten.</p>')+'</div>';
+    }).join('');
+
+    return ''+
+    '<div class="intro-card">'+
+      '<h3 style="margin-top:0;">Auswertung</h3>'+
+      '<p class="muted" style="font-size:13px;">'+responses.length+' Rückmeldungen bisher.</p>'+
+      '<div style="margin-bottom:14px;">'+btn('Aktualisieren', {id:'adminRefreshFeedbackBtn', cls:'btn-sm'})+'</div>'+
+      sections+
+    '</div>';
+  }
+
+  function mkBlankQuestion(){ return {question:'', options:['','','',''], correct:0, explanation:'', points:2}; }
+
+  function renderTemplateEditForm(){
+    var mode = state.adminEditTemplate;
+    if(!mode) return '';
+    var isNew = mode === '_new';
+    var t = isNew ? {id:'', title:'', amt:'', icon:'🏛️', address:'', questions:[mkBlankQuestion(),mkBlankQuestion(),mkBlankQuestion(),mkBlankQuestion(),mkBlankQuestion()]} : getTemplate(mode);
+    if(!t) return '';
+
+    var questionBlocks = t.questions.map(function(q, qi){
       var optionsHtml = q.options.map(function(opt, oi){
         return '<div class="admin-option-row">'+
-          '<input type="radio" name="qcorrect_'+qi+'" data-qfield="correct" data-qidx="'+qi+'" value="'+oi+'"'+(q.correct===oi?' checked':'')+'>'+
-          '<input type="text" data-qfield="opt" data-qidx="'+qi+'" data-optidx="'+oi+'" value="'+esc(opt)+'">'+
+          '<input type="radio" name="tcorrect_'+qi+'" data-tqfield="correct" data-tqidx="'+qi+'" value="'+oi+'"'+(q.correct===oi?' checked':'')+'>'+
+          '<input type="text" data-tqfield="opt" data-tqidx="'+qi+'" data-toptidx="'+oi+'" value="'+esc(opt)+'">'+
         '</div>';
       }).join('');
       return ''+
       '<div class="admin-question-block">'+
-        '<div class="admin-question-num">Frage '+(qi+1)+' von '+questions.length+'</div>'+
-        '<label for="q_'+qi+'_text">Frage</label>'+
-        '<textarea id="q_'+qi+'_text" rows="2" data-qfield="question" data-qidx="'+qi+'">'+esc(q.question)+'</textarea>'+
+        '<div class="admin-question-num">Frage '+(qi+1)+' von 5</div>'+
+        '<label>Frage</label>'+
+        '<textarea rows="2" data-tqfield="question" data-tqidx="'+qi+'">'+esc(q.question)+'</textarea>'+
         '<label>Antwortoptionen (Punkt = richtige Antwort)</label>'+
         optionsHtml+
-        '<label for="q_'+qi+'_expl">Erklärung (wird bei richtiger Antwort gezeigt)</label>'+
-        '<textarea id="q_'+qi+'_expl" rows="2" data-qfield="explanation" data-qidx="'+qi+'">'+esc(q.explanation||'')+'</textarea>'+
+        '<div class="admin-schedule-row" style="border:none; padding-top:2px; padding-bottom:0;">'+
+          '<label style="flex:0 0 auto;">Punkte bei richtiger Antwort</label>'+
+          '<input type="number" min="0" data-tqfield="points" data-tqidx="'+qi+'" value="'+(q.points!=null?q.points:2)+'" style="max-width:90px;">'+
+        '</div>'+
+        '<label>Erklärung (wird bei richtiger Antwort gezeigt)</label>'+
+        '<textarea rows="2" data-tqfield="explanation" data-tqidx="'+qi+'">'+esc(q.explanation||'')+'</textarea>'+
+      '</div>';
+    }).join('');
+
+    return ''+
+    '<div class="admin-template-form">'+
+      '<h4>'+(isNew?'Neue Station anlegen':'Station bearbeiten: '+esc(t.title||t.id))+'</h4>'+
+      (isNew ? '<label for="tplId">Interne ID (nur Buchstaben/Zahlen/Unterstrich, z.B. kfz_zulassung)</label><input type="text" id="tplId" placeholder="z.B. kfz_zulassung">' : '')+
+      '<label for="tplTitle">Titel</label><input type="text" id="tplTitle" value="'+esc(t.title)+'">'+
+      '<label for="tplAmt">Amt</label><input type="text" id="tplAmt" value="'+esc(t.amt)+'">'+
+      '<label for="tplIcon">Icon (Emoji)</label><input type="text" id="tplIcon" value="'+esc(t.icon)+'" style="max-width:80px;">'+
+      '<label for="tplAddress">Adresse</label><input type="text" id="tplAddress" value="'+esc(t.address||'')+'">'+
+      '<div id="tplQuestionBlocks">'+questionBlocks+'</div>'+
+      '<div class="admin-actions" style="margin-top:6px;">'+
+        btn('Station speichern', {id:'adminSaveTemplateBtn', attrs:'data-template-mode="'+(isNew?'_new':t.id)+'"'})+
+        btn('Abbrechen', {id:'adminCancelTemplateBtn'})+
+      '</div>'+
+    '</div>';
+  }
+
+  function renderAdminStations(){
+    var templates = allTemplates();
+    var listHtml = templates.map(function(t){
+      return '<div class="admin-template-row">'+
+        '<div class="admin-template-info">'+
+          '<span class="admin-template-icon">'+esc(t.icon)+'</span>'+
+          '<div><div class="admin-template-title">'+esc(t.title)+'</div><div class="admin-template-sub">'+esc(t.amt)+' · '+esc(t.address||'keine Adresse hinterlegt')+'</div></div>'+
+        '</div>'+
+        btn('Bearbeiten', {cls:'btn-sm', attrs:'data-edit-template="'+t.id+'"'})+
       '</div>';
     }).join('');
 
     return ''+
     '<div class="intro-card">'+
-      '<h3 style="margin-top:0;">Fragen &amp; Antworten</h3>'+
-      '<div class="admin-questions-picker">'+
-        '<div><label for="adminQGroup" class="sr-only">Gruppe</label><select id="adminQGroup">'+groupOptions+'</select></div>'+
-        '<div><label for="adminQStage" class="sr-only">Fallakte</label><select id="adminQStage">'+stageOptions+'</select></div>'+
-      '</div>'+
-      '<p class="admin-questions-source">'+esc(questionsSourceLabel(groupId, stage.id))+'</p>'+
-      '<div id="adminQuestionBlocks">'+questionBlocks+'</div>'+
-      '<div style="margin-top:6px;">'+btn('Fragen speichern', {id:'adminSaveQuestionsBtn'})+'</div>'+
+      '<h3 style="margin-top:0;">Stationen-Vorlagen</h3>'+
+      '<p class="muted" style="font-size:13px; margin:0 0 12px;">Der Vorrat an Ämtern, aus dem jede Gruppe ihre '+STATIONS_PER_GROUP+' Fallakten bekommt. Adresse und Fragen (inkl. Punkte je Frage) gehören direkt zur Station.</p>'+
+      '<div class="admin-template-list">'+listHtml+'</div>'+
+      '<div style="margin-top:14px;">'+btn('Neue Station anlegen', {id:'adminNewTemplateBtn'})+'</div>'+
+      renderTemplateEditForm()+
+    '</div>'+
+    renderRouteAssignment();
+  }
+
+  function renderRouteAssignment(){
+    var templates = allTemplates();
+    var blocks = GROUPS.map(function(gr){
+      var route = groupRoute(gr.id);
+      var isCustom = state.groupRoutes[gr.id] && state.groupRoutes[gr.id].length === STATIONS_PER_GROUP;
+      var selects = route.map(function(tid, i){
+        var opts = templates.map(function(t){ return '<option value="'+t.id+'"'+(t.id===tid?' selected':'')+'>'+esc(t.title)+' · '+esc(t.amt)+'</option>'; }).join('');
+        return '<div class="admin-schedule-row">'+
+          '<label>Fallakte '+(i+1)+'</label>'+
+          '<select data-route-slot="'+gr.id+'|'+i+'">'+opts+'</select>'+
+        '</div>';
+      }).join('');
+      return ''+
+      '<details class="admin-schedule-group">'+
+        '<summary><span>'+esc(gr.name)+'</span><span class="admin-note" style="margin:0;">'+(isCustom?'eigene Route':'Standard-Route')+'</span></summary>'+
+        '<div class="admin-schedule-fields">'+
+          selects+
+          '<div style="margin-top:12px;">'+btn('Route speichern', {attrs:'data-save-route="'+gr.id+'"'})+'</div>'+
+        '</div>'+
+      '</details>';
+    }).join('');
+    return ''+
+    '<div class="intro-card">'+
+      '<h3 style="margin-top:0;">Routen je Gruppe</h3>'+
+      '<p class="muted" style="font-size:13px; margin:0 0 12px;">Welche '+STATIONS_PER_GROUP+' Stationen jede Gruppe in welcher Reihenfolge durchläuft. Ohne eigene Route nutzt eine Gruppe automatisch die ersten '+STATIONS_PER_GROUP+' Vorlagen.</p>'+
+      blocks+
     '</div>';
   }
 
-  async function saveGroupQuestions(){
-    var groupId = state.adminQuestionsGroup;
-    var stageId = STAGES[state.adminQuestionsStage].id;
-    var count = document.querySelectorAll('#adminQuestionBlocks .admin-question-block').length;
+  async function saveStationTemplate(mode){
+    var isNew = mode === '_new';
+    var idRaw = isNew ? (document.getElementById('tplId')||{}).value : mode;
+    var id = (idRaw||'').trim().toLowerCase().replace(/[^a-z0-9_]+/g,'_').replace(/^_+|_+$/g,'');
+    if(!id){ showToast('Bitte eine gültige ID für die neue Station vergeben.'); return; }
+    var title = (document.getElementById('tplTitle')||{}).value.trim();
+    var amt = (document.getElementById('tplAmt')||{}).value.trim();
+    var iconVal = (document.getElementById('tplIcon')||{}).value.trim() || '🏛️';
+    var address = (document.getElementById('tplAddress')||{}).value.trim();
     var questions = [];
-    for(var qi=0; qi<count; qi++){
-      var questionEl = document.querySelector('[data-qfield="question"][data-qidx="'+qi+'"]');
-      var explEl = document.querySelector('[data-qfield="explanation"][data-qidx="'+qi+'"]');
+    for(var qi=0; qi<5; qi++){
+      var qEl = document.querySelector('[data-tqfield="question"][data-tqidx="'+qi+'"]');
+      var exEl = document.querySelector('[data-tqfield="explanation"][data-tqidx="'+qi+'"]');
+      var ptsEl = document.querySelector('[data-tqfield="points"][data-tqidx="'+qi+'"]');
       var options = [];
       for(var oi=0; oi<4; oi++){
-        var optEl = document.querySelector('[data-qfield="opt"][data-qidx="'+qi+'"][data-optidx="'+oi+'"]');
-        options.push(optEl ? optEl.value.trim() : '');
+        var oEl = document.querySelector('[data-tqfield="opt"][data-tqidx="'+qi+'"][data-toptidx="'+oi+'"]');
+        options.push(oEl ? oEl.value.trim() : '');
       }
-      var correctEl = document.querySelector('[data-qfield="correct"][data-qidx="'+qi+'"]:checked');
+      var cEl = document.querySelector('[data-tqfield="correct"][data-tqidx="'+qi+'"]:checked');
       questions.push({
-        question: questionEl ? questionEl.value.trim() : '',
+        question: qEl ? qEl.value.trim() : '',
         options: options,
-        correct: correctEl ? parseInt(correctEl.value, 10) : 0,
-        explanation: explEl ? explEl.value.trim() : ''
+        correct: cEl ? parseInt(cEl.value, 10) : 0,
+        explanation: exEl ? exEl.value.trim() : '',
+        points: ptsEl ? (parseInt(ptsEl.value, 10) || 0) : 2
       });
     }
+    if(!title || !amt){ showToast('Bitte Titel und Amt ausfüllen.'); return; }
     if(questions.some(function(q){ return !q.question || q.options.some(function(o){ return !o; }); })){
       showToast('Bitte alle Fragen und Antwortoptionen ausfüllen.');
       return;
     }
     if(!sb){ showToast('Keine Verbindung zur Datenbank.'); return; }
     try{
-      var res = await sb.rpc('save_group_questions', {p_group_id: groupId, p_stage_id: stageId, p_questions: questions});
+      var res = await sb.rpc('save_station_template', {p_id:id, p_title:title, p_amt:amt, p_icon:iconVal, p_address:address, p_questions:questions});
       if(res.error){
-        console.warn('Behördenrallye: Fragen konnten nicht gespeichert werden.', res.error);
-        showToast('Speichern fehlgeschlagen: Tabelle "group_questions" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
+        console.warn('Behördenrallye: Station konnte nicht gespeichert werden.', res.error);
+        showToast('Speichern fehlgeschlagen: Tabelle "station_templates" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
+        return;
+      }
+      state.adminEditTemplate = null;
+      await refreshGroupsState();
+      render();
+      showToast('✓ Station gespeichert.');
+    }catch(e){
+      console.warn('Behördenrallye: Station konnte nicht gespeichert werden.', e);
+      showToast('Speichern fehlgeschlagen: Tabelle "station_templates" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
+    }
+  }
+
+  async function saveAdminRoute(groupId){
+    var ids = [];
+    for(var i=0; i<STATIONS_PER_GROUP; i++){
+      var sel = document.querySelector('[data-route-slot="'+groupId+'|'+i+'"]');
+      ids.push(sel ? sel.value : null);
+    }
+    if(ids.some(function(id){ return !id; })){ showToast('Bitte für jede Fallakte eine Station wählen.'); return; }
+    if(!sb){ showToast('Keine Verbindung zur Datenbank.'); return; }
+    try{
+      var res = await sb.rpc('save_group_route', {p_group_id: groupId, p_template_ids: ids});
+      if(res.error){
+        console.warn('Behördenrallye: Route konnte nicht gespeichert werden.', res.error);
+        showToast('Speichern fehlgeschlagen: Tabelle "group_routes" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
         return;
       }
       await refreshGroupsState();
       render();
-      showToast('✓ Fragen gespeichert.');
+      var groupDef = GROUPS.filter(function(g){ return g.id === groupId; })[0];
+      showToast('✓ Route für '+(groupDef?groupDef.name:groupId)+' gespeichert.');
     }catch(e){
-      console.warn('Behördenrallye: Fragen konnten nicht gespeichert werden.', e);
-      showToast('Speichern fehlgeschlagen: Tabelle "group_questions" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
+      console.warn('Behördenrallye: Route konnte nicht gespeichert werden.', e);
+      showToast('Speichern fehlgeschlagen: Tabelle "group_routes" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
     }
   }
 
   function renderScheduleGenerator(){
     var gapsHtml = '';
-    for(var i=1;i<STAGES.length;i++){
+    for(var i=1;i<STATIONS_PER_GROUP;i++){
       gapsHtml += '<div class="admin-schedule-row">'+
         '<label for="gen_gap_'+i+'">Nach Fallakte '+i+' → Fallakte '+(i+1)+' verfügbar in (Minuten)</label>'+
         '<input type="number" min="0" id="gen_gap_'+i+'" value="15">'+
@@ -2384,7 +2893,7 @@
     return ''+
     '<div class="intro-card">'+
       '<h3 style="margin-top:0;">Zeitplan-Generator</h3>'+
-      '<p class="muted" style="font-size:13px; margin:0 0 12px;">Erzeugt für alle 9 Gruppen automatisch einen zeitlich versetzten Zeitplan: Gruppe 1 startet zur eingegebenen Uhrzeit mit Fallakte 1, jede weitere Gruppe folgt versetzt um den angegebenen Abstand. Danach lässt sich jede Gruppe unten noch einzeln feinjustieren.</p>'+
+      '<p class="muted" style="font-size:13px; margin:0 0 12px;">Erzeugt für alle '+GROUPS.length+' Gruppen automatisch einen zeitlich versetzten Zeitplan: Gruppe 1 startet zur eingegebenen Uhrzeit mit Fallakte 1, jede weitere Gruppe folgt versetzt um den angegebenen Abstand - jeweils entlang der eigenen Route der Gruppe. Danach lässt sich jede Gruppe unten noch einzeln feinjustieren.</p>'+
       '<div class="admin-schedule-row">'+
         '<label for="genStart">Start Fallakte 1 (Gruppe 1)</label>'+
         '<input type="datetime-local" id="genStart">'+
@@ -2394,7 +2903,7 @@
         '<label for="genOffset">Versatz zwischen den Gruppen (Minuten)</label>'+
         '<input type="number" min="0" id="genOffset" value="10">'+
       '</div>'+
-      '<div style="margin-top:14px;">'+btn('Für alle 9 Gruppen generieren', {id:'adminGenerateBtn'})+'</div>'+
+      '<div style="margin-top:14px;">'+btn('Für alle '+GROUPS.length+' Gruppen generieren', {id:'adminGenerateBtn'})+'</div>'+
     '</div>';
   }
 
@@ -2404,13 +2913,13 @@
       var times = sched.stage_times || {};
       var breaks = sched.break_stages || [];
       var hasSchedule = Object.keys(times).length > 0;
-      var rows = STAGES.map(function(s, i){
+      var rows = groupStages(gr.id).map(function(s, i){
         var checked = breaks.indexOf(s.id) !== -1 ? ' checked' : '';
         var breakToggle = i > 0
           ? '<label style="flex:0 0 auto; display:flex; align-items:center; gap:6px;"><input type="checkbox" data-sched-break="'+gr.id+'|'+s.id+'"'+checked+'> Pause davor</label>'
           : '';
         return '<div class="admin-schedule-row">'+
-          '<label>Fallakte '+(i+1)+'</label>'+
+          '<label>Fallakte '+(i+1)+' · '+esc(s.title)+'</label>'+
           '<input type="datetime-local" data-sched-time="'+gr.id+'|'+s.id+'" value="'+esc(times[s.id]||'')+'">'+
           breakToggle+
         '</div>';
@@ -2453,16 +2962,6 @@
     }
   }
 
-  async function saveAdminAddresses(){
-    var addresses = {};
-    STAGES.forEach(function(s){
-      var el = document.getElementById('addr_'+s.id);
-      if(el && el.value.trim()) addresses[s.id] = el.value.trim();
-    });
-    var res = await saveSchedule('_global', null, null, addresses);
-    if(!res.error){ await refreshGroupsState(); render(); showToast('✓ Adressen gespeichert.'); }
-  }
-
   async function generateAllSchedules(){
     var startEl = document.getElementById('genStart');
     if(!startEl || !startEl.value){ showToast('Bitte zuerst eine Startzeit für Fallakte 1 eingeben.'); return; }
@@ -2471,7 +2970,7 @@
     var offsetMin = parseInt((document.getElementById('genOffset')||{}).value, 10) || 0;
     var gapMin = [0];
     var gapBreak = [false];
-    for(var i=1;i<STAGES.length;i++){
+    for(var i=1;i<STATIONS_PER_GROUP;i++){
       gapMin.push(parseInt((document.getElementById('gen_gap_'+i)||{}).value, 10) || 0);
       gapBreak.push(!!(document.getElementById('gen_break_'+i)||{}).checked);
     }
@@ -2480,7 +2979,7 @@
       var t = new Date(baseStart.getTime() + g*offsetMin*60000);
       var stageTimes = {};
       var breakStages = [];
-      STAGES.forEach(function(s, i){
+      groupStages(gr.id).forEach(function(s, i){
         if(i > 0) t = new Date(t.getTime() + gapMin[i]*60000);
         stageTimes[s.id] = toDatetimeLocalString(t);
         if(i > 0 && gapBreak[i]) breakStages.push(s.id);
@@ -2492,14 +2991,14 @@
     await refreshGroupsState();
     render();
     if(!results.some(function(r){ return r && r.error; })){
-      showToast('✓ Zeitpläne für alle 9 Gruppen erzeugt.');
+      showToast('✓ Zeitpläne für alle '+GROUPS.length+' Gruppen erzeugt.');
     }
   }
 
   async function saveGroupSchedule(groupId){
     var stageTimes = {};
     var breakStages = [];
-    STAGES.forEach(function(s){
+    groupStages(groupId).forEach(function(s){
       var timeEl = document.querySelector('[data-sched-time="'+groupId+'|'+s.id+'"]');
       if(timeEl && timeEl.value) stageTimes[s.id] = timeEl.value;
       var breakEl = document.querySelector('[data-sched-break="'+groupId+'|'+s.id+'"]');
@@ -2523,7 +3022,7 @@
       return {name:gr.name, points:sumPoints(progress), done:countDone(progress), members:members};
     }).sort(function(a,b){ return b.points - a.points; });
     rows.forEach(function(r, idx){
-      lines.push([idx+1, r.name, r.points, r.done+'/'+STAGES.length, r.members].join(';'));
+      lines.push([idx+1, r.name, r.points, r.done+'/'+STATIONS_PER_GROUP, r.members].join(';'));
     });
     var blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
     var link = document.createElement('a');
@@ -2615,10 +3114,11 @@
     var groupDef = GROUPS[groupIdx];
     var myPoints = groupPoints(p.groupId);
     var progress = state.groupProgress || {};
-    var doneCount = STAGES.filter(function(s){ return progress[s.id]; }).length;
-    var donePct = Math.round(doneCount/STAGES.length*100);
+    var stages = groupStages(p.groupId);
+    var doneCount = stages.filter(function(s){ return progress[s.id]; }).length;
+    var donePct = Math.round(doneCount/stages.length*100);
 
-    var cards = STAGES.map(function(s, i){
+    var cards = stages.map(function(s, i){
       var status = stageStatus(s.id, i);
       var tag = status === 'current' ? 'button' : 'div';
       var clickAttr = status === 'current' ? ' data-stage="'+i+'"' : '';
@@ -2654,11 +3154,11 @@
         '<span class="eyebrow">Rallye-Fortschritt · ganzes Team</span>'+
         '<div class="who">Team: <b class="'+tabClass(groupIdx)+'" style="color:var(--tab)">'+esc(groupDef.name)+'</b></div>'+
       '</div>'+
-      '<div class="progress-bar-track" role="progressbar" aria-valuenow="'+doneCount+'" aria-valuemin="0" aria-valuemax="'+STAGES.length+'" aria-label="Rallye-Fortschritt">'+
+      '<div class="progress-bar-track" role="progressbar" aria-valuenow="'+doneCount+'" aria-valuemin="0" aria-valuemax="'+stages.length+'" aria-label="Rallye-Fortschritt">'+
         '<div class="progress-bar-fill" style="width:'+donePct+'%"></div>'+
       '</div>'+
       '<div class="progress-stats">'+
-        '<span class="progress-fraction">'+doneCount+' / '+STAGES.length+' Fallakten bearbeitet</span>'+
+        '<span class="progress-fraction">'+doneCount+' / '+stages.length+' Fallakten bearbeitet</span>'+
         '<div class="progress-meta">'+
           '<span class="stat-chip" id="myGroupPoints">'+icon('star')+'<span>'+myPoints+' Punkte</span></span>'+
           '<span class="stat-chip">'+icon('trophy')+'<span>'+esc(rankForPoints(myPoints))+'</span></span>'+
@@ -2676,7 +3176,7 @@
 
   function renderQuiz(){
     var i = state.activeQuizIndex;
-    var stage = STAGES[i];
+    var stage = groupStages(state.participant.groupId)[i];
     var qList = stageQuestions(state.participant.groupId, stage.id);
     var qi = state.quizQuestionIndex;
     var s = qList[qi];
@@ -2813,7 +3313,7 @@
   }
 
   function renderWaiting(){
-    var stage = STAGES[state.waitStageIndex];
+    var stage = groupStages(state.participant.groupId)[state.waitStageIndex];
     var remaining = Math.max(0, state.waitTargetTime - Date.now());
     var timeText = esc(formatDuration(remaining));
     var isBreak = state.waitIsBreak;
@@ -2928,7 +3428,7 @@
       state.quizQuestionIndex = 0;
       state.quizSelectedOption = null;
       state.quizAnswered = false;
-      state.quizCorrectCount = 0;
+      state.quizEarnedPoints = 0;
       enterMap();
     });
 
@@ -2980,9 +3480,6 @@
       setTimeout(function(){ state.adminAnnounceSent = false; }, 4000);
     });
 
-    var adminSaveAddressesBtn = document.getElementById('adminSaveAddressesBtn');
-    if(adminSaveAddressesBtn) adminSaveAddressesBtn.addEventListener('click', saveAdminAddresses);
-
     var adminGenerateBtn = document.getElementById('adminGenerateBtn');
     if(adminGenerateBtn) adminGenerateBtn.addEventListener('click', generateAllSchedules);
 
@@ -2991,15 +3488,54 @@
     });
 
     document.querySelectorAll('[data-admin-tab]').forEach(function(btn){
-      btn.addEventListener('click', function(){ state.adminTab = btn.getAttribute('data-admin-tab'); render(); });
+      btn.addEventListener('click', async function(){
+        state.adminTab = btn.getAttribute('data-admin-tab');
+        if(state.adminTab === 'evaluation'){ await loadFeedbackResponses(); }
+        render();
+      });
     });
 
-    var adminQGroup = document.getElementById('adminQGroup');
-    if(adminQGroup) adminQGroup.addEventListener('change', function(e){ state.adminQuestionsGroup = e.target.value; render(); });
-    var adminQStage = document.getElementById('adminQStage');
-    if(adminQStage) adminQStage.addEventListener('change', function(e){ state.adminQuestionsStage = parseInt(e.target.value, 10); render(); });
-    var adminSaveQuestionsBtn = document.getElementById('adminSaveQuestionsBtn');
-    if(adminSaveQuestionsBtn) adminSaveQuestionsBtn.addEventListener('click', saveGroupQuestions);
+    var adminAddFbQuestionBtn = document.getElementById('adminAddFbQuestionBtn');
+    if(adminAddFbQuestionBtn) adminAddFbQuestionBtn.addEventListener('click', addFeedbackQuestion);
+
+    document.querySelectorAll('[data-remove-fbq]').forEach(function(btn){
+      btn.addEventListener('click', function(){ removeFeedbackQuestion(parseInt(btn.getAttribute('data-remove-fbq'),10)); });
+    });
+
+    document.querySelectorAll('[data-fbq-type]').forEach(function(sel){
+      sel.addEventListener('change', function(){
+        syncFeedbackDraftFromDom();
+        var qi = parseInt(sel.getAttribute('data-fbq-type'), 10);
+        state.feedbackDraftQuestions[qi].type = sel.value;
+        render();
+      });
+    });
+
+    var adminSaveFeedbackBtn = document.getElementById('adminSaveFeedbackBtn');
+    if(adminSaveFeedbackBtn) adminSaveFeedbackBtn.addEventListener('click', saveFeedbackForm);
+
+    var adminRefreshFeedbackBtn = document.getElementById('adminRefreshFeedbackBtn');
+    if(adminRefreshFeedbackBtn) adminRefreshFeedbackBtn.addEventListener('click', async function(){ await loadFeedbackResponses(); render(); });
+
+    var adminNewTemplateBtn = document.getElementById('adminNewTemplateBtn');
+    if(adminNewTemplateBtn) adminNewTemplateBtn.addEventListener('click', function(){ state.adminEditTemplate = '_new'; render(); });
+
+    document.querySelectorAll('[data-edit-template]').forEach(function(btn){
+      btn.addEventListener('click', function(){ state.adminEditTemplate = btn.getAttribute('data-edit-template'); render(); });
+    });
+
+    var adminCancelTemplateBtn = document.getElementById('adminCancelTemplateBtn');
+    if(adminCancelTemplateBtn) adminCancelTemplateBtn.addEventListener('click', function(){ state.adminEditTemplate = null; render(); });
+
+    var adminSaveTemplateBtn = document.getElementById('adminSaveTemplateBtn');
+    if(adminSaveTemplateBtn) adminSaveTemplateBtn.addEventListener('click', function(){ saveStationTemplate(adminSaveTemplateBtn.getAttribute('data-template-mode')); });
+
+    document.querySelectorAll('[data-save-route]').forEach(function(btn){
+      btn.addEventListener('click', function(){ saveAdminRoute(btn.getAttribute('data-save-route')); });
+    });
+
+    var adminTriggerWinnerBtn = document.getElementById('adminTriggerWinnerBtn');
+    if(adminTriggerWinnerBtn) adminTriggerWinnerBtn.addEventListener('click', triggerWinnerAnimation);
 
     document.querySelectorAll('[data-stage]').forEach(function(btn){
       btn.addEventListener('click', function(){ openQuiz(parseInt(btn.getAttribute('data-stage'),10)); });

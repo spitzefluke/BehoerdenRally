@@ -21,15 +21,24 @@
 create table if not exists public.groups (
   id text primary key check (id in (
     'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
-    'gruppe-6','gruppe-7','gruppe-8','gruppe-9'
+    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11','gruppe-12'
   )),
   progress jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
 
+-- Falls "groups" schon aus einer früheren Version existiert (9 statt 12
+-- Gruppen), die CHECK-Bedingung auf 12 Gruppen erweitern.
+alter table public.groups drop constraint if exists groups_id_check;
+alter table public.groups add constraint groups_id_check check (id in (
+  'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
+  'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11','gruppe-12'
+));
+
 insert into public.groups (id) values
   ('gruppe-1'),('gruppe-2'),('gruppe-3'),('gruppe-4'),('gruppe-5'),
-  ('gruppe-6'),('gruppe-7'),('gruppe-8'),('gruppe-9')
+  ('gruppe-6'),('gruppe-7'),('gruppe-8'),('gruppe-9'),
+  ('gruppe-10'),('gruppe-11'),('gruppe-12')
 on conflict (id) do nothing;
 
 create table if not exists public.participants (
@@ -43,15 +52,15 @@ create table if not exists public.participants (
 create index if not exists participants_group_id_idx on public.participants (group_id);
 create index if not exists participants_recovery_code_idx on public.participants (recovery_code);
 
--- Kapazität serverseitig durchsetzen (max. 5 pro Gruppe - jede Gruppe hat
--- 5 feste Mitglieder), damit zwei Geräte nicht gleichzeitig den letzten
+-- Kapazität serverseitig durchsetzen (max. 9 pro Gruppe - jede Gruppe hat
+-- 9 feste Mitglieder), damit zwei Geräte nicht gleichzeitig den letzten
 -- Platz belegen können.
 create or replace function public.enforce_group_capacity()
 returns trigger
 language plpgsql
 as $$
 begin
-  if (select count(*) from public.participants where group_id = new.group_id) >= 5 then
+  if (select count(*) from public.participants where group_id = new.group_id) >= 9 then
     raise exception 'GROUP_FULL' using errcode = 'P0001';
   end if;
   return new;
@@ -136,7 +145,7 @@ end $$;
 create table if not exists public.schedules (
   id text primary key check (id in (
     'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
-    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','_global'
+    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11','gruppe-12','_global'
   )),
   stage_times jsonb not null default '{}'::jsonb,
   break_stages jsonb not null default '[]'::jsonb,
@@ -144,9 +153,16 @@ create table if not exists public.schedules (
   updated_at timestamptz not null default now()
 );
 
+alter table public.schedules drop constraint if exists schedules_id_check;
+alter table public.schedules add constraint schedules_id_check check (id in (
+  'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
+  'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11','gruppe-12','_global'
+));
+
 insert into public.schedules (id) values
   ('gruppe-1'),('gruppe-2'),('gruppe-3'),('gruppe-4'),('gruppe-5'),
-  ('gruppe-6'),('gruppe-7'),('gruppe-8'),('gruppe-9'),('_global')
+  ('gruppe-6'),('gruppe-7'),('gruppe-8'),('gruppe-9'),
+  ('gruppe-10'),('gruppe-11'),('gruppe-12'),('_global')
 on conflict (id) do nothing;
 
 alter table public.schedules enable row level security;
@@ -203,6 +219,12 @@ begin
   end if;
 end $$;
 
+-- HINWEIS: group_questions wird von der aktuellen App-Version nicht mehr
+-- genutzt (abgelöst durch station_templates weiter unten, wo Fragen direkt
+-- an der Stations-Vorlage hängen). Bleibt hier nur stehen, damit ein
+-- erneutes Ausführen dieses Skripts nicht fehlschlägt - kann gefahrlos
+-- manuell gelöscht werden, ist aber auch harmlos, wenn sie bestehen bleibt.
+--
 -- Eigene Quizfragen je Gruppe/Station fürs Admin-Panel. group_id ist eine
 -- echte Gruppe ODER '_default' für den gemeinsamen Standard-Fragensatz, der
 -- für alle Gruppen ohne eigene Fragen gilt. Ist für eine Gruppe+Station gar
@@ -247,3 +269,181 @@ as $$
 $$;
 
 grant execute on function public.save_group_questions(text, text, jsonb) to anon;
+
+-- Stations-Vorlagen (Amt-Pool) fürs Admin-Panel: Titel, Amt, Icon, Adresse
+-- und 5 Fragen (je mit Optionen, richtiger Antwort, Punkten bei richtiger
+-- Antwort und Erklärung) hängen jetzt direkt an der Vorlage statt an einer
+-- festen Fallakten-Reihenfolge. Ohne Einträge hier nutzt die App die im
+-- Code eingebauten 7 Standardvorlagen weiter (rein optional).
+create table if not exists public.station_templates (
+  id text primary key,
+  title text not null,
+  amt text not null,
+  icon text not null default '🏛️',
+  address text not null default '',
+  questions jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.station_templates enable row level security;
+
+drop policy if exists "station_templates public read" on public.station_templates;
+create policy "station_templates public read"
+  on public.station_templates for select
+  using (true);
+
+-- Kein direktes UPDATE/INSERT für anon - Schreiben läuft nur über die
+-- save_station_template()-Funktion (SECURITY DEFINER), gleiches Prinzip
+-- wie save_schedule() oben.
+drop function if exists public.save_station_template(text, text, text, text, text, jsonb);
+
+create or replace function public.save_station_template(
+  p_id text,
+  p_title text,
+  p_amt text,
+  p_icon text,
+  p_address text,
+  p_questions jsonb
+)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  insert into public.station_templates (id, title, amt, icon, address, questions, updated_at)
+  values (p_id, p_title, p_amt, coalesce(p_icon, '🏛️'), coalesce(p_address, ''), p_questions, now())
+  on conflict (id) do update
+    set title = excluded.title,
+        amt = excluded.amt,
+        icon = excluded.icon,
+        address = excluded.address,
+        questions = excluded.questions,
+        updated_at = now()
+  returning to_jsonb(public.station_templates.*);
+$$;
+
+grant execute on function public.save_station_template(text, text, text, text, text, jsonb) to anon;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'station_templates'
+  ) then
+    alter publication supabase_realtime add table public.station_templates;
+  end if;
+end $$;
+
+-- Pro-Gruppe-Route: welche 4 Stations-Vorlagen (und in welcher Reihenfolge)
+-- eine Gruppe durchläuft. Ohne Eintrag nutzt die App automatisch die ersten
+-- 4 verfügbaren Vorlagen (rein optional, damit die Rallye auch ohne jede
+-- Routen-Pflege sofort spielbar ist).
+create table if not exists public.group_routes (
+  group_id text primary key check (group_id in (
+    'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
+    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11','gruppe-12'
+  )),
+  template_ids jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.group_routes enable row level security;
+
+drop policy if exists "group_routes public read" on public.group_routes;
+create policy "group_routes public read"
+  on public.group_routes for select
+  using (true);
+
+drop function if exists public.save_group_route(text, jsonb);
+
+create or replace function public.save_group_route(p_group_id text, p_template_ids jsonb)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  insert into public.group_routes (group_id, template_ids, updated_at)
+  values (p_group_id, p_template_ids, now())
+  on conflict (group_id) do update
+    set template_ids = excluded.template_ids,
+        updated_at = now()
+  returning to_jsonb(public.group_routes.*);
+$$;
+
+grant execute on function public.save_group_route(text, jsonb) to anon;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'group_routes'
+  ) then
+    alter publication supabase_realtime add table public.group_routes;
+  end if;
+end $$;
+
+-- Anonymes Feedback: EIN Formular (Singleton-Zeile 'main') mit einem
+-- Fragenkatalog (je Frage 'choice' mit Optionen oder 'text' für Freitext)
+-- und einer Stundenzahl, nach der das Feedback-Popup bei jedem Team
+-- erscheint (gerechnet ab dem globalen Rallye-Start, siehe COUNTDOWN_TARGET
+-- im HTML). feedback_responses speichert bewusst NUR die Antworten - es
+-- gibt absichtlich keine Spalte für Gruppe, Gerät oder Teilnehmer:in, damit
+-- Rückmeldungen strukturell anonym bleiben.
+create table if not exists public.feedback_form (
+  id text primary key default 'main',
+  questions jsonb not null default '[]'::jsonb,
+  trigger_hours numeric not null default 3,
+  updated_at timestamptz not null default now()
+);
+
+insert into public.feedback_form (id) values ('main') on conflict (id) do nothing;
+
+alter table public.feedback_form enable row level security;
+
+drop policy if exists "feedback_form public read" on public.feedback_form;
+create policy "feedback_form public read"
+  on public.feedback_form for select
+  using (true);
+
+-- Kein direktes UPDATE für anon - Schreiben läuft nur über die
+-- save_feedback_form()-Funktion (SECURITY DEFINER), gleiches Prinzip wie
+-- save_schedule() oben.
+drop function if exists public.save_feedback_form(jsonb, numeric);
+
+create or replace function public.save_feedback_form(p_questions jsonb, p_trigger_hours numeric)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  insert into public.feedback_form (id, questions, trigger_hours, updated_at)
+  values ('main', p_questions, p_trigger_hours, now())
+  on conflict (id) do update
+    set questions = excluded.questions,
+        trigger_hours = excluded.trigger_hours,
+        updated_at = now()
+  returning to_jsonb(public.feedback_form.*);
+$$;
+
+grant execute on function public.save_feedback_form(jsonb, numeric) to anon;
+
+create table if not exists public.feedback_responses (
+  id uuid primary key default gen_random_uuid(),
+  answers jsonb not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.feedback_responses enable row level security;
+
+drop policy if exists "feedback_responses public read" on public.feedback_responses;
+create policy "feedback_responses public read"
+  on public.feedback_responses for select
+  using (true);
+
+-- Direktes INSERT für anon erlaubt (wie bei "participants" oben) - jede:r
+-- kann eine anonyme Antwort abschicken, ohne dass eine Spalte existiert, die
+-- Rückschlüsse auf Gruppe/Gerät zuließe.
+drop policy if exists "feedback_responses public insert" on public.feedback_responses;
+create policy "feedback_responses public insert"
+  on public.feedback_responses for insert
+  with check (true);
