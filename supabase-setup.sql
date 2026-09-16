@@ -382,6 +382,57 @@ begin
   end if;
 end $$;
 
+-- Gruppen-Passwörter: mit welchem Passwort sich eine Gruppe auf ihren
+-- Geräten anmeldet. Ohne eigenen Eintrag nutzt die App weiterhin die
+-- eingebauten Standard-Passwörter (rallye1..rallye12), damit die Rallye
+-- auch ohne jede Admin-Pflege sofort spielbar ist.
+create table if not exists public.group_passwords (
+  group_id text primary key check (group_id in (
+    'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
+    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11','gruppe-12'
+  )),
+  password text not null,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.group_passwords enable row level security;
+
+drop policy if exists "group_passwords public read" on public.group_passwords;
+create policy "group_passwords public read"
+  on public.group_passwords for select
+  using (true);
+
+-- Kein direktes UPDATE/INSERT für anon - Schreiben läuft nur über die
+-- save_group_password()-Funktion (SECURITY DEFINER), gleiches Prinzip wie
+-- save_group_route() oben.
+drop function if exists public.save_group_password(text, text);
+
+create or replace function public.save_group_password(p_group_id text, p_password text)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  insert into public.group_passwords (group_id, password, updated_at)
+  values (p_group_id, p_password, now())
+  on conflict (group_id) do update
+    set password = excluded.password,
+        updated_at = now()
+  returning to_jsonb(public.group_passwords.*);
+$$;
+
+grant execute on function public.save_group_password(text, text) to anon;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'group_passwords'
+  ) then
+    alter publication supabase_realtime add table public.group_passwords;
+  end if;
+end $$;
+
 -- Anonymes Feedback: EIN Formular (Singleton-Zeile 'main') mit einem
 -- Fragenkatalog (je Frage 'choice' mit Optionen oder 'text' für Freitext)
 -- und einer Stundenzahl, nach der das Feedback-Popup bei jedem Team

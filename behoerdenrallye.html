@@ -880,9 +880,12 @@
   for(var _gi=1; _gi<=12; _gi++){ GROUPS.push({id:'gruppe-'+_gi, name:'Gruppe '+_gi}); }
 
   // Jede Gruppe hat ein festes Passwort statt freier Team-Wahl - wer das
-  // Passwort kennt, wird direkt der zugehörigen Gruppe zugewiesen.
-  var GROUP_PASSWORDS = {};
-  for(var _pi=1; _pi<=12; _pi++){ GROUP_PASSWORDS['rallye'+_pi] = 'gruppe-'+_pi; }
+  // Passwort kennt, wird direkt der zugehörigen Gruppe zugewiesen. Die
+  // Standard-Passwörter (rallye1..rallye12) gelten nur, solange das Admin-
+  // Panel (Tab "Passwörter") kein eigenes Passwort für die Gruppe hinterlegt
+  // hat - siehe groupPassword().
+  var DEFAULT_GROUP_PASSWORDS = {};
+  for(var _pi=1; _pi<=12; _pi++){ DEFAULT_GROUP_PASSWORDS['gruppe-'+_pi] = 'rallye'+_pi; }
 
   // Interner Admin-Zugang fürs Orga-Team - erreichbar über die URL mit #admin.
   // Zwei Rollen: 'full' sieht/bearbeitet alles, 'viewer' sieht im Panel nur
@@ -1190,6 +1193,7 @@
     schedules:{},
     stationTemplates:{},
     groupRoutes:{},
+    groupPasswords:{},
     adminTab:'overview',
     adminRole:null,
     adminEditTemplate:null,
@@ -1278,6 +1282,20 @@
   function stageAddress(stageId){
     var t = getTemplate(stageId);
     return t ? t.address : '';
+  }
+
+  // Effektives Passwort einer Gruppe: admin-editiertes Passwort (Tab
+  // "Passwörter"), sonst der eingebaute Standard (rallyeN) - so bleibt die
+  // Anmeldung auch vor jeder Admin-Pflege sofort nutzbar.
+  function groupPassword(groupId){
+    var custom = state.groupPasswords && state.groupPasswords[groupId];
+    return (custom && String(custom).trim()) ? String(custom).trim() : DEFAULT_GROUP_PASSWORDS[groupId];
+  }
+
+  function resolveGroupIdByPassword(pw){
+    var lower = (pw||'').toLowerCase();
+    var match = GROUPS.filter(function(g){ return groupPassword(g.id).toLowerCase() === lower; })[0];
+    return match ? match.id : null;
   }
 
   // groupId wird nicht mehr für die Fragenauswahl gebraucht (Fragen hängen
@@ -1387,7 +1405,17 @@
         }
       }catch(e){ /* Tabelle evtl. noch nicht angelegt - kein Problem */ }
 
-      return { groups: groupsRes.data, participants: participantsRes.data, schedules: schedules, stationTemplates: stationTemplates, groupRoutes: groupRoutes, feedbackForm: feedbackForm };
+      // Gruppen-Passwörter sind ebenso optional - ohne Tabelle/Eintrag gilt
+      // einfach das eingebaute Standard-Passwort (rallyeN) weiter.
+      var groupPasswords = {};
+      try{
+        var passwordsRes = await sb.from('group_passwords').select('*');
+        if(!passwordsRes.error && passwordsRes.data){
+          passwordsRes.data.forEach(function(row){ groupPasswords[row.group_id] = row.password; });
+        }
+      }catch(e){ /* Tabelle evtl. noch nicht angelegt - kein Problem */ }
+
+      return { groups: groupsRes.data, participants: participantsRes.data, schedules: schedules, stationTemplates: stationTemplates, groupRoutes: groupRoutes, feedbackForm: feedbackForm, groupPasswords: groupPasswords };
     }catch(e){
       console.warn('Behördenrallye: Laden von Supabase fehlgeschlagen.', e);
       return null;
@@ -1403,6 +1431,7 @@
       state.stationTemplates = remote.stationTemplates || {};
       state.groupRoutes = remote.groupRoutes || {};
       state.feedbackForm = remote.feedbackForm || state.feedbackForm;
+      state.groupPasswords = remote.groupPasswords || {};
       if(state.offline) showToast('✓ Verbindung wiederhergestellt – Rangliste ist wieder live.');
       state.offline = false;
       cacheRemoteState(remote);
@@ -1414,6 +1443,7 @@
       state.stationTemplates = cached ? (cached.stationTemplates || {}) : (state.stationTemplates || {});
       state.groupRoutes = cached ? (cached.groupRoutes || {}) : (state.groupRoutes || {});
       state.feedbackForm = cached ? (cached.feedbackForm || state.feedbackForm) : state.feedbackForm;
+      state.groupPasswords = cached ? (cached.groupPasswords || {}) : (state.groupPasswords || {});
       state.offline = true;
     }
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
@@ -1459,6 +1489,9 @@
         .subscribe();
       sb.channel('public:group_routes')
         .on('postgres_changes', {event:'*', schema:'public', table:'group_routes'}, handleRemoteRouteChange)
+        .subscribe();
+      sb.channel('public:group_passwords')
+        .on('postgres_changes', {event:'*', schema:'public', table:'group_passwords'}, handleRemoteGroupPasswordChange)
         .subscribe();
       announceChannel = sb.channel('behoerdenrallye:announcements');
       announceChannel
@@ -1511,7 +1544,7 @@
     }
 
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords});
     if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
   }
 
@@ -1521,7 +1554,7 @@
     state.participantRows = (state.participantRows||[]).filter(function(r){ return r.id !== row.id; });
     if(payload.eventType !== 'DELETE'){ state.participantRows = state.participantRows.concat([row]); }
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords});
     if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
   }
 
@@ -1530,7 +1563,7 @@
     if(!row || !row.id) return;
     if(payload.eventType === 'DELETE'){ delete state.schedules[row.id]; }
     else { state.schedules[row.id] = row; }
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords});
 
     if(state.participant && row.id === state.participant.groupId){
       if(state.screen === 'waiting'){
@@ -1556,7 +1589,7 @@
     if(!row || !row.id) return;
     if(payload.eventType === 'DELETE'){ delete state.stationTemplates[row.id]; }
     else { state.stationTemplates[row.id] = {id:row.id, title:row.title, amt:row.amt, icon:row.icon, address:row.address, questions:row.questions}; }
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords});
     if(state.screen === 'map' || state.screen === 'admin'){ render(); }
   }
 
@@ -1565,8 +1598,17 @@
     if(!row || !row.group_id) return;
     if(payload.eventType === 'DELETE'){ delete state.groupRoutes[row.group_id]; }
     else { state.groupRoutes[row.group_id] = row.template_ids || []; }
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords});
     if(state.screen === 'map' || state.screen === 'admin'){ render(); }
+  }
+
+  function handleRemoteGroupPasswordChange(payload){
+    var row = payload.eventType === 'DELETE' ? payload.old : payload.new;
+    if(!row || !row.group_id) return;
+    if(payload.eventType === 'DELETE'){ delete state.groupPasswords[row.group_id]; }
+    else { state.groupPasswords[row.group_id] = row.password; }
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords});
+    if(state.screen === 'admin'){ render(); }
   }
 
   function isAdminUrl(){
@@ -1627,7 +1669,7 @@
     state.error = null;
     var pw = (state.passwordInput||'').trim().toLowerCase();
     if(!pw){ state.error = 'Bitte gib das Passwort eurer Gruppe ein.'; render(); return; }
-    var groupId = GROUP_PASSWORDS[pw];
+    var groupId = resolveGroupIdByPassword(pw);
     if(!groupId){ state.error = 'Unbekanntes Passwort. Bitte bei der Rallye-Leitung nachfragen.'; render(); return; }
     if(!sb){
       state.error = 'Keine Verbindung zur Rallye-Datenbank. Bitte Internetverbindung prüfen und Seite neu laden.';
@@ -2454,7 +2496,8 @@
     {id:'stations', label:'Stationen', icon:'pin'},
     {id:'schedules', label:'Zeitpläne', icon:'clock'},
     {id:'feedback', label:'Feedback', icon:'question'},
-    {id:'evaluation', label:'Auswertung', icon:'chart'}
+    {id:'evaluation', label:'Auswertung', icon:'chart'},
+    {id:'passwords', label:'Passwörter', icon:'key'}
   ];
 
   function renderAdmin(){
@@ -2472,6 +2515,7 @@
     else if(state.adminTab === 'schedules') content = renderScheduleGenerator()+renderGroupScheduleEditor();
     else if(state.adminTab === 'feedback') content = renderAdminFeedback();
     else if(state.adminTab === 'evaluation') content = renderAdminEvaluation();
+    else if(state.adminTab === 'passwords') content = renderAdminPasswords();
     else content = renderAdminOverview();
 
     return ''+
@@ -2878,6 +2922,45 @@
     }catch(e){
       console.warn('Behördenrallye: Route konnte nicht gespeichert werden.', e);
       showToast('Speichern fehlgeschlagen: Tabelle "group_routes" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
+    }
+  }
+
+  function renderAdminPasswords(){
+    var rowsHtml = GROUPS.map(function(gr){
+      var isCustom = !!(state.groupPasswords && state.groupPasswords[gr.id] && String(state.groupPasswords[gr.id]).trim());
+      return '<div class="admin-schedule-row">'+
+        '<label for="pw_'+gr.id+'">'+esc(gr.name)+(isCustom?'':' <span class="admin-note" style="margin:0;">(Standard)</span>')+'</label>'+
+        '<input type="text" id="pw_'+gr.id+'" data-group-password="'+gr.id+'" value="'+esc(groupPassword(gr.id))+'">'+
+        btn('Speichern', {cls:'btn-sm', attrs:'data-save-password="'+gr.id+'"'})+
+      '</div>';
+    }).join('');
+    return ''+
+    '<div class="intro-card">'+
+      '<h3 style="margin-top:0;">Passwörter je Gruppe</h3>'+
+      '<p class="muted" style="font-size:13px; margin:0 0 12px;">Mit diesem Passwort meldet sich eine Gruppe auf ihren Geräten an. Ohne eigenes Passwort gilt der Standard rallye1..rallye12.</p>'+
+      rowsHtml+
+    '</div>';
+  }
+
+  async function saveGroupPassword(groupId){
+    var input = document.querySelector('[data-group-password="'+groupId+'"]');
+    var pw = input ? input.value.trim() : '';
+    if(!pw){ showToast('Bitte ein Passwort eingeben.'); return; }
+    if(!sb){ showToast('Keine Verbindung zur Datenbank.'); return; }
+    try{
+      var res = await sb.rpc('save_group_password', {p_group_id: groupId, p_password: pw});
+      if(res.error){
+        console.warn('Behördenrallye: Passwort konnte nicht gespeichert werden.', res.error);
+        showToast('Speichern fehlgeschlagen: Tabelle "group_passwords" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
+        return;
+      }
+      await refreshGroupsState();
+      render();
+      var groupDef = GROUPS.filter(function(g){ return g.id === groupId; })[0];
+      showToast('✓ Passwort für '+(groupDef?groupDef.name:groupId)+' gespeichert.');
+    }catch(e){
+      console.warn('Behördenrallye: Passwort konnte nicht gespeichert werden.', e);
+      showToast('Speichern fehlgeschlagen: Tabelle "group_passwords" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
     }
   }
 
@@ -3532,6 +3615,10 @@
 
     document.querySelectorAll('[data-save-route]').forEach(function(btn){
       btn.addEventListener('click', function(){ saveAdminRoute(btn.getAttribute('data-save-route')); });
+    });
+
+    document.querySelectorAll('[data-save-password]').forEach(function(btn){
+      btn.addEventListener('click', function(){ saveGroupPassword(btn.getAttribute('data-save-password')); });
     });
 
     var adminTriggerWinnerBtn = document.getElementById('adminTriggerWinnerBtn');
