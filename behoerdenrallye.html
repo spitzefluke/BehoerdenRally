@@ -559,6 +559,15 @@
   }
   .fb-option:hover{border-color:var(--blue); background:var(--blue-light);}
   .fb-option input{flex:0 0 auto; width:18px; height:18px;}
+  .fb-scale{display:flex; align-items:center; gap:10px;}
+  .fb-scale-options{display:flex; gap:6px; flex:1 1 auto; justify-content:space-between;}
+  .fb-scale-option{
+    display:flex; flex-direction:column; align-items:center; gap:5px; padding:8px 4px; flex:1 1 0;
+    border:1.5px solid var(--border); border-radius:var(--radius); font-size:14px; font-weight:700; cursor:pointer;
+  }
+  .fb-scale-option:hover{border-color:var(--blue); background:var(--blue-light);}
+  .fb-scale-option input{width:16px; height:16px;}
+  .fb-scale-label{font-size:11px; color:var(--text-muted); flex:0 0 60px; text-align:center;}
   .btn-plain{
     background:none; border:none; padding:11px 16px; min-height:44px;
     font-weight:600; font-size:14px; color:var(--text-muted); border-radius:var(--radius);
@@ -2288,6 +2297,22 @@
           '<textarea rows="3" data-fb-field="'+q.id+'"></textarea>'+
         '</div>';
       }
+      if(q.type === 'scale'){
+        var min = q.scale_min != null ? q.scale_min : 1;
+        var max = q.scale_max != null ? q.scale_max : 5;
+        var scaleOptsHtml = '';
+        for(var v=min; v<=max; v++){
+          scaleOptsHtml += '<label class="fb-scale-option"><input type="radio" name="fbq_'+qi+'" data-fb-field="'+q.id+'" value="'+v+'"><span>'+v+'</span></label>';
+        }
+        return '<div class="fb-question">'+
+          '<label>'+esc(q.question)+'</label>'+
+          '<div class="fb-scale">'+
+            (q.scale_min_label ? '<span class="fb-scale-label">'+esc(q.scale_min_label)+'</span>' : '')+
+            '<div class="fb-scale-options">'+scaleOptsHtml+'</div>'+
+            (q.scale_max_label ? '<span class="fb-scale-label">'+esc(q.scale_max_label)+'</span>' : '')+
+          '</div>'+
+        '</div>';
+      }
       var optsHtml = (q.options||[]).map(function(opt){
         return '<label class="fb-option"><input type="radio" name="fbq_'+qi+'" data-fb-field="'+q.id+'" value="'+esc(opt)+'"><span>'+esc(opt)+'</span></label>';
       }).join('');
@@ -2697,9 +2722,17 @@
       var textEl = document.querySelector('[data-fbq-text="'+qi+'"]');
       var optsEl = document.querySelector('[data-fbq-options="'+qi+'"]');
       var catEl = document.querySelector('[data-fbq-category="'+qi+'"]');
+      var minEl = document.querySelector('[data-fbq-scale-min="'+qi+'"]');
+      var maxEl = document.querySelector('[data-fbq-scale-max="'+qi+'"]');
+      var minLabelEl = document.querySelector('[data-fbq-scale-minlabel="'+qi+'"]');
+      var maxLabelEl = document.querySelector('[data-fbq-scale-maxlabel="'+qi+'"]');
       if(textEl) state.feedbackDraftQuestions[qi].question = textEl.value;
       if(optsEl) state.feedbackDraftQuestions[qi].options = optsEl.value.split('\n');
       if(catEl) state.feedbackDraftQuestions[qi].category = catEl.value;
+      if(minEl) state.feedbackDraftQuestions[qi].scale_min = parseInt(minEl.value, 10);
+      if(maxEl) state.feedbackDraftQuestions[qi].scale_max = parseInt(maxEl.value, 10);
+      if(minLabelEl) state.feedbackDraftQuestions[qi].scale_min_label = minLabelEl.value;
+      if(maxLabelEl) state.feedbackDraftQuestions[qi].scale_max_label = maxLabelEl.value;
     }
   }
 
@@ -2727,13 +2760,22 @@
         '<input type="text" list="fbCategoryList" data-fbq-category="'+qi+'" value="'+esc(q.category||'')+'" placeholder="z.B. Verpflegung">'+
         '<label>Fragetyp</label>'+
         '<select data-fbq-type="'+qi+'">'+
-          '<option value="choice"'+(q.type!=='text'?' selected':'')+'>Auswahl (Multiple Choice)</option>'+
+          '<option value="choice"'+(q.type!=='text' && q.type!=='scale'?' selected':'')+'>Auswahl (Multiple Choice)</option>'+
+          '<option value="scale"'+(q.type==='scale'?' selected':'')+'>Skala (z.B. 1-5)</option>'+
           '<option value="text"'+(q.type==='text'?' selected':'')+'>Freitext</option>'+
         '</select>'+
         '<label>Frage</label>'+
         '<textarea rows="2" data-fbq-text="'+qi+'">'+esc(q.question||'')+'</textarea>'+
-        (q.type !== 'text'
+        (q.type === 'choice'
           ? '<label>Antwortoptionen (eine pro Zeile)</label><textarea rows="4" data-fbq-options="'+qi+'">'+esc((q.options||[]).join('\n'))+'</textarea>'
+          : '')+
+        (q.type === 'scale'
+          ? '<div class="admin-schedule-row" style="border:none; padding-top:2px; padding-bottom:0;">'+
+              '<label style="flex:0 0 auto;">Skala von</label><input type="number" data-fbq-scale-min="'+qi+'" value="'+(q.scale_min!=null?q.scale_min:1)+'" style="max-width:70px;">'+
+              '<label style="flex:0 0 auto;">bis</label><input type="number" data-fbq-scale-max="'+qi+'" value="'+(q.scale_max!=null?q.scale_max:5)+'" style="max-width:70px;">'+
+            '</div>'+
+            '<label>Beschriftung am unteren Ende (optional)</label><input type="text" data-fbq-scale-minlabel="'+qi+'" value="'+esc(q.scale_min_label||'')+'" placeholder="z.B. Sehr schlecht">'+
+            '<label>Beschriftung am oberen Ende (optional)</label><input type="text" data-fbq-scale-maxlabel="'+qi+'" value="'+esc(q.scale_max_label||'')+'" placeholder="z.B. Sehr gut">'
           : '')+
         '<div style="margin-top:10px;">'+btn('Frage entfernen', {cls:'btn-sm', attrs:'data-remove-fbq="'+qi+'"'})+'</div>'+
       '</div>';
@@ -2782,6 +2824,10 @@
       var textEl = document.querySelector('[data-fbq-text="'+qi+'"]');
       var optsEl = document.querySelector('[data-fbq-options="'+qi+'"]');
       var catEl = document.querySelector('[data-fbq-category="'+qi+'"]');
+      var minEl = document.querySelector('[data-fbq-scale-min="'+qi+'"]');
+      var maxEl = document.querySelector('[data-fbq-scale-max="'+qi+'"]');
+      var minLabelEl = document.querySelector('[data-fbq-scale-minlabel="'+qi+'"]');
+      var maxLabelEl = document.querySelector('[data-fbq-scale-maxlabel="'+qi+'"]');
       var type = typeEl ? typeEl.value : 'choice';
       var questionText = textEl ? textEl.value.trim() : '';
       if(!questionText) continue;
@@ -2791,8 +2837,15 @@
         question: questionText,
         category: catEl ? catEl.value.trim() : ''
       };
-      if(type !== 'text'){
+      if(type === 'choice'){
         q.options = optsEl ? optsEl.value.split('\n').map(function(s){ return s.trim(); }).filter(Boolean) : [];
+      } else if(type === 'scale'){
+        var scaleMin = minEl ? parseInt(minEl.value, 10) : 1;
+        var scaleMax = maxEl ? parseInt(maxEl.value, 10) : 5;
+        q.scale_min = isNaN(scaleMin) ? 1 : scaleMin;
+        q.scale_max = isNaN(scaleMax) ? 5 : scaleMax;
+        q.scale_min_label = minLabelEl ? minLabelEl.value.trim() : '';
+        q.scale_max_label = maxLabelEl ? maxLabelEl.value.trim() : '';
       }
       questions.push(q);
     }
@@ -2865,15 +2918,24 @@
           : '<p class="muted" style="font-size:13px;">Noch keine Antworten.</p>';
         return '<div class="admin-fb-section"><h4>'+esc(q.question)+'</h4>'+listHtml+'</div>';
       }
+      var barLabels;
+      if(q.type === 'scale'){
+        barLabels = [];
+        var min = q.scale_min != null ? q.scale_min : 1;
+        var max = q.scale_max != null ? q.scale_max : 5;
+        for(var v=min; v<=max; v++) barLabels.push(String(v));
+      } else {
+        barLabels = q.options||[];
+      }
       var counts = {};
-      (q.options||[]).forEach(function(o){ counts[o] = 0; });
+      barLabels.forEach(function(o){ counts[o] = 0; });
       responses.forEach(function(r){
         var a = r.answers && r.answers[q.id];
         if(a == null) return;
         counts[a] = (counts[a]||0) + 1;
       });
       var total = Object.keys(counts).reduce(function(sum,k){ return sum + counts[k]; }, 0);
-      var barsHtml = Object.keys(counts).map(function(opt){
+      var barsHtml = barLabels.map(function(opt){
         var n = counts[opt];
         var pct = total > 0 ? Math.round(n/total*100) : 0;
         return ''+
@@ -2883,7 +2945,10 @@
           '<div class="admin-fb-bar-count">'+n+' ('+pct+'%)</div>'+
         '</div>';
       }).join('');
-      return '<div class="admin-fb-section"><h4>'+esc(q.question)+'</h4>'+(total ? barsHtml : '<p class="muted" style="font-size:13px;">Noch keine Antworten.</p>')+'</div>';
+      var scaleLegend = q.type === 'scale' && (q.scale_min_label || q.scale_max_label)
+        ? '<p class="muted" style="font-size:12px; margin:0 0 8px;">'+esc(q.scale_min_label||'')+(q.scale_min_label && q.scale_max_label ? ' … ' : '')+esc(q.scale_max_label||'')+'</p>'
+        : '';
+      return '<div class="admin-fb-section"><h4>'+esc(q.question)+'</h4>'+scaleLegend+(total ? barsHtml : '<p class="muted" style="font-size:13px;">Noch keine Antworten.</p>')+'</div>';
     }
   }
 
