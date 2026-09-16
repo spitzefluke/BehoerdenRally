@@ -1197,6 +1197,7 @@
     adminTab:'overview',
     adminRole:null,
     adminEditTemplate:null,
+    adminTemplateDraft:null,
     adminRouteGroup:'gruppe-1',
     adminWinnerSent:false,
     feedbackForm:{questions:[], trigger_hours:3},
@@ -2751,14 +2752,124 @@
 
   function mkBlankQuestion(){ return {question:'', options:['','','',''], correct:0, explanation:'', points:2}; }
 
+  // Auswahl an Behörden-/Amt-Emojis fürs Icon-Dropdown - deckt auch die
+  // Icons der eingebauten Standardvorlagen ab (🪪 💶 🛂 📺 🚗 🗑️ 📅), damit
+  // bestehende Stationen beim Bearbeiten ihr Icon nicht verlieren.
+  var STATION_ICONS = [
+    {e:'🏛️', l:'Amtsgebäude'},
+    {e:'🏢', l:'Bürogebäude'},
+    {e:'🏤', l:'Postamt'},
+    {e:'📮', l:'Briefkasten'},
+    {e:'🛂', l:'Passkontrolle'},
+    {e:'🛃', l:'Zoll'},
+    {e:'⚖️', l:'Justiz / Gericht'},
+    {e:'📜', l:'Urkunde'},
+    {e:'📋', l:'Klemmbrett'},
+    {e:'🗂️', l:'Aktenordner'},
+    {e:'📁', l:'Ordner'},
+    {e:'🖋️', l:'Füller'},
+    {e:'✍️', l:'Unterschrift'},
+    {e:'🔏', l:'Versiegelt'},
+    {e:'🆔', l:'Ausweis'},
+    {e:'🪪', l:'Personalausweis'},
+    {e:'🏦', l:'Bank'},
+    {e:'🚓', l:'Polizei'},
+    {e:'🚗', l:'Kfz-Zulassung'},
+    {e:'📺', l:'Rundfunk'},
+    {e:'💶', l:'Gebühren'},
+    {e:'🗳️', l:'Wahlamt'},
+    {e:'🏫', l:'Bildungsamt'},
+    {e:'🏥', l:'Gesundheitsamt'},
+    {e:'🗑️', l:'Ordnungsamt'},
+    {e:'📅', l:'Termin'},
+    {e:'🧾', l:'Beleg'}
+  ];
+
+  // Fragen-Entwurf beim Bearbeiten/Neuanlegen einer Station: hält die
+  // aktuell im Formular stehenden Fragen, damit Fragen hinzugefügt/entfernt
+  // werden können, ohne unbeantwortete Eingaben in anderen Fragen zu
+  // verlieren (gleiches Prinzip wie beim Feedback-Formular-Editor).
+  function ensureTemplateDraft(mode){
+    if(!state.adminTemplateDraft || state.adminTemplateDraft.mode !== mode){
+      var isNew = mode === '_new';
+      var t = isNew ? null : getTemplate(mode);
+      var questions = (t && t.questions && t.questions.length)
+        ? t.questions.map(function(q){ return Object.assign({}, q, {options:(q.options||[]).slice()}); })
+        : [mkBlankQuestion(),mkBlankQuestion(),mkBlankQuestion(),mkBlankQuestion(),mkBlankQuestion()];
+      state.adminTemplateDraft = {
+        mode: mode,
+        id: t ? t.id : '',
+        title: t ? t.title : '',
+        amt: t ? t.amt : '',
+        icon: t ? t.icon : '🏛️',
+        address: t ? (t.address||'') : '',
+        questions: questions
+      };
+    }
+  }
+
+  // Liest alle aktuell im Formular stehenden Werte (auch Titel/Amt/Icon/
+  // Adresse/ID, nicht nur die Fragen) in den Entwurf zurück, bevor eine
+  // Frage hinzugefügt/entfernt wird - sonst würde der komplette Neuaufbau
+  // des Formulars (render()) diese Felder auf ihren Ausgangswert zurücksetzen.
+  function syncTemplateDraftFromDom(){
+    if(!state.adminTemplateDraft) return;
+    var d = state.adminTemplateDraft;
+    var idEl = document.getElementById('tplId');
+    var titleEl = document.getElementById('tplTitle');
+    var amtEl = document.getElementById('tplAmt');
+    var iconEl = document.getElementById('tplIcon');
+    var addrEl = document.getElementById('tplAddress');
+    if(idEl) d.id = idEl.value;
+    if(titleEl) d.title = titleEl.value;
+    if(amtEl) d.amt = amtEl.value;
+    if(iconEl) d.icon = iconEl.value;
+    if(addrEl) d.address = addrEl.value;
+    var qs = d.questions;
+    var count = document.querySelectorAll('#tplQuestionBlocks .admin-question-block').length;
+    for(var qi=0; qi<count; qi++){
+      if(!qs[qi]) continue;
+      var qEl = document.querySelector('[data-tqfield="question"][data-tqidx="'+qi+'"]');
+      var exEl = document.querySelector('[data-tqfield="explanation"][data-tqidx="'+qi+'"]');
+      var ptsEl = document.querySelector('[data-tqfield="points"][data-tqidx="'+qi+'"]');
+      var cEl = document.querySelector('[data-tqfield="correct"][data-tqidx="'+qi+'"]:checked');
+      var options = [];
+      for(var oi=0; oi<4; oi++){
+        var oEl = document.querySelector('[data-tqfield="opt"][data-tqidx="'+qi+'"][data-toptidx="'+oi+'"]');
+        options.push(oEl ? oEl.value : (qs[qi].options[oi]||''));
+      }
+      if(qEl) qs[qi].question = qEl.value;
+      qs[qi].options = options;
+      if(cEl) qs[qi].correct = parseInt(cEl.value, 10);
+      if(exEl) qs[qi].explanation = exEl.value;
+      if(ptsEl) qs[qi].points = parseInt(ptsEl.value, 10) || 0;
+    }
+  }
+
+  function addTemplateQuestion(){
+    syncTemplateDraftFromDom();
+    state.adminTemplateDraft.questions.push(mkBlankQuestion());
+    render();
+  }
+
+  function removeTemplateQuestion(idx){
+    syncTemplateDraftFromDom();
+    if(state.adminTemplateDraft.questions.length <= 1){ showToast('Mindestens eine Frage muss bleiben.'); return; }
+    state.adminTemplateDraft.questions.splice(idx, 1);
+    render();
+  }
+
   function renderTemplateEditForm(){
     var mode = state.adminEditTemplate;
     if(!mode) return '';
     var isNew = mode === '_new';
-    var t = isNew ? {id:'', title:'', amt:'', icon:'🏛️', address:'', questions:[mkBlankQuestion(),mkBlankQuestion(),mkBlankQuestion(),mkBlankQuestion(),mkBlankQuestion()]} : getTemplate(mode);
-    if(!t) return '';
+    var t = isNew ? {id:'', title:'', amt:'', icon:'🏛️', address:''} : getTemplate(mode);
+    if(!isNew && !t) return '';
+    ensureTemplateDraft(mode);
+    var d = state.adminTemplateDraft;
+    var questions = d.questions;
 
-    var questionBlocks = t.questions.map(function(q, qi){
+    var questionBlocks = questions.map(function(q, qi){
       var optionsHtml = q.options.map(function(opt, oi){
         return '<div class="admin-option-row">'+
           '<input type="radio" name="tcorrect_'+qi+'" data-tqfield="correct" data-tqidx="'+qi+'" value="'+oi+'"'+(q.correct===oi?' checked':'')+'>'+
@@ -2767,7 +2878,7 @@
       }).join('');
       return ''+
       '<div class="admin-question-block">'+
-        '<div class="admin-question-num">Frage '+(qi+1)+' von 5</div>'+
+        '<div class="admin-question-num">Frage '+(qi+1)+'</div>'+
         '<label>Frage</label>'+
         '<textarea rows="2" data-tqfield="question" data-tqidx="'+qi+'">'+esc(q.question)+'</textarea>'+
         '<label>Antwortoptionen (Punkt = richtige Antwort)</label>'+
@@ -2778,19 +2889,25 @@
         '</div>'+
         '<label>Erklärung (wird bei richtiger Antwort gezeigt)</label>'+
         '<textarea rows="2" data-tqfield="explanation" data-tqidx="'+qi+'">'+esc(q.explanation||'')+'</textarea>'+
+        '<div style="margin-top:10px;">'+btn('Frage entfernen', {cls:'btn-sm', attrs:'data-remove-tplq="'+qi+'"'})+'</div>'+
       '</div>';
+    }).join('');
+
+    var iconOptions = STATION_ICONS.map(function(o){
+      return '<option value="'+o.e+'"'+(o.e===d.icon?' selected':'')+'>'+o.e+' '+o.l+'</option>';
     }).join('');
 
     return ''+
     '<div class="admin-template-form">'+
       '<h4>'+(isNew?'Neue Station anlegen':'Station bearbeiten: '+esc(t.title||t.id))+'</h4>'+
-      (isNew ? '<label for="tplId">Interne ID (nur Buchstaben/Zahlen/Unterstrich, z.B. kfz_zulassung)</label><input type="text" id="tplId" placeholder="z.B. kfz_zulassung">' : '')+
-      '<label for="tplTitle">Titel</label><input type="text" id="tplTitle" value="'+esc(t.title)+'">'+
-      '<label for="tplAmt">Amt</label><input type="text" id="tplAmt" value="'+esc(t.amt)+'">'+
-      '<label for="tplIcon">Icon (Emoji)</label><input type="text" id="tplIcon" value="'+esc(t.icon)+'" style="max-width:80px;">'+
-      '<label for="tplAddress">Adresse</label><input type="text" id="tplAddress" value="'+esc(t.address||'')+'">'+
+      (isNew ? '<label for="tplId">Interne ID (nur Buchstaben/Zahlen/Unterstrich, z.B. kfz_zulassung)</label><input type="text" id="tplId" value="'+esc(d.id)+'" placeholder="z.B. kfz_zulassung">' : '')+
+      '<label for="tplTitle">Titel</label><input type="text" id="tplTitle" value="'+esc(d.title)+'">'+
+      '<label for="tplAmt">Amt</label><input type="text" id="tplAmt" value="'+esc(d.amt)+'">'+
+      '<label for="tplIcon">Icon</label><select id="tplIcon">'+iconOptions+'</select>'+
+      '<label for="tplAddress">Adresse</label><input type="text" id="tplAddress" value="'+esc(d.address||'')+'">'+
       '<div id="tplQuestionBlocks">'+questionBlocks+'</div>'+
       '<div class="admin-actions" style="margin-top:6px;">'+
+        btn('+ Frage hinzufügen', {id:'adminAddTplQuestionBtn', cls:'btn-sm'})+
         btn('Station speichern', {id:'adminSaveTemplateBtn', attrs:'data-template-mode="'+(isNew?'_new':t.id)+'"'})+
         btn('Abbrechen', {id:'adminCancelTemplateBtn'})+
       '</div>'+
@@ -2858,8 +2975,9 @@
     var amt = (document.getElementById('tplAmt')||{}).value.trim();
     var iconVal = (document.getElementById('tplIcon')||{}).value.trim() || '🏛️';
     var address = (document.getElementById('tplAddress')||{}).value.trim();
+    var qCount = document.querySelectorAll('#tplQuestionBlocks .admin-question-block').length;
     var questions = [];
-    for(var qi=0; qi<5; qi++){
+    for(var qi=0; qi<qCount; qi++){
       var qEl = document.querySelector('[data-tqfield="question"][data-tqidx="'+qi+'"]');
       var exEl = document.querySelector('[data-tqfield="explanation"][data-tqidx="'+qi+'"]');
       var ptsEl = document.querySelector('[data-tqfield="points"][data-tqidx="'+qi+'"]');
@@ -2878,6 +2996,7 @@
       });
     }
     if(!title || !amt){ showToast('Bitte Titel und Amt ausfüllen.'); return; }
+    if(questions.length === 0){ showToast('Bitte mindestens eine Frage hinzufügen.'); return; }
     if(questions.some(function(q){ return !q.question || q.options.some(function(o){ return !o; }); })){
       showToast('Bitte alle Fragen und Antwortoptionen ausfüllen.');
       return;
@@ -2891,6 +3010,7 @@
         return;
       }
       state.adminEditTemplate = null;
+      state.adminTemplateDraft = null;
       await refreshGroupsState();
       render();
       showToast('✓ Station gespeichert.');
@@ -3601,17 +3721,24 @@
     if(adminRefreshFeedbackBtn) adminRefreshFeedbackBtn.addEventListener('click', async function(){ await loadFeedbackResponses(); render(); });
 
     var adminNewTemplateBtn = document.getElementById('adminNewTemplateBtn');
-    if(adminNewTemplateBtn) adminNewTemplateBtn.addEventListener('click', function(){ state.adminEditTemplate = '_new'; render(); });
+    if(adminNewTemplateBtn) adminNewTemplateBtn.addEventListener('click', function(){ state.adminEditTemplate = '_new'; state.adminTemplateDraft = null; render(); });
 
     document.querySelectorAll('[data-edit-template]').forEach(function(btn){
       btn.addEventListener('click', function(){ state.adminEditTemplate = btn.getAttribute('data-edit-template'); render(); });
     });
 
     var adminCancelTemplateBtn = document.getElementById('adminCancelTemplateBtn');
-    if(adminCancelTemplateBtn) adminCancelTemplateBtn.addEventListener('click', function(){ state.adminEditTemplate = null; render(); });
+    if(adminCancelTemplateBtn) adminCancelTemplateBtn.addEventListener('click', function(){ state.adminEditTemplate = null; state.adminTemplateDraft = null; render(); });
 
     var adminSaveTemplateBtn = document.getElementById('adminSaveTemplateBtn');
     if(adminSaveTemplateBtn) adminSaveTemplateBtn.addEventListener('click', function(){ saveStationTemplate(adminSaveTemplateBtn.getAttribute('data-template-mode')); });
+
+    var adminAddTplQuestionBtn = document.getElementById('adminAddTplQuestionBtn');
+    if(adminAddTplQuestionBtn) adminAddTplQuestionBtn.addEventListener('click', addTemplateQuestion);
+
+    document.querySelectorAll('[data-remove-tplq]').forEach(function(btn){
+      btn.addEventListener('click', function(){ removeTemplateQuestion(parseInt(btn.getAttribute('data-remove-tplq'),10)); });
+    });
 
     document.querySelectorAll('[data-save-route]').forEach(function(btn){
       btn.addEventListener('click', function(){ saveAdminRoute(btn.getAttribute('data-save-route')); });
