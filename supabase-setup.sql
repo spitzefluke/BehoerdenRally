@@ -519,3 +519,38 @@ drop policy if exists "feedback_responses public insert" on public.feedback_resp
 create policy "feedback_responses public insert"
   on public.feedback_responses for insert
   with check (true);
+
+-- Verlauf gesendeter Durchsagen: der Realtime-Broadcast selbst (siehe
+-- sendAnnouncement() im HTML) wird nirgends gespeichert und wäre für
+-- Admins, die sich erst danach einloggen, verloren - diese Tabelle hält
+-- die letzten Durchsagen fest, damit sie im Panel sichtbar bleiben.
+create table if not exists public.announcements (
+  id uuid primary key default gen_random_uuid(),
+  text text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.announcements enable row level security;
+
+drop policy if exists "announcements public read" on public.announcements;
+create policy "announcements public read"
+  on public.announcements for select
+  using (true);
+
+-- Direktes INSERT für anon erlaubt (wie bei "participants"/
+-- "feedback_responses" oben) - der Broadcast, den diese Tabelle nur
+-- protokolliert, ist ohnehin ungeschützt.
+drop policy if exists "announcements public insert" on public.announcements;
+create policy "announcements public insert"
+  on public.announcements for insert
+  with check (true);
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'announcements'
+  ) then
+    alter publication supabase_realtime add table public.announcements;
+  end if;
+end $$;

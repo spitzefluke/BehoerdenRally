@@ -559,6 +559,15 @@
   }
   .fb-option:hover{border-color:var(--blue); background:var(--blue-light);}
   .fb-option input{flex:0 0 auto; width:18px; height:18px;}
+  .fb-scale{display:flex; align-items:center; gap:10px;}
+  .fb-scale-options{display:flex; gap:6px; flex:1 1 auto; justify-content:space-between;}
+  .fb-scale-option{
+    display:flex; flex-direction:column; align-items:center; gap:5px; padding:8px 4px; flex:1 1 0;
+    border:1.5px solid var(--border); border-radius:var(--radius); font-size:14px; font-weight:700; cursor:pointer;
+  }
+  .fb-scale-option:hover{border-color:var(--blue); background:var(--blue-light);}
+  .fb-scale-option input{width:16px; height:16px;}
+  .fb-scale-label{font-size:11px; color:var(--text-muted); flex:0 0 60px; text-align:center;}
   .btn-plain{
     background:none; border:none; padding:11px 16px; min-height:44px;
     font-weight:600; font-size:14px; color:var(--text-muted); border-radius:var(--radius);
@@ -651,6 +660,11 @@
     font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; letter-spacing:.03em;
     color:#fff; background:var(--navy); border-radius:var(--radius); padding:10px 14px; margin-bottom:16px;
   }
+  .admin-online{display:flex; align-items:center; gap:6px; margin-left:auto; font-weight:600; color:rgba(255,255,255,.85); text-transform:none; letter-spacing:normal;}
+  .admin-online-dot{width:7px; height:7px; border-radius:50%; background:#3ddc84; box-shadow:0 0 0 3px rgba(61,220,132,.25); flex:0 0 auto;}
+  .admin-announce-list{list-style:none; margin:12px 0 0; padding:0; display:flex; flex-direction:column; gap:8px;}
+  .admin-announce-list li{display:flex; gap:10px; align-items:baseline; font-size:13.5px; border-bottom:1px solid var(--border); padding-bottom:8px;}
+  .admin-announce-time{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-muted); flex:0 0 auto;}
   .admin-table{width:100%; border-collapse:collapse; margin-top:12px; font-size:13.5px;}
   .admin-table th{
     text-align:left; font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase;
@@ -1192,6 +1206,8 @@
     adminAnnounceInput:'',
     adminJoining:false,
     adminAnnounceSent:false,
+    adminOnlineCount:0,
+    recentAnnouncements:[],
     schedules:{},
     stationTemplates:{},
     groupRoutes:{},
@@ -1496,6 +1512,9 @@
       sb.channel('public:group_passwords')
         .on('postgres_changes', {event:'*', schema:'public', table:'group_passwords'}, handleRemoteGroupPasswordChange)
         .subscribe();
+      sb.channel('public:announcements')
+        .on('postgres_changes', {event:'INSERT', schema:'public', table:'announcements'}, handleRemoteAnnouncementInsert)
+        .subscribe();
       announceChannel = sb.channel('behoerdenrallye:announcements');
       announceChannel
         .on('broadcast', {event:'announcement'}, function(msg){
@@ -1510,9 +1529,47 @@
     }catch(e){ console.warn('Behördenrallye: Live-Verbindung konnte nicht aufgebaut werden.', e); }
   }
 
-  function sendAnnouncement(text){
-    if(!announceChannel) return Promise.resolve({error:'no-channel'});
-    return announceChannel.send({type:'broadcast', event:'announcement', payload:{text:text}});
+  async function sendAnnouncement(text){
+    if(!announceChannel) return {error:'no-channel'};
+    var res = await announceChannel.send({type:'broadcast', event:'announcement', payload:{text:text}});
+    // Zusätzlich in der DB ablegen, damit alle gerade eingeloggten Admins
+    // (nicht nur der, der sie geschrieben hat) die zuletzt gesendeten
+    // Durchsagen im Panel sehen - der Broadcast selbst wird nirgends
+    // gespeichert und würde für später eingeloggte Admins verloren gehen.
+    if(sb){
+      try{ await sb.from('announcements').insert({text: text}); }
+      catch(e){ console.warn('Behördenrallye: Durchsage konnte nicht im Verlauf gespeichert werden.', e); }
+    }
+    return res;
+  }
+
+  // Zeigt an, wie viele Admin-Panels (egal welche Rolle) gerade verbunden
+  // sind - reine Live-Anwesenheit über Supabase Realtime Presence, es wird
+  // nichts in der Datenbank gespeichert.
+  var adminPresenceChannel = null;
+  function subscribeAdminPresence(){
+    if(adminPresenceChannel || !sb || !sb.channel) return;
+    try{
+      adminPresenceChannel = sb.channel('behoerdenrallye:admin-presence', {config:{presence:{key: uid()}}});
+      adminPresenceChannel
+        .on('presence', {event:'sync'}, function(){
+          state.adminOnlineCount = Object.keys(adminPresenceChannel.presenceState()).length;
+          if(state.screen === 'admin') render();
+        })
+        .subscribe(async function(status){
+          if(status === 'SUBSCRIBED'){
+            await adminPresenceChannel.track({online_at: new Date().toISOString()});
+          }
+        });
+    }catch(e){ console.warn('Behördenrallye: Admin-Anwesenheit konnte nicht aufgebaut werden.', e); }
+  }
+
+  async function loadRecentAnnouncements(){
+    if(!sb) return;
+    try{
+      var res = await sb.from('announcements').select('*').order('created_at', {ascending:false}).limit(10);
+      if(!res.error && res.data) state.recentAnnouncements = res.data;
+    }catch(e){ console.warn('Behördenrallye: Durchsagen-Verlauf konnte nicht geladen werden.', e); }
   }
 
   // Löst bei der Siegerehrung auf dem Gerät des aktuell führenden Teams eine
@@ -1611,6 +1668,13 @@
     if(payload.eventType === 'DELETE'){ delete state.groupPasswords[row.group_id]; }
     else { state.groupPasswords[row.group_id] = row.password; }
     cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords});
+    if(state.screen === 'admin'){ render(); }
+  }
+
+  function handleRemoteAnnouncementInsert(payload){
+    var row = payload.new;
+    if(!row) return;
+    state.recentAnnouncements = [row].concat(state.recentAnnouncements||[]).slice(0, 10);
     if(state.screen === 'admin'){ render(); }
   }
 
@@ -1727,6 +1791,8 @@
     state.adminJoining = true;
     render();
     await refreshGroupsState();
+    await loadRecentAnnouncements();
+    subscribeAdminPresence();
     state.adminJoining = false;
     state.screen = 'admin';
     render();
@@ -2231,6 +2297,22 @@
           '<textarea rows="3" data-fb-field="'+q.id+'"></textarea>'+
         '</div>';
       }
+      if(q.type === 'scale'){
+        var min = q.scale_min != null ? q.scale_min : 1;
+        var max = q.scale_max != null ? q.scale_max : 5;
+        var scaleOptsHtml = '';
+        for(var v=min; v<=max; v++){
+          scaleOptsHtml += '<label class="fb-scale-option"><input type="radio" name="fbq_'+qi+'" data-fb-field="'+q.id+'" value="'+v+'"><span>'+v+'</span></label>';
+        }
+        return '<div class="fb-question">'+
+          '<label>'+esc(q.question)+'</label>'+
+          '<div class="fb-scale">'+
+            (q.scale_min_label ? '<span class="fb-scale-label">'+esc(q.scale_min_label)+'</span>' : '')+
+            '<div class="fb-scale-options">'+scaleOptsHtml+'</div>'+
+            (q.scale_max_label ? '<span class="fb-scale-label">'+esc(q.scale_max_label)+'</span>' : '')+
+          '</div>'+
+        '</div>';
+      }
       var optsHtml = (q.options||[]).map(function(opt){
         return '<label class="fb-option"><input type="radio" name="fbq_'+qi+'" data-fb-field="'+q.id+'" value="'+esc(opt)+'"><span>'+esc(opt)+'</span></label>';
       }).join('');
@@ -2522,7 +2604,9 @@
     else content = renderAdminOverview();
 
     return ''+
-    '<div class="admin-banner">'+icon('lock')+'<span>Admin-Bereich · '+(isViewer?'nur Rangliste':'nur fürs Orga-Team')+'</span></div>'+
+    '<div class="admin-banner">'+icon('lock')+'<span>Admin-Bereich · '+(isViewer?'nur Rangliste':'nur fürs Orga-Team')+'</span>'+
+      '<span class="admin-online"><span class="admin-online-dot"></span>'+state.adminOnlineCount+' Admin'+(state.adminOnlineCount===1?'':'s')+' online</span>'+
+    '</div>'+
     navHtml+
     renderOfflineBanner()+
     content;
@@ -2576,6 +2660,10 @@
   // eigentlichen Event sollen nicht in der echten Rangliste zählen).
   // Mitgliederliste/Anmeldung der Gruppe bleibt unberührt.
   async function resetGroupProgress(groupId){
+    // Der Button existiert für die eingeschränkte "Rangliste"-Rolle gar
+    // nicht im DOM (siehe renderAdminOverview) - diese Prüfung ist nur ein
+    // zusätzliches Sicherheitsnetz, falls die Funktion doch aufgerufen wird.
+    if(state.adminRole === 'viewer'){ showToast('Nur mit Vollzugriff möglich.'); return; }
     var groupDef = GROUPS.filter(function(g){ return g.id === groupId; })[0];
     var groupName = groupDef ? groupDef.name : groupId;
     if(!window.confirm('Fortschritt von '+groupName+' wirklich zurücksetzen? Das kann nicht rückgängig gemacht werden.')) return;
@@ -2597,15 +2685,26 @@
   }
 
   function renderAdminAnnounce(){
+    var recent = state.recentAnnouncements || [];
+    var recentHtml = recent.length
+      ? '<ul class="admin-announce-list">'+recent.map(function(a){
+          return '<li><span class="admin-announce-time">'+formatClockTime(a.created_at)+'</span><span>'+esc(a.text)+'</span></li>';
+        }).join('')+'</ul>'
+      : '<p class="muted" style="font-size:13px;">Noch keine Durchsagen gesendet.</p>';
+
     return ''+
     '<div class="intro-card">'+
       '<h3 style="margin-top:0;">Ankündigung an alle Geräte senden</h3>'+
-      '<p class="muted" style="font-size:13px; margin:0;">Erscheint kurz als Hinweis bei allen gerade aktiven Teilnehmenden. Wird nicht gespeichert - nur aktuell verbundene Geräte sehen sie.</p>'+
+      '<p class="muted" style="font-size:13px; margin:0;">Erscheint kurz als Hinweis bei allen gerade aktiven Teilnehmenden.</p>'+
       '<div class="admin-announce">'+
         '<div class="field"><label for="adminAnnounceInput" class="sr-only">Ankündigungstext</label><input type="text" id="adminAnnounceInput" placeholder="z. B. Rallye endet in 10 Minuten!" value="'+esc(state.adminAnnounceInput)+'"></div>'+
         btn('Senden', {id:'adminAnnounceBtn'})+
       '</div>'+
       (state.adminAnnounceSent ? '<p class="admin-note">✓ Gesendet.</p>' : '')+
+    '</div>'+
+    '<div class="intro-card">'+
+      '<h3 style="margin-top:0;">Letzte Durchsagen</h3>'+
+      recentHtml+
     '</div>';
   }
 
@@ -2623,9 +2722,17 @@
       var textEl = document.querySelector('[data-fbq-text="'+qi+'"]');
       var optsEl = document.querySelector('[data-fbq-options="'+qi+'"]');
       var catEl = document.querySelector('[data-fbq-category="'+qi+'"]');
+      var minEl = document.querySelector('[data-fbq-scale-min="'+qi+'"]');
+      var maxEl = document.querySelector('[data-fbq-scale-max="'+qi+'"]');
+      var minLabelEl = document.querySelector('[data-fbq-scale-minlabel="'+qi+'"]');
+      var maxLabelEl = document.querySelector('[data-fbq-scale-maxlabel="'+qi+'"]');
       if(textEl) state.feedbackDraftQuestions[qi].question = textEl.value;
       if(optsEl) state.feedbackDraftQuestions[qi].options = optsEl.value.split('\n');
       if(catEl) state.feedbackDraftQuestions[qi].category = catEl.value;
+      if(minEl) state.feedbackDraftQuestions[qi].scale_min = parseInt(minEl.value, 10);
+      if(maxEl) state.feedbackDraftQuestions[qi].scale_max = parseInt(maxEl.value, 10);
+      if(minLabelEl) state.feedbackDraftQuestions[qi].scale_min_label = minLabelEl.value;
+      if(maxLabelEl) state.feedbackDraftQuestions[qi].scale_max_label = maxLabelEl.value;
     }
   }
 
@@ -2653,13 +2760,22 @@
         '<input type="text" list="fbCategoryList" data-fbq-category="'+qi+'" value="'+esc(q.category||'')+'" placeholder="z.B. Verpflegung">'+
         '<label>Fragetyp</label>'+
         '<select data-fbq-type="'+qi+'">'+
-          '<option value="choice"'+(q.type!=='text'?' selected':'')+'>Auswahl (Multiple Choice)</option>'+
+          '<option value="choice"'+(q.type!=='text' && q.type!=='scale'?' selected':'')+'>Auswahl (Multiple Choice)</option>'+
+          '<option value="scale"'+(q.type==='scale'?' selected':'')+'>Skala (z.B. 1-5)</option>'+
           '<option value="text"'+(q.type==='text'?' selected':'')+'>Freitext</option>'+
         '</select>'+
         '<label>Frage</label>'+
         '<textarea rows="2" data-fbq-text="'+qi+'">'+esc(q.question||'')+'</textarea>'+
-        (q.type !== 'text'
+        (q.type === 'choice'
           ? '<label>Antwortoptionen (eine pro Zeile)</label><textarea rows="4" data-fbq-options="'+qi+'">'+esc((q.options||[]).join('\n'))+'</textarea>'
+          : '')+
+        (q.type === 'scale'
+          ? '<div class="admin-schedule-row" style="border:none; padding-top:2px; padding-bottom:0;">'+
+              '<label style="flex:0 0 auto;">Skala von</label><input type="number" data-fbq-scale-min="'+qi+'" value="'+(q.scale_min!=null?q.scale_min:1)+'" style="max-width:70px;">'+
+              '<label style="flex:0 0 auto;">bis</label><input type="number" data-fbq-scale-max="'+qi+'" value="'+(q.scale_max!=null?q.scale_max:5)+'" style="max-width:70px;">'+
+            '</div>'+
+            '<label>Beschriftung am unteren Ende (optional)</label><input type="text" data-fbq-scale-minlabel="'+qi+'" value="'+esc(q.scale_min_label||'')+'" placeholder="z.B. Sehr schlecht">'+
+            '<label>Beschriftung am oberen Ende (optional)</label><input type="text" data-fbq-scale-maxlabel="'+qi+'" value="'+esc(q.scale_max_label||'')+'" placeholder="z.B. Sehr gut">'
           : '')+
         '<div style="margin-top:10px;">'+btn('Frage entfernen', {cls:'btn-sm', attrs:'data-remove-fbq="'+qi+'"'})+'</div>'+
       '</div>';
@@ -2708,6 +2824,10 @@
       var textEl = document.querySelector('[data-fbq-text="'+qi+'"]');
       var optsEl = document.querySelector('[data-fbq-options="'+qi+'"]');
       var catEl = document.querySelector('[data-fbq-category="'+qi+'"]');
+      var minEl = document.querySelector('[data-fbq-scale-min="'+qi+'"]');
+      var maxEl = document.querySelector('[data-fbq-scale-max="'+qi+'"]');
+      var minLabelEl = document.querySelector('[data-fbq-scale-minlabel="'+qi+'"]');
+      var maxLabelEl = document.querySelector('[data-fbq-scale-maxlabel="'+qi+'"]');
       var type = typeEl ? typeEl.value : 'choice';
       var questionText = textEl ? textEl.value.trim() : '';
       if(!questionText) continue;
@@ -2717,8 +2837,15 @@
         question: questionText,
         category: catEl ? catEl.value.trim() : ''
       };
-      if(type !== 'text'){
+      if(type === 'choice'){
         q.options = optsEl ? optsEl.value.split('\n').map(function(s){ return s.trim(); }).filter(Boolean) : [];
+      } else if(type === 'scale'){
+        var scaleMin = minEl ? parseInt(minEl.value, 10) : 1;
+        var scaleMax = maxEl ? parseInt(maxEl.value, 10) : 5;
+        q.scale_min = isNaN(scaleMin) ? 1 : scaleMin;
+        q.scale_max = isNaN(scaleMax) ? 5 : scaleMax;
+        q.scale_min_label = minLabelEl ? minLabelEl.value.trim() : '';
+        q.scale_max_label = maxLabelEl ? maxLabelEl.value.trim() : '';
       }
       questions.push(q);
     }
@@ -2791,15 +2918,24 @@
           : '<p class="muted" style="font-size:13px;">Noch keine Antworten.</p>';
         return '<div class="admin-fb-section"><h4>'+esc(q.question)+'</h4>'+listHtml+'</div>';
       }
+      var barLabels;
+      if(q.type === 'scale'){
+        barLabels = [];
+        var min = q.scale_min != null ? q.scale_min : 1;
+        var max = q.scale_max != null ? q.scale_max : 5;
+        for(var v=min; v<=max; v++) barLabels.push(String(v));
+      } else {
+        barLabels = q.options||[];
+      }
       var counts = {};
-      (q.options||[]).forEach(function(o){ counts[o] = 0; });
+      barLabels.forEach(function(o){ counts[o] = 0; });
       responses.forEach(function(r){
         var a = r.answers && r.answers[q.id];
         if(a == null) return;
         counts[a] = (counts[a]||0) + 1;
       });
       var total = Object.keys(counts).reduce(function(sum,k){ return sum + counts[k]; }, 0);
-      var barsHtml = Object.keys(counts).map(function(opt){
+      var barsHtml = barLabels.map(function(opt){
         var n = counts[opt];
         var pct = total > 0 ? Math.round(n/total*100) : 0;
         return ''+
@@ -2809,7 +2945,10 @@
           '<div class="admin-fb-bar-count">'+n+' ('+pct+'%)</div>'+
         '</div>';
       }).join('');
-      return '<div class="admin-fb-section"><h4>'+esc(q.question)+'</h4>'+(total ? barsHtml : '<p class="muted" style="font-size:13px;">Noch keine Antworten.</p>')+'</div>';
+      var scaleLegend = q.type === 'scale' && (q.scale_min_label || q.scale_max_label)
+        ? '<p class="muted" style="font-size:12px; margin:0 0 8px;">'+esc(q.scale_min_label||'')+(q.scale_min_label && q.scale_max_label ? ' … ' : '')+esc(q.scale_max_label||'')+'</p>'
+        : '';
+      return '<div class="admin-fb-section"><h4>'+esc(q.question)+'</h4>'+scaleLegend+(total ? barsHtml : '<p class="muted" style="font-size:13px;">Noch keine Antworten.</p>')+'</div>';
     }
   }
 
@@ -3757,6 +3896,7 @@
       btn.addEventListener('click', async function(){
         state.adminTab = btn.getAttribute('data-admin-tab');
         if(state.adminTab === 'evaluation'){ await loadFeedbackResponses(); }
+        if(state.adminTab === 'announce'){ await loadRecentAnnouncements(); }
         render();
       });
     });
