@@ -92,6 +92,27 @@ as $$
   returning progress;
 $$;
 
+-- Setzt den Fortschritt (Fallakten + Punkte) einer Gruppe komplett zurück -
+-- fürs Admin-Panel, damit Testdurchläufe vor dem eigentlichen Event nicht
+-- in der echten Rangliste hängen bleiben. Mitgliederliste/Anmeldung der
+-- Gruppe bleibt davon unberührt.
+drop function if exists public.reset_group_progress(text);
+
+create or replace function public.reset_group_progress(p_group_id text)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  update public.groups
+  set progress = '{}'::jsonb,
+      updated_at = now()
+  where id = p_group_id
+  returning progress;
+$$;
+
+grant execute on function public.reset_group_progress(text) to anon;
+
 alter table public.groups enable row level security;
 alter table public.participants enable row level security;
 
