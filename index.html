@@ -716,6 +716,8 @@
     border:1.5px solid var(--border); border-radius:var(--radius); background:var(--surface); color:var(--text);
   }
 
+  .admin-fb-category{margin-bottom:26px;}
+  .admin-fb-category-title{margin:0 0 12px; padding-bottom:6px; font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); border-bottom:1px solid var(--border);}
   .admin-fb-section{margin-bottom:22px;}
   .admin-fb-section h4{margin:0 0 10px; font-size:14.5px; color:var(--navy);}
   .admin-fb-bar-row{display:grid; grid-template-columns:minmax(80px,140px) 1fr 70px; align-items:center; gap:10px; margin-bottom:8px;}
@@ -2527,11 +2529,11 @@
   }
 
   function renderAdminOverview(){
+    var isFull = state.adminRole !== 'viewer';
     var rows = GROUPS.map(function(gr, i){
       var row = state.groupRows.filter(function(r){ return r.id === gr.id; })[0];
       var progress = row ? (row.progress||{}) : {};
-      var members = (state.groupsState && state.groupsState[gr.id]) ? state.groupsState[gr.id].members.length : 0;
-      return {id:gr.id, name:gr.name, tab:tabClass(i), points:sumPoints(progress), done:countDone(progress), members:members};
+      return {id:gr.id, name:gr.name, tab:tabClass(i), points:sumPoints(progress), done:countDone(progress)};
     });
     var ranked = rows.slice().sort(function(a,b){ return b.points - a.points; });
 
@@ -2541,7 +2543,7 @@
         '<td><span class="board-dot '+r.tab+'" style="display:inline-block; margin-right:6px;"></span>'+esc(r.name)+'</td>'+
         '<td>'+r.points+'</td>'+
         '<td>'+r.done+' / '+STATIONS_PER_GROUP+'</td>'+
-        '<td>'+r.members+' / '+CAPACITY+'</td>'+
+        (isFull ? '<td>'+btn('Zurücksetzen', {cls:'btn-sm', attrs:'data-reset-progress="'+r.id+'"'})+'</td>' : '')+
       '</tr>';
     }).join('');
 
@@ -2554,13 +2556,13 @@
         '<div class="who">Live-Stand aller '+GROUPS.length+' Teams</div>'+
       '</div>'+
       '<table class="admin-table">'+
-        '<thead><tr><th>Rang</th><th>Team</th><th>Punkte</th><th>Fallakten</th><th>Mitglieder</th></tr></thead>'+
+        '<thead><tr><th>Rang</th><th>Team</th><th>Punkte</th><th>Fallakten</th>'+(isFull?'<th>Testlauf</th>':'')+'</tr></thead>'+
         '<tbody>'+rowsHtml+'</tbody>'+
       '</table>'+
     '</div>'+
     '<div class="admin-actions">'+
       btn('Aktualisieren', {id:'adminRefreshBtn'})+
-      (state.adminRole!=='viewer' ? btn('Ergebnisse als CSV exportieren '+icon('download'), {id:'adminExportBtn'}) : '')+
+      (isFull ? btn('Ergebnisse als CSV exportieren '+icon('download'), {id:'adminExportBtn'}) : '')+
     '</div>'+
     '<div class="intro-card">'+
       '<h3 style="margin-top:0;">Siegerehrung</h3>'+
@@ -2568,6 +2570,30 @@
       btn('🏆 Sieger-Animation auslösen', {id:'adminTriggerWinnerBtn', attrs: leaderName?'':'disabled'})+
       (state.adminWinnerSent ? '<p class="admin-note">✓ Ausgelöst für '+esc(leaderName)+'.</p>' : '')+
     '</div>';
+  }
+
+  // Setzt den Fortschritt einer Gruppe zurück (Testdurchläufe vor dem
+  // eigentlichen Event sollen nicht in der echten Rangliste zählen).
+  // Mitgliederliste/Anmeldung der Gruppe bleibt unberührt.
+  async function resetGroupProgress(groupId){
+    var groupDef = GROUPS.filter(function(g){ return g.id === groupId; })[0];
+    var groupName = groupDef ? groupDef.name : groupId;
+    if(!window.confirm('Fortschritt von '+groupName+' wirklich zurücksetzen? Das kann nicht rückgängig gemacht werden.')) return;
+    if(!sb){ showToast('Keine Verbindung zur Datenbank.'); return; }
+    try{
+      var res = await sb.rpc('reset_group_progress', {p_group_id: groupId});
+      if(res.error){
+        console.warn('Behördenrallye: Fortschritt konnte nicht zurückgesetzt werden.', res.error);
+        showToast('Zurücksetzen fehlgeschlagen.');
+        return;
+      }
+      await refreshGroupsState();
+      render();
+      showToast('✓ Fortschritt von '+groupName+' zurückgesetzt.');
+    }catch(e){
+      console.warn('Behördenrallye: Fortschritt konnte nicht zurückgesetzt werden.', e);
+      showToast('Zurücksetzen fehlgeschlagen.');
+    }
   }
 
   function renderAdminAnnounce(){
@@ -2596,8 +2622,10 @@
       if(!state.feedbackDraftQuestions[qi]) continue;
       var textEl = document.querySelector('[data-fbq-text="'+qi+'"]');
       var optsEl = document.querySelector('[data-fbq-options="'+qi+'"]');
+      var catEl = document.querySelector('[data-fbq-category="'+qi+'"]');
       if(textEl) state.feedbackDraftQuestions[qi].question = textEl.value;
       if(optsEl) state.feedbackDraftQuestions[qi].options = optsEl.value.split('\n');
+      if(catEl) state.feedbackDraftQuestions[qi].category = catEl.value;
     }
   }
 
@@ -2606,10 +2634,23 @@
     var questions = state.feedbackDraftQuestions;
     var hours = (state.feedbackForm && state.feedbackForm.trigger_hours != null) ? state.feedbackForm.trigger_hours : 3;
 
+    // Frei vom Orga-Team vergebene Kategorien (z.B. "Verpflegung",
+    // "Organisation") - das Datalist schlägt bereits genutzte Kategorien
+    // vor, verhindert aber nichts: neue Kategorien lassen sich jederzeit
+    // frei eintippen.
+    var existingCategories = [];
+    questions.forEach(function(q){
+      var c = (q.category||'').trim();
+      if(c && existingCategories.indexOf(c) === -1) existingCategories.push(c);
+    });
+    var categoryListHtml = '<datalist id="fbCategoryList">'+existingCategories.map(function(c){ return '<option value="'+esc(c)+'">'; }).join('')+'</datalist>';
+
     var blocksHtml = questions.map(function(q, qi){
       return ''+
       '<div class="admin-question-block">'+
         '<div class="admin-question-num">Frage '+(qi+1)+'</div>'+
+        '<label>Kategorie (frei wählbar, z.B. "Verpflegung")</label>'+
+        '<input type="text" list="fbCategoryList" data-fbq-category="'+qi+'" value="'+esc(q.category||'')+'" placeholder="z.B. Verpflegung">'+
         '<label>Fragetyp</label>'+
         '<select data-fbq-type="'+qi+'">'+
           '<option value="choice"'+(q.type!=='text'?' selected':'')+'>Auswahl (Multiple Choice)</option>'+
@@ -2632,6 +2673,7 @@
         '<label for="fbTriggerHours">Erscheint nach (Stunden seit Rallye-Start)</label>'+
         '<input type="number" min="0" step="0.5" id="fbTriggerHours" value="'+hours+'">'+
       '</div>'+
+      categoryListHtml+
       '<div id="fbQuestionBlocks">'+(blocksHtml || '<p class="muted" style="font-size:13px;">Noch keine Fragen - fügt welche hinzu.</p>')+'</div>'+
       '<div class="admin-actions" style="margin-top:14px;">'+
         btn('+ Frage hinzufügen', {id:'adminAddFbQuestionBtn', cls:'btn-sm'})+
@@ -2643,7 +2685,7 @@
   function addFeedbackQuestion(){
     ensureFeedbackDraft();
     syncFeedbackDraftFromDom();
-    state.feedbackDraftQuestions.push({id:'q'+Date.now(), type:'choice', question:'', options:['','']});
+    state.feedbackDraftQuestions.push({id:'q'+Date.now(), type:'choice', question:'', options:['',''], category:''});
     render();
   }
 
@@ -2665,13 +2707,15 @@
       var typeEl = document.querySelector('[data-fbq-type="'+qi+'"]');
       var textEl = document.querySelector('[data-fbq-text="'+qi+'"]');
       var optsEl = document.querySelector('[data-fbq-options="'+qi+'"]');
+      var catEl = document.querySelector('[data-fbq-category="'+qi+'"]');
       var type = typeEl ? typeEl.value : 'choice';
       var questionText = textEl ? textEl.value.trim() : '';
       if(!questionText) continue;
       var q = {
         id: (state.feedbackDraftQuestions[qi] && state.feedbackDraftQuestions[qi].id) || ('q'+Date.now()+qi),
         type: type,
-        question: questionText
+        question: questionText,
+        category: catEl ? catEl.value.trim() : ''
       };
       if(type !== 'text'){
         q.options = optsEl ? optsEl.value.split('\n').map(function(s){ return s.trim(); }).filter(Boolean) : [];
@@ -2712,7 +2756,34 @@
     }
     var responses = state.feedbackResponses || [];
 
-    var sections = questions.map(function(q){
+    // Nach den frei vergebenen Kategorien gruppieren (Reihenfolge = erstes
+    // Auftreten); Fragen ohne Kategorie landen gesammelt am Ende.
+    var categoryOrder = [];
+    var byCategory = {};
+    questions.forEach(function(q){
+      var cat = (q.category||'').trim() || 'Ohne Kategorie';
+      if(!byCategory[cat]){ byCategory[cat] = []; categoryOrder.push(cat); }
+      byCategory[cat].push(q);
+    });
+    if(categoryOrder.indexOf('Ohne Kategorie') !== -1){
+      categoryOrder.splice(categoryOrder.indexOf('Ohne Kategorie'), 1);
+      categoryOrder.push('Ohne Kategorie');
+    }
+
+    var sections = categoryOrder.map(function(cat){
+      var catQuestions = byCategory[cat].map(renderEvaluationQuestion).join('');
+      return '<div class="admin-fb-category"><h3 class="admin-fb-category-title">'+esc(cat)+'</h3>'+catQuestions+'</div>';
+    }).join('');
+
+    return ''+
+    '<div class="intro-card">'+
+      '<h3 style="margin-top:0;">Auswertung</h3>'+
+      '<p class="muted" style="font-size:13px;">'+responses.length+' Rückmeldungen bisher.</p>'+
+      '<div style="margin-bottom:14px;">'+btn('Aktualisieren', {id:'adminRefreshFeedbackBtn', cls:'btn-sm'})+'</div>'+
+      sections+
+    '</div>';
+
+    function renderEvaluationQuestion(q){
       if(q.type === 'text'){
         var texts = responses.map(function(r){ return r.answers && r.answers[q.id]; }).filter(function(t){ return t && String(t).trim(); });
         var listHtml = texts.length
@@ -2739,15 +2810,7 @@
         '</div>';
       }).join('');
       return '<div class="admin-fb-section"><h4>'+esc(q.question)+'</h4>'+(total ? barsHtml : '<p class="muted" style="font-size:13px;">Noch keine Antworten.</p>')+'</div>';
-    }).join('');
-
-    return ''+
-    '<div class="intro-card">'+
-      '<h3 style="margin-top:0;">Auswertung</h3>'+
-      '<p class="muted" style="font-size:13px;">'+responses.length+' Rückmeldungen bisher.</p>'+
-      '<div style="margin-bottom:14px;">'+btn('Aktualisieren', {id:'adminRefreshFeedbackBtn', cls:'btn-sm'})+'</div>'+
-      sections+
-    '</div>';
+    }
   }
 
   function mkBlankQuestion(){ return {question:'', options:['','','',''], correct:0, explanation:'', points:2}; }
@@ -3750,6 +3813,10 @@
 
     var adminTriggerWinnerBtn = document.getElementById('adminTriggerWinnerBtn');
     if(adminTriggerWinnerBtn) adminTriggerWinnerBtn.addEventListener('click', triggerWinnerAnimation);
+
+    document.querySelectorAll('[data-reset-progress]').forEach(function(btn){
+      btn.addEventListener('click', function(){ resetGroupProgress(btn.getAttribute('data-reset-progress')); });
+    });
 
     document.querySelectorAll('[data-stage]').forEach(function(btn){
       btn.addEventListener('click', function(){ openQuiz(parseInt(btn.getAttribute('data-stage'),10)); });
