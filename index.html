@@ -888,7 +888,8 @@
     clock: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>',
     megaphone: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a2 2 0 0 0 2 2h1l3 5V6L6 9H5a2 2 0 0 0-2 2Z"/><path d="M13 8a4 4 0 0 1 0 8M17 5a8.5 8.5 0 0 1 0 14"/></svg>',
     question: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1.2 1-1.2 1.9"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg>',
-    chart: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="12" width="3" height="8"/><rect x="11" y="7" width="3" height="13"/><rect x="16" y="15" width="3" height="5"/></svg>'
+    chart: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="12" width="3" height="8"/><rect x="11" y="7" width="3" height="13"/><rect x="16" y="15" width="3" height="5"/></svg>',
+    users: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 20c0-3 2.5-5.5 5.5-5.5s5.5 2.5 5.5 5.5"/><circle cx="17" cy="9" r="2.3"/><path d="M15.5 14.2c2.4.4 4 2.3 4 5.3"/></svg>'
   };
   function icon(name){ return '<span class="icon">'+(ICONS[name]||'')+'</span>'; }
 
@@ -1212,6 +1213,7 @@
     stationTemplates:{},
     groupRoutes:{},
     groupPasswords:{},
+    groupMembers:{},
     adminTab:'overview',
     adminRole:null,
     adminEditTemplate:null,
@@ -1434,7 +1436,17 @@
         }
       }catch(e){ /* Tabelle evtl. noch nicht angelegt - kein Problem */ }
 
-      return { groups: groupsRes.data, participants: participantsRes.data, schedules: schedules, stationTemplates: stationTemplates, groupRoutes: groupRoutes, feedbackForm: feedbackForm, groupPasswords: groupPasswords };
+      // Namensliste der Teammitglieder je Gruppe ist ebenso optional - rein
+      // organisatorisch fürs Orga-Team, hat keinen Einfluss auf Login/Spiel.
+      var groupMembers = {};
+      try{
+        var membersRes = await sb.from('group_members').select('*');
+        if(!membersRes.error && membersRes.data){
+          membersRes.data.forEach(function(row){ groupMembers[row.group_id] = row.names || []; });
+        }
+      }catch(e){ /* Tabelle evtl. noch nicht angelegt - kein Problem */ }
+
+      return { groups: groupsRes.data, participants: participantsRes.data, schedules: schedules, stationTemplates: stationTemplates, groupRoutes: groupRoutes, feedbackForm: feedbackForm, groupPasswords: groupPasswords, groupMembers: groupMembers };
     }catch(e){
       console.warn('Behördenrallye: Laden von Supabase fehlgeschlagen.', e);
       return null;
@@ -1451,6 +1463,7 @@
       state.groupRoutes = remote.groupRoutes || {};
       state.feedbackForm = remote.feedbackForm || state.feedbackForm;
       state.groupPasswords = remote.groupPasswords || {};
+      state.groupMembers = remote.groupMembers || {};
       if(state.offline) showToast('✓ Verbindung wiederhergestellt – Rangliste ist wieder live.');
       state.offline = false;
       cacheRemoteState(remote);
@@ -1463,6 +1476,7 @@
       state.groupRoutes = cached ? (cached.groupRoutes || {}) : (state.groupRoutes || {});
       state.feedbackForm = cached ? (cached.feedbackForm || state.feedbackForm) : state.feedbackForm;
       state.groupPasswords = cached ? (cached.groupPasswords || {}) : (state.groupPasswords || {});
+      state.groupMembers = cached ? (cached.groupMembers || {}) : (state.groupMembers || {});
       state.offline = true;
     }
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
@@ -1511,6 +1525,9 @@
         .subscribe();
       sb.channel('public:group_passwords')
         .on('postgres_changes', {event:'*', schema:'public', table:'group_passwords'}, handleRemoteGroupPasswordChange)
+        .subscribe();
+      sb.channel('public:group_members')
+        .on('postgres_changes', {event:'*', schema:'public', table:'group_members'}, handleRemoteGroupMembersChange)
         .subscribe();
       sb.channel('public:announcements')
         .on('postgres_changes', {event:'INSERT', schema:'public', table:'announcements'}, handleRemoteAnnouncementInsert)
@@ -1604,7 +1621,7 @@
     }
 
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords, groupMembers:state.groupMembers});
     if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
   }
 
@@ -1614,7 +1631,7 @@
     state.participantRows = (state.participantRows||[]).filter(function(r){ return r.id !== row.id; });
     if(payload.eventType !== 'DELETE'){ state.participantRows = state.participantRows.concat([row]); }
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords, groupMembers:state.groupMembers});
     if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
   }
 
@@ -1623,7 +1640,7 @@
     if(!row || !row.id) return;
     if(payload.eventType === 'DELETE'){ delete state.schedules[row.id]; }
     else { state.schedules[row.id] = row; }
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords, groupMembers:state.groupMembers});
 
     if(state.participant && row.id === state.participant.groupId){
       if(state.screen === 'waiting'){
@@ -1649,7 +1666,7 @@
     if(!row || !row.id) return;
     if(payload.eventType === 'DELETE'){ delete state.stationTemplates[row.id]; }
     else { state.stationTemplates[row.id] = {id:row.id, title:row.title, amt:row.amt, icon:row.icon, address:row.address, questions:row.questions}; }
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords, groupMembers:state.groupMembers});
     if(state.screen === 'map' || state.screen === 'admin'){ render(); }
   }
 
@@ -1658,7 +1675,7 @@
     if(!row || !row.group_id) return;
     if(payload.eventType === 'DELETE'){ delete state.groupRoutes[row.group_id]; }
     else { state.groupRoutes[row.group_id] = row.template_ids || []; }
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords, groupMembers:state.groupMembers});
     if(state.screen === 'map' || state.screen === 'admin'){ render(); }
   }
 
@@ -1667,7 +1684,16 @@
     if(!row || !row.group_id) return;
     if(payload.eventType === 'DELETE'){ delete state.groupPasswords[row.group_id]; }
     else { state.groupPasswords[row.group_id] = row.password; }
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords});
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords, groupMembers:state.groupMembers});
+    if(state.screen === 'admin'){ render(); }
+  }
+
+  function handleRemoteGroupMembersChange(payload){
+    var row = payload.eventType === 'DELETE' ? payload.old : payload.new;
+    if(!row || !row.group_id) return;
+    if(payload.eventType === 'DELETE'){ delete state.groupMembers[row.group_id]; }
+    else { state.groupMembers[row.group_id] = row.names || []; }
+    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords, groupMembers:state.groupMembers});
     if(state.screen === 'admin'){ render(); }
   }
 
@@ -2582,7 +2608,8 @@
     {id:'schedules', label:'Zeitpläne', icon:'clock'},
     {id:'feedback', label:'Feedback', icon:'question'},
     {id:'evaluation', label:'Auswertung', icon:'chart'},
-    {id:'passwords', label:'Passwörter', icon:'key'}
+    {id:'passwords', label:'Passwörter', icon:'key'},
+    {id:'members', label:'Teammitglieder', icon:'users'}
   ];
 
   function renderAdmin(){
@@ -2601,6 +2628,7 @@
     else if(state.adminTab === 'feedback') content = renderAdminFeedback();
     else if(state.adminTab === 'evaluation') content = renderAdminEvaluation();
     else if(state.adminTab === 'passwords') content = renderAdminPasswords();
+    else if(state.adminTab === 'members') content = renderAdminMembers();
     else content = renderAdminOverview();
 
     return ''+
@@ -3286,6 +3314,58 @@
     }
   }
 
+  function renderAdminMembers(){
+    var blocks = GROUPS.map(function(gr){
+      var names = (state.groupMembers[gr.id] || []).slice();
+      while(names.length < CAPACITY) names.push('');
+      var filledCount = names.filter(function(n){ return n && n.trim(); }).length;
+      var rows = names.slice(0, CAPACITY).map(function(name, i){
+        return '<div class="admin-schedule-row">'+
+          '<label>Mitglied '+(i+1)+'</label>'+
+          '<input type="text" data-member-slot="'+gr.id+'|'+i+'" value="'+esc(name)+'" placeholder="Name">'+
+        '</div>';
+      }).join('');
+      return ''+
+      '<details class="admin-schedule-group">'+
+        '<summary><span>'+esc(gr.name)+'</span><span class="admin-note" style="margin:0;">'+filledCount+' / '+CAPACITY+' eingetragen</span></summary>'+
+        '<div class="admin-schedule-fields">'+
+          rows+
+          '<div style="margin-top:12px;">'+btn('Speichern', {attrs:'data-save-members="'+gr.id+'"'})+'</div>'+
+        '</div>'+
+      '</details>';
+    }).join('');
+    return ''+
+    '<div class="intro-card">'+
+      '<h3 style="margin-top:0;">Teammitglieder je Gruppe</h3>'+
+      '<p class="muted" style="font-size:13px; margin:0 0 12px;">Rein organisatorisch - hat keinen Einfluss auf Anmeldung oder Kapazität, hilft aber bei der Übersicht, wer zu welcher Gruppe gehört.</p>'+
+      blocks+
+    '</div>';
+  }
+
+  async function saveGroupMembers(groupId){
+    var names = [];
+    for(var i=0; i<CAPACITY; i++){
+      var input = document.querySelector('[data-member-slot="'+groupId+'|'+i+'"]');
+      names.push(input ? input.value.trim() : '');
+    }
+    if(!sb){ showToast('Keine Verbindung zur Datenbank.'); return; }
+    try{
+      var res = await sb.rpc('save_group_members', {p_group_id: groupId, p_names: names});
+      if(res.error){
+        console.warn('Behördenrallye: Teammitglieder konnten nicht gespeichert werden.', res.error);
+        showToast('Speichern fehlgeschlagen: Tabelle "group_members" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
+        return;
+      }
+      await refreshGroupsState();
+      render();
+      var groupDef = GROUPS.filter(function(g){ return g.id === groupId; })[0];
+      showToast('✓ Teammitglieder für '+(groupDef?groupDef.name:groupId)+' gespeichert.');
+    }catch(e){
+      console.warn('Behördenrallye: Teammitglieder konnten nicht gespeichert werden.', e);
+      showToast('Speichern fehlgeschlagen: Tabelle "group_members" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
+    }
+  }
+
   function renderScheduleGenerator(){
     var gapsHtml = '';
     for(var i=1;i<STATIONS_PER_GROUP;i++){
@@ -3949,6 +4029,10 @@
 
     document.querySelectorAll('[data-save-password]').forEach(function(btn){
       btn.addEventListener('click', function(){ saveGroupPassword(btn.getAttribute('data-save-password')); });
+    });
+
+    document.querySelectorAll('[data-save-members]').forEach(function(btn){
+      btn.addEventListener('click', function(){ saveGroupMembers(btn.getAttribute('data-save-members')); });
     });
 
     var adminTriggerWinnerBtn = document.getElementById('adminTriggerWinnerBtn');
