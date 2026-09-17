@@ -454,6 +454,56 @@ begin
   end if;
 end $$;
 
+-- Namensliste der Teammitglieder je Gruppe - rein organisatorisch fürs
+-- Orga-Team (wer gehört zu welcher Gruppe), ohne Einfluss auf Anmeldung
+-- oder Kapazität. Ohne Eintrag ist die Liste einfach leer.
+create table if not exists public.group_members (
+  group_id text primary key check (group_id in (
+    'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
+    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11','gruppe-12'
+  )),
+  names jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.group_members enable row level security;
+
+drop policy if exists "group_members public read" on public.group_members;
+create policy "group_members public read"
+  on public.group_members for select
+  using (true);
+
+-- Kein direktes UPDATE/INSERT für anon - Schreiben läuft nur über die
+-- save_group_members()-Funktion (SECURITY DEFINER), gleiches Prinzip wie
+-- save_group_password() oben.
+drop function if exists public.save_group_members(text, jsonb);
+
+create or replace function public.save_group_members(p_group_id text, p_names jsonb)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  insert into public.group_members (group_id, names, updated_at)
+  values (p_group_id, p_names, now())
+  on conflict (group_id) do update
+    set names = excluded.names,
+        updated_at = now()
+  returning to_jsonb(public.group_members.*);
+$$;
+
+grant execute on function public.save_group_members(text, jsonb) to anon;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'group_members'
+  ) then
+    alter publication supabase_realtime add table public.group_members;
+  end if;
+end $$;
+
 -- Anonymes Feedback: EIN Formular (Singleton-Zeile 'main') mit einem
 -- Fragenkatalog (je Frage 'choice' mit Optionen oder 'text' für Freitext)
 -- und einer Stundenzahl, nach der das Feedback-Popup bei jedem Team
