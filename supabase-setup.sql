@@ -21,24 +21,32 @@
 create table if not exists public.groups (
   id text primary key check (id in (
     'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
-    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11','gruppe-12'
+    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11'
   )),
   progress jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
 
--- Falls "groups" schon aus einer früheren Version existiert (9 statt 12
--- Gruppen), die CHECK-Bedingung auf 12 Gruppen erweitern.
+-- Gruppe 12 wurde wieder entfernt (nur noch 11 Gruppen). ACHTUNG: löscht
+-- unwiderruflich alle bisherigen Anmeldungen/Fortschritt von Gruppe 12,
+-- falls dort schon jemand registriert war - vorher exportieren, falls
+-- diese Daten noch gebraucht werden. participants zuerst (Fremdschlüssel
+-- auf groups), erst danach die groups-Zeile selbst.
+delete from public.participants where group_id = 'gruppe-12';
+delete from public.groups where id = 'gruppe-12';
+
+-- Falls "groups" schon aus einer früheren Version existiert (9 statt 11
+-- Gruppen), die CHECK-Bedingung auf die aktuelle Gruppenzahl anpassen.
 alter table public.groups drop constraint if exists groups_id_check;
 alter table public.groups add constraint groups_id_check check (id in (
   'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
-  'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11','gruppe-12'
+  'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11'
 ));
 
 insert into public.groups (id) values
   ('gruppe-1'),('gruppe-2'),('gruppe-3'),('gruppe-4'),('gruppe-5'),
   ('gruppe-6'),('gruppe-7'),('gruppe-8'),('gruppe-9'),
-  ('gruppe-10'),('gruppe-11'),('gruppe-12')
+  ('gruppe-10'),('gruppe-11')
 on conflict (id) do nothing;
 
 create table if not exists public.participants (
@@ -166,7 +174,7 @@ end $$;
 create table if not exists public.schedules (
   id text primary key check (id in (
     'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
-    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11','gruppe-12','_global'
+    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11','_global'
   )),
   stage_times jsonb not null default '{}'::jsonb,
   break_stages jsonb not null default '[]'::jsonb,
@@ -174,16 +182,18 @@ create table if not exists public.schedules (
   updated_at timestamptz not null default now()
 );
 
+delete from public.schedules where id = 'gruppe-12';
+
 alter table public.schedules drop constraint if exists schedules_id_check;
 alter table public.schedules add constraint schedules_id_check check (id in (
   'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
-  'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11','gruppe-12','_global'
+  'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11','_global'
 ));
 
 insert into public.schedules (id) values
   ('gruppe-1'),('gruppe-2'),('gruppe-3'),('gruppe-4'),('gruppe-5'),
   ('gruppe-6'),('gruppe-7'),('gruppe-8'),('gruppe-9'),
-  ('gruppe-10'),('gruppe-11'),('gruppe-12'),('_global')
+  ('gruppe-10'),('gruppe-11'),('_global')
 on conflict (id) do nothing;
 
 alter table public.schedules enable row level security;
@@ -362,11 +372,19 @@ end $$;
 create table if not exists public.group_routes (
   group_id text primary key check (group_id in (
     'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
-    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11','gruppe-12'
+    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11'
   )),
   template_ids jsonb not null default '[]'::jsonb,
   updated_at timestamptz not null default now()
 );
+
+delete from public.group_routes where group_id = 'gruppe-12';
+
+alter table public.group_routes drop constraint if exists group_routes_group_id_check;
+alter table public.group_routes add constraint group_routes_group_id_check check (group_id in (
+  'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
+  'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11'
+));
 
 alter table public.group_routes enable row level security;
 
@@ -405,16 +423,24 @@ end $$;
 
 -- Gruppen-Passwörter: mit welchem Passwort sich eine Gruppe auf ihren
 -- Geräten anmeldet. Ohne eigenen Eintrag nutzt die App weiterhin die
--- eingebauten Standard-Passwörter (rallye1..rallye12), damit die Rallye
+-- eingebauten Standard-Passwörter (rallye1..rallye11), damit die Rallye
 -- auch ohne jede Admin-Pflege sofort spielbar ist.
 create table if not exists public.group_passwords (
   group_id text primary key check (group_id in (
     'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
-    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11','gruppe-12'
+    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11'
   )),
   password text not null,
   updated_at timestamptz not null default now()
 );
+
+delete from public.group_passwords where group_id = 'gruppe-12';
+
+alter table public.group_passwords drop constraint if exists group_passwords_group_id_check;
+alter table public.group_passwords add constraint group_passwords_group_id_check check (group_id in (
+  'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
+  'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11'
+));
 
 alter table public.group_passwords enable row level security;
 
@@ -460,11 +486,19 @@ end $$;
 create table if not exists public.group_members (
   group_id text primary key check (group_id in (
     'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
-    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11','gruppe-12'
+    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11'
   )),
   names jsonb not null default '[]'::jsonb,
   updated_at timestamptz not null default now()
 );
+
+delete from public.group_members where group_id = 'gruppe-12';
+
+alter table public.group_members drop constraint if exists group_members_group_id_check;
+alter table public.group_members add constraint group_members_group_id_check check (group_id in (
+  'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
+  'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11'
+));
 
 alter table public.group_members enable row level security;
 
