@@ -894,15 +894,15 @@
   function icon(name){ return '<span class="icon">'+(ICONS[name]||'')+'</span>'; }
 
   var GROUPS = [];
-  for(var _gi=1; _gi<=12; _gi++){ GROUPS.push({id:'gruppe-'+_gi, name:'Gruppe '+_gi}); }
+  for(var _gi=1; _gi<=11; _gi++){ GROUPS.push({id:'gruppe-'+_gi, name:'Gruppe '+_gi}); }
 
   // Jede Gruppe hat ein festes Passwort statt freier Team-Wahl - wer das
   // Passwort kennt, wird direkt der zugehörigen Gruppe zugewiesen. Die
-  // Standard-Passwörter (rallye1..rallye12) gelten nur, solange das Admin-
+  // Standard-Passwörter (rallye1..rallye11) gelten nur, solange das Admin-
   // Panel (Tab "Passwörter") kein eigenes Passwort für die Gruppe hinterlegt
   // hat - siehe groupPassword().
   var DEFAULT_GROUP_PASSWORDS = {};
-  for(var _pi=1; _pi<=12; _pi++){ DEFAULT_GROUP_PASSWORDS['gruppe-'+_pi] = 'rallye'+_pi; }
+  for(var _pi=1; _pi<=11; _pi++){ DEFAULT_GROUP_PASSWORDS['gruppe-'+_pi] = 'rallye'+_pi; }
 
   // Interner Admin-Zugang fürs Orga-Team - erreichbar über die URL mit #admin.
   // Zwei Rollen: 'full' sieht/bearbeitet alles, 'viewer' sieht im Panel nur
