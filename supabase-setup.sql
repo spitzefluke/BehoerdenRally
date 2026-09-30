@@ -60,15 +60,17 @@ create table if not exists public.participants (
 create index if not exists participants_group_id_idx on public.participants (group_id);
 create index if not exists participants_recovery_code_idx on public.participants (recovery_code);
 
--- Kapazität serverseitig durchsetzen (max. 9 pro Gruppe - jede Gruppe hat
--- 9 feste Mitglieder), damit zwei Geräte nicht gleichzeitig den letzten
--- Platz belegen können.
+-- Kapazität serverseitig durchsetzen, damit zwei Geräte nicht gleichzeitig
+-- den letzten Platz belegen können. Geplant sind 11-12 Personen je Gruppe;
+-- die harte Grenze ist deshalb 12 (entspricht CAPACITY im HTML). Beim
+-- erneuten Ausführen dieses Skripts wird eine ältere Grenze (früher 9)
+-- durch das "create or replace" automatisch mit angehoben.
 create or replace function public.enforce_group_capacity()
 returns trigger
 language plpgsql
 as $$
 begin
-  if (select count(*) from public.participants where group_id = new.group_id) >= 9 then
+  if (select count(*) from public.participants where group_id = new.group_id) >= 12 then
     raise exception 'GROUP_FULL' using errcode = 'P0001';
   end if;
   return new;
@@ -480,9 +482,76 @@ begin
   end if;
 end $$;
 
--- Namensliste der Teammitglieder je Gruppe - rein organisatorisch fürs
--- Orga-Team (wer gehört zu welcher Gruppe), ohne Einfluss auf Anmeldung
--- oder Kapazität. Ohne Eintrag ist die Liste einfach leer.
+-- Eigene Gruppennamen: unter welchem Namen eine Gruppe in der Rangliste,
+-- auf den Geräten und im CSV-Export auftaucht. Ohne eigenen Eintrag nutzt
+-- die App weiterhin den eingebauten Standardnamen ("Gruppe 1" ...). Die
+-- Gruppen-ID selbst bleibt unverändert, damit Fortschritt, Passwörter,
+-- Routen und Zeitpläne beim Umbenennen erhalten bleiben.
+create table if not exists public.group_names (
+  group_id text primary key check (group_id in (
+    'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
+    'gruppe-6','gruppe-7','gruppe-8','gruppe-9','gruppe-10','gruppe-11'
+  )),
+  name text not null check (char_length(btrim(name)) between 1 and 40),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.group_names enable row level security;
+
+drop policy if exists "group_names public read" on public.group_names;
+create policy "group_names public read"
+  on public.group_names for select
+  using (true);
+
+-- Kein direktes UPDATE/INSERT/DELETE für anon - Schreiben läuft nur über
+-- die save_group_name()/reset_group_name()-Funktionen (SECURITY DEFINER),
+-- gleiches Prinzip wie save_group_password() oben.
+drop function if exists public.save_group_name(text, text);
+
+create or replace function public.save_group_name(p_group_id text, p_name text)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  insert into public.group_names (group_id, name, updated_at)
+  values (p_group_id, btrim(p_name), now())
+  on conflict (group_id) do update
+    set name = excluded.name,
+        updated_at = now()
+  returning to_jsonb(public.group_names.*);
+$$;
+
+grant execute on function public.save_group_name(text, text) to anon;
+
+-- Setzt eine Gruppe wieder auf ihren Standardnamen zurück (Zeile löschen -
+-- die App fällt dann automatisch auf "Gruppe N" zurück).
+drop function if exists public.reset_group_name(text);
+
+create or replace function public.reset_group_name(p_group_id text)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  delete from public.group_names where group_id = p_group_id;
+$$;
+
+grant execute on function public.reset_group_name(text) to anon;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'group_names'
+  ) then
+    alter publication supabase_realtime add table public.group_names;
+  end if;
+end $$;
+
+-- Namensliste der Teammitglieder je Gruppe (geplant sind 11-12 Personen) -
+-- rein organisatorisch fürs Orga-Team (wer gehört zu welcher Gruppe), ohne
+-- Einfluss auf Anmeldung oder Kapazität. Ohne Eintrag ist die Liste leer.
 create table if not exists public.group_members (
   group_id text primary key check (group_id in (
     'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
