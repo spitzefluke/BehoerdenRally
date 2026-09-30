@@ -896,6 +896,15 @@
   var GROUPS = [];
   for(var _gi=1; _gi<=11; _gi++){ GROUPS.push({id:'gruppe-'+_gi, name:'Gruppe '+_gi}); }
 
+  // Die eingebauten Namen ("Gruppe 1" ...) gelten nur, solange das Admin-
+  // Panel (Tab "Gruppennamen") keinen eigenen Namen für die Gruppe
+  // hinterlegt hat - siehe groupName()/applyGroupNames(). Die IDs
+  // (gruppe-1 ...) bleiben davon unberührt, damit Passwörter, Routen,
+  // Zeitpläne und der gespeicherte Fortschritt weiter passen.
+  var DEFAULT_GROUP_NAMES = {};
+  GROUPS.forEach(function(g){ DEFAULT_GROUP_NAMES[g.id] = g.name; });
+  var GROUP_NAME_MAX = 40;
+
   // Jede Gruppe hat ein festes Passwort statt freier Team-Wahl - wer das
   // Passwort kennt, wird direkt der zugehörigen Gruppe zugewiesen. Die
   // Standard-Passwörter (rallye1..rallye11) gelten nur, solange das Admin-
@@ -914,7 +923,12 @@
     'orga-2026': 'full',
     'sieger-2026': 'viewer'
   };
-  var CAPACITY = 9;
+  // Jede Gruppe hat 11-12 Mitglieder: CAPACITY ist die harte Obergrenze
+  // (zusätzlich serverseitig im Trigger, siehe supabase-setup.sql),
+  // GROUP_SIZE_MIN nur der Sollwert, den das Admin-Panel bei der
+  // Mitgliederliste als "noch nicht vollständig" anzeigt.
+  var GROUP_SIZE_MIN = 11;
+  var CAPACITY = 12;
   var STATIONS_PER_GROUP = 4;
 
   function tabClass(index){ return 'tab-' + ((index % 6) + 1); }
@@ -1214,6 +1228,7 @@
     groupRoutes:{},
     groupPasswords:{},
     groupMembers:{},
+    groupNames:{},
     adminTab:'overview',
     adminRole:null,
     adminEditTemplate:null,
@@ -1313,6 +1328,20 @@
     return (custom && String(custom).trim()) ? String(custom).trim() : DEFAULT_GROUP_PASSWORDS[groupId];
   }
 
+  // Effektiver Anzeigename einer Gruppe: admin-editierter Name (Tab
+  // "Gruppennamen"), sonst der eingebaute Standard ("Gruppe N").
+  function groupName(groupId){
+    var custom = state.groupNames && state.groupNames[groupId];
+    return (custom && String(custom).trim()) ? String(custom).trim() : (DEFAULT_GROUP_NAMES[groupId] || groupId);
+  }
+
+  // Schreibt die aktuellen Namen in die GROUPS-Einträge zurück, damit
+  // alle Stellen, die schon vorher mit gr.name gearbeitet haben (Rangliste,
+  // Admin-Tabs, CSV-Export, Toasts), automatisch den eigenen Namen zeigen.
+  function applyGroupNames(){
+    GROUPS.forEach(function(g){ g.name = groupName(g.id); });
+  }
+
   function resolveGroupIdByPassword(pw){
     var lower = (pw||'').toLowerCase();
     var match = GROUPS.filter(function(g){ return groupPassword(g.id).toLowerCase() === lower; })[0];
@@ -1362,6 +1391,18 @@
       }
     }catch(e){ console.warn('Behördenrallye: Supabase-Client konnte nicht erstellt werden.', e); }
     return null;
+  }
+
+  // Schreibt den aktuellen State in den Cache - die Realtime-Handler
+  // aktualisieren jeweils nur einen Teil davon, speichern aber immer alles.
+  function cacheCurrentRemoteState(){
+    cacheRemoteState({
+      groups: state.groupRows, participants: state.participantRows,
+      schedules: state.schedules, stationTemplates: state.stationTemplates,
+      groupRoutes: state.groupRoutes, feedbackForm: state.feedbackForm,
+      groupPasswords: state.groupPasswords, groupMembers: state.groupMembers,
+      groupNames: state.groupNames
+    });
   }
 
   function cacheRemoteState(remote){
@@ -1446,7 +1487,17 @@
         }
       }catch(e){ /* Tabelle evtl. noch nicht angelegt - kein Problem */ }
 
-      return { groups: groupsRes.data, participants: participantsRes.data, schedules: schedules, stationTemplates: stationTemplates, groupRoutes: groupRoutes, feedbackForm: feedbackForm, groupPasswords: groupPasswords, groupMembers: groupMembers };
+      // Eigene Gruppennamen sind ebenso optional - ohne Tabelle/Eintrag
+      // bleibt es beim eingebauten Standardnamen ("Gruppe N").
+      var groupNames = {};
+      try{
+        var namesRes = await sb.from('group_names').select('*');
+        if(!namesRes.error && namesRes.data){
+          namesRes.data.forEach(function(row){ groupNames[row.group_id] = row.name; });
+        }
+      }catch(e){ /* Tabelle evtl. noch nicht angelegt - kein Problem */ }
+
+      return { groups: groupsRes.data, participants: participantsRes.data, schedules: schedules, stationTemplates: stationTemplates, groupRoutes: groupRoutes, feedbackForm: feedbackForm, groupPasswords: groupPasswords, groupMembers: groupMembers, groupNames: groupNames };
     }catch(e){
       console.warn('Behördenrallye: Laden von Supabase fehlgeschlagen.', e);
       return null;
@@ -1464,6 +1515,7 @@
       state.feedbackForm = remote.feedbackForm || state.feedbackForm;
       state.groupPasswords = remote.groupPasswords || {};
       state.groupMembers = remote.groupMembers || {};
+      state.groupNames = remote.groupNames || {};
       if(state.offline) showToast('✓ Verbindung wiederhergestellt – Rangliste ist wieder live.');
       state.offline = false;
       cacheRemoteState(remote);
@@ -1477,8 +1529,10 @@
       state.feedbackForm = cached ? (cached.feedbackForm || state.feedbackForm) : state.feedbackForm;
       state.groupPasswords = cached ? (cached.groupPasswords || {}) : (state.groupPasswords || {});
       state.groupMembers = cached ? (cached.groupMembers || {}) : (state.groupMembers || {});
+      state.groupNames = cached ? (cached.groupNames || {}) : (state.groupNames || {});
       state.offline = true;
     }
+    applyGroupNames();
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
     if(state.participant){
       var myRow = state.groupRows.filter(function(r){ return r.id === state.participant.groupId; })[0];
@@ -1528,6 +1582,9 @@
         .subscribe();
       sb.channel('public:group_members')
         .on('postgres_changes', {event:'*', schema:'public', table:'group_members'}, handleRemoteGroupMembersChange)
+        .subscribe();
+      sb.channel('public:group_names')
+        .on('postgres_changes', {event:'*', schema:'public', table:'group_names'}, handleRemoteGroupNameChange)
         .subscribe();
       sb.channel('public:announcements')
         .on('postgres_changes', {event:'INSERT', schema:'public', table:'announcements'}, handleRemoteAnnouncementInsert)
@@ -1621,7 +1678,7 @@
     }
 
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords, groupMembers:state.groupMembers});
+    cacheCurrentRemoteState();
     if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
   }
 
@@ -1631,7 +1688,7 @@
     state.participantRows = (state.participantRows||[]).filter(function(r){ return r.id !== row.id; });
     if(payload.eventType !== 'DELETE'){ state.participantRows = state.participantRows.concat([row]); }
     state.groupsState = deriveGroupsState(state.groupRows, state.participantRows);
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords, groupMembers:state.groupMembers});
+    cacheCurrentRemoteState();
     if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
   }
 
@@ -1640,7 +1697,7 @@
     if(!row || !row.id) return;
     if(payload.eventType === 'DELETE'){ delete state.schedules[row.id]; }
     else { state.schedules[row.id] = row; }
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords, groupMembers:state.groupMembers});
+    cacheCurrentRemoteState();
 
     if(state.participant && row.id === state.participant.groupId){
       if(state.screen === 'waiting'){
@@ -1666,7 +1723,7 @@
     if(!row || !row.id) return;
     if(payload.eventType === 'DELETE'){ delete state.stationTemplates[row.id]; }
     else { state.stationTemplates[row.id] = {id:row.id, title:row.title, amt:row.amt, icon:row.icon, address:row.address, questions:row.questions}; }
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords, groupMembers:state.groupMembers});
+    cacheCurrentRemoteState();
     if(state.screen === 'map' || state.screen === 'admin'){ render(); }
   }
 
@@ -1675,7 +1732,7 @@
     if(!row || !row.group_id) return;
     if(payload.eventType === 'DELETE'){ delete state.groupRoutes[row.group_id]; }
     else { state.groupRoutes[row.group_id] = row.template_ids || []; }
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords, groupMembers:state.groupMembers});
+    cacheCurrentRemoteState();
     if(state.screen === 'map' || state.screen === 'admin'){ render(); }
   }
 
@@ -1684,7 +1741,7 @@
     if(!row || !row.group_id) return;
     if(payload.eventType === 'DELETE'){ delete state.groupPasswords[row.group_id]; }
     else { state.groupPasswords[row.group_id] = row.password; }
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords, groupMembers:state.groupMembers});
+    cacheCurrentRemoteState();
     if(state.screen === 'admin'){ render(); }
   }
 
@@ -1693,8 +1750,20 @@
     if(!row || !row.group_id) return;
     if(payload.eventType === 'DELETE'){ delete state.groupMembers[row.group_id]; }
     else { state.groupMembers[row.group_id] = row.names || []; }
-    cacheRemoteState({groups:state.groupRows, participants:state.participantRows, schedules:state.schedules, stationTemplates:state.stationTemplates, groupRoutes:state.groupRoutes, groupPasswords:state.groupPasswords, groupMembers:state.groupMembers});
+    cacheCurrentRemoteState();
     if(state.screen === 'admin'){ render(); }
+  }
+
+  function handleRemoteGroupNameChange(payload){
+    var row = payload.eventType === 'DELETE' ? payload.old : payload.new;
+    if(!row || !row.group_id) return;
+    if(payload.eventType === 'DELETE'){ delete state.groupNames[row.group_id]; }
+    else { state.groupNames[row.group_id] = row.name; }
+    applyGroupNames();
+    cacheCurrentRemoteState();
+    // Der Name taucht auch außerhalb des Panels auf (Rangliste, Kopfzeile
+    // der Gruppe), deshalb hier breiter neu rendern als bei Passwörtern.
+    if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
   }
 
   function handleRemoteAnnouncementInsert(payload){
@@ -2609,6 +2678,7 @@
     {id:'feedback', label:'Feedback', icon:'question'},
     {id:'evaluation', label:'Auswertung', icon:'chart'},
     {id:'passwords', label:'Passwörter', icon:'key'},
+    {id:'names', label:'Gruppennamen', icon:'star'},
     {id:'members', label:'Teammitglieder', icon:'users'}
   ];
 
@@ -2628,6 +2698,7 @@
     else if(state.adminTab === 'feedback') content = renderAdminFeedback();
     else if(state.adminTab === 'evaluation') content = renderAdminEvaluation();
     else if(state.adminTab === 'passwords') content = renderAdminPasswords();
+    else if(state.adminTab === 'names') content = renderAdminNames();
     else if(state.adminTab === 'members') content = renderAdminMembers();
     else content = renderAdminOverview();
 
@@ -2693,8 +2764,8 @@
     // zusätzliches Sicherheitsnetz, falls die Funktion doch aufgerufen wird.
     if(state.adminRole === 'viewer'){ showToast('Nur mit Vollzugriff möglich.'); return; }
     var groupDef = GROUPS.filter(function(g){ return g.id === groupId; })[0];
-    var groupName = groupDef ? groupDef.name : groupId;
-    if(!window.confirm('Fortschritt von '+groupName+' wirklich zurücksetzen? Das kann nicht rückgängig gemacht werden.')) return;
+    var label = groupDef ? groupDef.name : groupId;
+    if(!window.confirm('Fortschritt von '+label+' wirklich zurücksetzen? Das kann nicht rückgängig gemacht werden.')) return;
     if(!sb){ showToast('Keine Verbindung zur Datenbank.'); return; }
     try{
       var res = await sb.rpc('reset_group_progress', {p_group_id: groupId});
@@ -2705,7 +2776,7 @@
       }
       await refreshGroupsState();
       render();
-      showToast('✓ Fortschritt von '+groupName+' zurückgesetzt.');
+      showToast('✓ Fortschritt von '+label+' zurückgesetzt.');
     }catch(e){
       console.warn('Behördenrallye: Fortschritt konnte nicht zurückgesetzt werden.', e);
       showToast('Zurücksetzen fehlgeschlagen.');
@@ -3314,6 +3385,47 @@
     }
   }
 
+  function renderAdminNames(){
+    var rowsHtml = GROUPS.map(function(gr){
+      var isCustom = !!(state.groupNames && state.groupNames[gr.id] && String(state.groupNames[gr.id]).trim());
+      return '<div class="admin-schedule-row">'+
+        '<label for="gn_'+gr.id+'">'+esc(DEFAULT_GROUP_NAMES[gr.id])+(isCustom?'':' <span class="admin-note" style="margin:0;">(Standard)</span>')+'</label>'+
+        '<input type="text" id="gn_'+gr.id+'" data-group-name="'+gr.id+'" maxlength="'+GROUP_NAME_MAX+'" value="'+esc(groupName(gr.id))+'">'+
+        btn('Speichern', {cls:'btn-sm', attrs:'data-save-group-name="'+gr.id+'"'})+
+      '</div>';
+    }).join('');
+    return ''+
+    '<div class="intro-card">'+
+      '<h3 style="margin-top:0;">Gruppennamen</h3>'+
+      '<p class="muted" style="font-size:13px; margin:0 0 12px;">Der Name, unter dem eine Gruppe in der Rangliste, auf ihren Geräten und im Export auftaucht. Leer lassen und speichern setzt wieder auf den Standardnamen links zurück. Passwörter, Routen, Zeitpläne und der Punktestand hängen an der Gruppen-ID und bleiben beim Umbenennen erhalten.</p>'+
+      rowsHtml+
+    '</div>';
+  }
+
+  async function saveGroupName(groupId){
+    var input = document.querySelector('[data-group-name="'+groupId+'"]');
+    var name = input ? input.value.trim().slice(0, GROUP_NAME_MAX) : '';
+    if(!sb){ showToast('Keine Verbindung zur Datenbank.'); return; }
+    try{
+      // Leerer Name = zurück auf den Standard: die Zeile wird gelöscht,
+      // damit groupName() wieder auf DEFAULT_GROUP_NAMES zurückfällt.
+      var res = name
+        ? await sb.rpc('save_group_name', {p_group_id: groupId, p_name: name})
+        : await sb.rpc('reset_group_name', {p_group_id: groupId});
+      if(res.error){
+        console.warn('Behördenrallye: Gruppenname konnte nicht gespeichert werden.', res.error);
+        showToast('Speichern fehlgeschlagen: Tabelle "group_names" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
+        return;
+      }
+      await refreshGroupsState();
+      render();
+      showToast('✓ Gruppe heißt jetzt '+groupName(groupId)+'.');
+    }catch(e){
+      console.warn('Behördenrallye: Gruppenname konnte nicht gespeichert werden.', e);
+      showToast('Speichern fehlgeschlagen: Tabelle "group_names" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
+    }
+  }
+
   function renderAdminMembers(){
     var blocks = GROUPS.map(function(gr){
       var names = (state.groupMembers[gr.id] || []).slice();
@@ -3321,13 +3433,13 @@
       var filledCount = names.filter(function(n){ return n && n.trim(); }).length;
       var rows = names.slice(0, CAPACITY).map(function(name, i){
         return '<div class="admin-schedule-row">'+
-          '<label>Mitglied '+(i+1)+'</label>'+
+          '<label>Mitglied '+(i+1)+(i+1 > GROUP_SIZE_MIN ? ' <span class="admin-note" style="margin:0;">(optional)</span>' : '')+'</label>'+
           '<input type="text" data-member-slot="'+gr.id+'|'+i+'" value="'+esc(name)+'" placeholder="Name">'+
         '</div>';
       }).join('');
       return ''+
       '<details class="admin-schedule-group">'+
-        '<summary><span>'+esc(gr.name)+'</span><span class="admin-note" style="margin:0;">'+filledCount+' / '+CAPACITY+' eingetragen</span></summary>'+
+        '<summary><span>'+esc(gr.name)+'</span><span class="admin-note" style="margin:0;">'+filledCount+' / '+CAPACITY+' eingetragen'+(filledCount < GROUP_SIZE_MIN ? ' · Ziel '+GROUP_SIZE_MIN+'-'+CAPACITY : '')+'</span></summary>'+
         '<div class="admin-schedule-fields">'+
           rows+
           '<div style="margin-top:12px;">'+btn('Speichern', {attrs:'data-save-members="'+gr.id+'"'})+'</div>'+
@@ -3337,7 +3449,7 @@
     return ''+
     '<div class="intro-card">'+
       '<h3 style="margin-top:0;">Teammitglieder je Gruppe</h3>'+
-      '<p class="muted" style="font-size:13px; margin:0 0 12px;">Rein organisatorisch - hat keinen Einfluss auf Anmeldung oder Kapazität, hilft aber bei der Übersicht, wer zu welcher Gruppe gehört.</p>'+
+      '<p class="muted" style="font-size:13px; margin:0 0 12px;">Geplant sind '+GROUP_SIZE_MIN+'-'+CAPACITY+' Personen je Gruppe; das '+CAPACITY+'. Feld darf also frei bleiben. Rein organisatorisch - hat keinen Einfluss auf Anmeldung oder Kapazität, hilft aber bei der Übersicht, wer zu welcher Gruppe gehört.</p>'+
       blocks+
     '</div>';
   }
@@ -3498,6 +3610,14 @@
     }
   }
 
+  function csvCell(value){
+    var text = String(value == null ? '' : value);
+    // Gruppennamen sind im Admin-Panel frei wählbar und können Semikolon,
+    // Anführungszeichen oder Zeilenumbrüche enthalten - sonst verrutschen
+    // beim Import die Spalten.
+    return /[";\r\n]/.test(text) ? '"'+text.replace(/"/g,'""')+'"' : text;
+  }
+
   function exportResultsCsv(){
     var lines = [['Rang','Team','Punkte','Fallakten erledigt','Mitglieder'].join(';')];
     var rows = GROUPS.map(function(gr){
@@ -3507,7 +3627,7 @@
       return {name:gr.name, points:sumPoints(progress), done:countDone(progress), members:members};
     }).sort(function(a,b){ return b.points - a.points; });
     rows.forEach(function(r, idx){
-      lines.push([idx+1, r.name, r.points, r.done+'/'+STATIONS_PER_GROUP, r.members].join(';'));
+      lines.push([idx+1, r.name, r.points, r.done+'/'+STATIONS_PER_GROUP, r.members].map(csvCell).join(';'));
     });
     var blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
     var link = document.createElement('a');
@@ -4029,6 +4149,10 @@
 
     document.querySelectorAll('[data-save-password]').forEach(function(btn){
       btn.addEventListener('click', function(){ saveGroupPassword(btn.getAttribute('data-save-password')); });
+    });
+
+    document.querySelectorAll('[data-save-group-name]').forEach(function(btn){
+      btn.addEventListener('click', function(){ saveGroupName(btn.getAttribute('data-save-group-name')); });
     });
 
     document.querySelectorAll('[data-save-members]').forEach(function(btn){
