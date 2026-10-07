@@ -8,8 +8,8 @@
 -- Person - beantwortet ein Teammitglied eine Frage richtig, sehen alle
 -- anderen Mitglieder sofort dieselbe Mission als erledigt und die nächste
 -- Mission entsperrt (über Supabase Realtime). "groups" speichert diesen
--- gemeinsamen Fortschritt, "participants" nur, wer in welcher Gruppe ist
--- (für Kapazität/Namensliste).
+-- gemeinsamen Fortschritt, "participants" nur, welches Gerät zu welcher
+-- Gruppe gehört (eine Zeile je Anmeldung, unbegrenzt viele pro Gruppe).
 --
 -- Sicherheitsmodell: Es gibt kein Login (die Rallye braucht keins). Jede:r
 -- mit dem anon-Key (im HTML sichtbar) kann lesen, sich als Teilnehmer:in
@@ -60,27 +60,19 @@ create table if not exists public.participants (
 create index if not exists participants_group_id_idx on public.participants (group_id);
 create index if not exists participants_recovery_code_idx on public.participants (recovery_code);
 
--- Kapazität serverseitig durchsetzen, damit zwei Geräte nicht gleichzeitig
--- den letzten Platz belegen können. Geplant sind 11-12 Personen je Gruppe;
--- die harte Grenze ist deshalb 12 (entspricht CAPACITY im HTML). Beim
--- erneuten Ausführen dieses Skripts wird eine ältere Grenze (früher 9)
--- durch das "create or replace" automatisch mit angehoben.
-create or replace function public.enforce_group_capacity()
-returns trigger
-language plpgsql
-as $$
-begin
-  if (select count(*) from public.participants where group_id = new.group_id) >= 12 then
-    raise exception 'GROUP_FULL' using errcode = 'P0001';
-  end if;
-  return new;
-end;
-$$;
-
+-- Keine Obergrenze für Anmeldungen: eine Gruppe darf sich beliebig oft mit
+-- ihrem Passwort anmelden, auf beliebig vielen Geräten. Früher begrenzte der
+-- Trigger check_group_capacity die Zeilen pro Gruppe (zuerst auf 9, dann auf
+-- 12) und die App zeigte "Eure Gruppe hat bereits N Mitglieder angemeldet".
+-- Beides ist entfernt - Trigger und Funktion werden hier gelöscht, damit
+-- auch eine Datenbank, die noch eine frühere Version dieses Skripts gesehen
+-- hat, die Grenze beim erneuten Ausführen wirklich verliert.
+--
+-- Die geplante Teamgröße von 11-12 Personen bleibt davon unberührt: sie ist
+-- nur noch ein Sollwert für die Namensliste im Admin-Panel (group_members
+-- weiter unten) und bremst niemanden beim Anmelden.
 drop trigger if exists check_group_capacity on public.participants;
-create trigger check_group_capacity
-  before insert on public.participants
-  for each row execute function public.enforce_group_capacity();
+drop function if exists public.enforce_group_capacity();
 
 -- Atomares Abschließen einer Mission für die ganze Gruppe (verhindert
 -- Race Conditions, wenn zwei Teammitglieder fast gleichzeitig antworten).
@@ -551,7 +543,8 @@ end $$;
 
 -- Namensliste der Teammitglieder je Gruppe (geplant sind 11-12 Personen) -
 -- rein organisatorisch fürs Orga-Team (wer gehört zu welcher Gruppe), ohne
--- Einfluss auf Anmeldung oder Kapazität. Ohne Eintrag ist die Liste leer.
+-- Einfluss auf die Anmeldung, die unbegrenzt ist. Ohne Eintrag bleibt die
+-- Liste einfach leer.
 create table if not exists public.group_members (
   group_id text primary key check (group_id in (
     'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',

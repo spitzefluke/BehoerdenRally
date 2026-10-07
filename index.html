@@ -923,12 +923,13 @@
     'orga-2026': 'full',
     'sieger-2026': 'viewer'
   };
-  // Jede Gruppe hat 11-12 Mitglieder: CAPACITY ist die harte Obergrenze
-  // (zusätzlich serverseitig im Trigger, siehe supabase-setup.sql),
-  // GROUP_SIZE_MIN nur der Sollwert, den das Admin-Panel bei der
-  // Mitgliederliste als "noch nicht vollständig" anzeigt.
+  // Geplante Teamgröße: 11-12 Personen. Das sind reine Sollwerte für die
+  // Namensliste im Admin-Panel (Tab "Teammitglieder") - sie begrenzen die
+  // Anmeldung NICHT. Eine Gruppe darf sich beliebig oft mit ihrem Passwort
+  // anmelden, auf beliebig vielen Geräten (die serverseitige Begrenzung ist
+  // dafür in supabase-setup.sql entfernt worden).
   var GROUP_SIZE_MIN = 11;
-  var CAPACITY = 12;
+  var GROUP_SIZE_MAX = 12;
   var STATIONS_PER_GROUP = 4;
 
   function tabClass(index){ return 'tab-' + ((index % 6) + 1); }
@@ -1818,10 +1819,6 @@
     }, 15000);
   }
 
-  function groupOccupancy(id){
-    var g = state.groupsState[id];
-    return g ? g.members.length : 0;
-  }
   function groupPoints(id){
     var g = state.groupsState[id];
     return g ? g.points : 0;
@@ -1835,11 +1832,6 @@
     if(!groupId){ state.error = 'Unbekanntes Passwort. Bitte bei der Rallye-Leitung nachfragen.'; render(); return; }
     if(!sb){
       state.error = 'Keine Verbindung zur Rallye-Datenbank. Bitte Internetverbindung prüfen und Seite neu laden.';
-      render();
-      return;
-    }
-    if(groupOccupancy(groupId) >= CAPACITY){
-      state.error = 'Eure Gruppe hat bereits '+CAPACITY+' Mitglieder auf Geräten angemeldet.';
       render();
       return;
     }
@@ -1859,8 +1851,11 @@
 
     if(insertRes.error){
       var msg = String((insertRes.error && insertRes.error.message) || '');
+      // GROUP_FULL wirft nur noch eine Datenbank, in der das aktuelle
+      // supabase-setup.sql noch nicht eingespielt ist (dort begrenzt der
+      // alte Trigger check_group_capacity die Anmeldungen noch).
       state.error = msg.indexOf('GROUP_FULL') !== -1
-        ? 'Eure Gruppe hat bereits '+CAPACITY+' Mitglieder auf Geräten angemeldet.'
+        ? 'Die Rallye-Datenbank begrenzt die Anmeldungen eurer Gruppe noch. Bitte kurz bei der Rallye-Leitung melden.'
         : 'Anmeldung gerade nicht möglich. Bitte kurz erneut versuchen.';
       console.warn('Behördenrallye: Anmeldung fehlgeschlagen.', insertRes.error);
       await refreshGroupsState();
@@ -3429,9 +3424,9 @@
   function renderAdminMembers(){
     var blocks = GROUPS.map(function(gr){
       var names = (state.groupMembers[gr.id] || []).slice();
-      while(names.length < CAPACITY) names.push('');
+      while(names.length < GROUP_SIZE_MAX) names.push('');
       var filledCount = names.filter(function(n){ return n && n.trim(); }).length;
-      var rows = names.slice(0, CAPACITY).map(function(name, i){
+      var rows = names.slice(0, GROUP_SIZE_MAX).map(function(name, i){
         return '<div class="admin-schedule-row">'+
           '<label>Mitglied '+(i+1)+(i+1 > GROUP_SIZE_MIN ? ' <span class="admin-note" style="margin:0;">(optional)</span>' : '')+'</label>'+
           '<input type="text" data-member-slot="'+gr.id+'|'+i+'" value="'+esc(name)+'" placeholder="Name">'+
@@ -3439,7 +3434,7 @@
       }).join('');
       return ''+
       '<details class="admin-schedule-group">'+
-        '<summary><span>'+esc(gr.name)+'</span><span class="admin-note" style="margin:0;">'+filledCount+' / '+CAPACITY+' eingetragen'+(filledCount < GROUP_SIZE_MIN ? ' · Ziel '+GROUP_SIZE_MIN+'-'+CAPACITY : '')+'</span></summary>'+
+        '<summary><span>'+esc(gr.name)+'</span><span class="admin-note" style="margin:0;">'+filledCount+' / '+GROUP_SIZE_MAX+' eingetragen'+(filledCount < GROUP_SIZE_MIN ? ' · Ziel '+GROUP_SIZE_MIN+'-'+GROUP_SIZE_MAX : '')+'</span></summary>'+
         '<div class="admin-schedule-fields">'+
           rows+
           '<div style="margin-top:12px;">'+btn('Speichern', {attrs:'data-save-members="'+gr.id+'"'})+'</div>'+
@@ -3449,14 +3444,14 @@
     return ''+
     '<div class="intro-card">'+
       '<h3 style="margin-top:0;">Teammitglieder je Gruppe</h3>'+
-      '<p class="muted" style="font-size:13px; margin:0 0 12px;">Geplant sind '+GROUP_SIZE_MIN+'-'+CAPACITY+' Personen je Gruppe; das '+CAPACITY+'. Feld darf also frei bleiben. Rein organisatorisch - hat keinen Einfluss auf Anmeldung oder Kapazität, hilft aber bei der Übersicht, wer zu welcher Gruppe gehört.</p>'+
+      '<p class="muted" style="font-size:13px; margin:0 0 12px;">Geplant sind '+GROUP_SIZE_MIN+'-'+GROUP_SIZE_MAX+' Personen je Gruppe; das '+GROUP_SIZE_MAX+'. Feld darf also frei bleiben. Rein organisatorisch - die Anmeldung ist davon unabhängig und unbegrenzt, die Liste hilft nur bei der Übersicht, wer zu welcher Gruppe gehört.</p>'+
       blocks+
     '</div>';
   }
 
   async function saveGroupMembers(groupId){
     var names = [];
-    for(var i=0; i<CAPACITY; i++){
+    for(var i=0; i<GROUP_SIZE_MAX; i++){
       var input = document.querySelector('[data-member-slot="'+groupId+'|'+i+'"]');
       names.push(input ? input.value.trim() : '');
     }
