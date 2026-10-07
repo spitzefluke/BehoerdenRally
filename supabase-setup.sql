@@ -8,8 +8,8 @@
 -- Person - beantwortet ein Teammitglied eine Frage richtig, sehen alle
 -- anderen Mitglieder sofort dieselbe Mission als erledigt und die nächste
 -- Mission entsperrt (über Supabase Realtime). "groups" speichert diesen
--- gemeinsamen Fortschritt, "participants" nur, wer in welcher Gruppe ist
--- (für Kapazität/Namensliste).
+-- gemeinsamen Fortschritt, "participants" nur, welches Gerät zu welcher
+-- Gruppe gehört (eine Zeile je Anmeldung, unbegrenzt viele pro Gruppe).
 --
 -- Sicherheitsmodell: Es gibt kein Login (die Rallye braucht keins). Jede:r
 -- mit dem anon-Key (im HTML sichtbar) kann lesen, sich als Teilnehmer:in
@@ -60,27 +60,19 @@ create table if not exists public.participants (
 create index if not exists participants_group_id_idx on public.participants (group_id);
 create index if not exists participants_recovery_code_idx on public.participants (recovery_code);
 
--- Kapazität serverseitig durchsetzen, damit zwei Geräte nicht gleichzeitig
--- den letzten Platz belegen können. Geplant sind 11-12 Personen je Gruppe;
--- die harte Grenze ist deshalb 12 (entspricht CAPACITY im HTML). Beim
--- erneuten Ausführen dieses Skripts wird eine ältere Grenze (früher 9)
--- durch das "create or replace" automatisch mit angehoben.
-create or replace function public.enforce_group_capacity()
-returns trigger
-language plpgsql
-as $$
-begin
-  if (select count(*) from public.participants where group_id = new.group_id) >= 12 then
-    raise exception 'GROUP_FULL' using errcode = 'P0001';
-  end if;
-  return new;
-end;
-$$;
-
+-- Keine Obergrenze für Anmeldungen: eine Gruppe darf sich beliebig oft mit
+-- ihrem Passwort anmelden, auf beliebig vielen Geräten. Früher begrenzte der
+-- Trigger check_group_capacity die Zeilen pro Gruppe (zuerst auf 9, dann auf
+-- 12) und die App zeigte "Eure Gruppe hat bereits N Mitglieder angemeldet".
+-- Beides ist entfernt - Trigger und Funktion werden hier gelöscht, damit
+-- auch eine Datenbank, die noch eine frühere Version dieses Skripts gesehen
+-- hat, die Grenze beim erneuten Ausführen wirklich verliert.
+--
+-- Die geplante Teamgröße von 11-12 Personen bleibt davon unberührt: sie ist
+-- nur noch ein Sollwert für die Namensliste im Admin-Panel (group_members
+-- weiter unten) und bremst niemanden beim Anmelden.
 drop trigger if exists check_group_capacity on public.participants;
-create trigger check_group_capacity
-  before insert on public.participants
-  for each row execute function public.enforce_group_capacity();
+drop function if exists public.enforce_group_capacity();
 
 -- Atomares Abschließen einer Mission für die ganze Gruppe (verhindert
 -- Race Conditions, wenn zwei Teammitglieder fast gleichzeitig antworten).
@@ -551,7 +543,8 @@ end $$;
 
 -- Namensliste der Teammitglieder je Gruppe (geplant sind 11-12 Personen) -
 -- rein organisatorisch fürs Orga-Team (wer gehört zu welcher Gruppe), ohne
--- Einfluss auf Anmeldung oder Kapazität. Ohne Eintrag ist die Liste leer.
+-- Einfluss auf die Anmeldung, die unbegrenzt ist. Ohne Eintrag bleibt die
+-- Liste einfach leer.
 create table if not exists public.group_members (
   group_id text primary key check (group_id in (
     'gruppe-1','gruppe-2','gruppe-3','gruppe-4','gruppe-5',
@@ -608,18 +601,33 @@ begin
 end $$;
 
 -- Anonymes Feedback: EIN Formular (Singleton-Zeile 'main') mit einem
--- Fragenkatalog (je Frage 'choice' mit Optionen oder 'text' für Freitext)
--- und einer Stundenzahl, nach der das Feedback-Popup bei jedem Team
--- erscheint (gerechnet ab dem globalen Rallye-Start, siehe COUNTDOWN_TARGET
--- im HTML). feedback_responses speichert bewusst NUR die Antworten - es
+-- Fragenkatalog (je Frage 'choice' mit Optionen, 'scale' oder 'text' für
+-- Freitext). feedback_responses speichert bewusst NUR die Antworten - es
 -- gibt absichtlich keine Spalte für Gruppe, Gerät oder Teilnehmer:in, damit
 -- Rückmeldungen strukturell anonym bleiben.
+--
+-- released_at steuert, ob das Popup bei den Teams erscheint: NULL = noch
+-- nicht freigegeben, ein Zeitstempel = das Orga-Team hat im Admin-Panel auf
+-- "Feedback jetzt freigeben" gedrückt. Bewusst eine gespeicherte Spalte und
+-- kein bloßer Realtime-Broadcast: so bekommt auch ein Gerät den Fragebogen,
+-- das im Moment des Knopfdrucks gesperrt, offline oder noch nicht angemeldet
+-- war - es sieht die Freigabe beim nächsten Laden.
+--
+-- trigger_hours ist ein Überrest der früheren zeitgesteuerten Anzeige
+-- ("erscheint N Stunden nach Rallye-Start"). Die Spalte bleibt nur stehen,
+-- damit dieses Skript auf einer bestehenden Datenbank weiter durchläuft;
+-- gelesen oder geschrieben wird sie nirgends mehr.
 create table if not exists public.feedback_form (
   id text primary key default 'main',
   questions jsonb not null default '[]'::jsonb,
   trigger_hours numeric not null default 3,
+  released_at timestamptz,
   updated_at timestamptz not null default now()
 );
+
+-- Falls "feedback_form" schon aus einer früheren Version existiert, fehlt
+-- die Spalte - "create table if not exists" oben legt sie dann nicht an.
+alter table public.feedback_form add column if not exists released_at timestamptz;
 
 insert into public.feedback_form (id) values ('main') on conflict (id) do nothing;
 
@@ -633,24 +641,60 @@ create policy "feedback_form public read"
 -- Kein direktes UPDATE für anon - Schreiben läuft nur über die
 -- save_feedback_form()-Funktion (SECURITY DEFINER), gleiches Prinzip wie
 -- save_schedule() oben.
+-- Alte Signatur mit der Stundenzahl ablösen (siehe trigger_hours oben).
 drop function if exists public.save_feedback_form(jsonb, numeric);
+drop function if exists public.save_feedback_form(jsonb);
 
-create or replace function public.save_feedback_form(p_questions jsonb, p_trigger_hours numeric)
+-- Speichert nur den Fragenkatalog. released_at wird hier absichtlich NICHT
+-- angefasst, damit ein Nachbessern am Formular die laufende Freigabe nicht
+-- aufhebt (und ein Speichern vorher sie nicht versehentlich auslöst).
+create or replace function public.save_feedback_form(p_questions jsonb)
 returns jsonb
 language sql
 security definer
 set search_path = public
 as $$
-  insert into public.feedback_form (id, questions, trigger_hours, updated_at)
-  values ('main', p_questions, p_trigger_hours, now())
+  insert into public.feedback_form (id, questions, updated_at)
+  values ('main', p_questions, now())
   on conflict (id) do update
     set questions = excluded.questions,
-        trigger_hours = excluded.trigger_hours,
         updated_at = now()
   returning to_jsonb(public.feedback_form.*);
 $$;
 
-grant execute on function public.save_feedback_form(jsonb, numeric) to anon;
+grant execute on function public.save_feedback_form(jsonb) to anon;
+
+-- Gibt das Feedback frei (p_released = true) oder nimmt die Freigabe
+-- zurück (false) - der Knopf "Feedback jetzt freigeben" im Admin-Panel.
+drop function if exists public.set_feedback_released(boolean);
+
+create or replace function public.set_feedback_released(p_released boolean)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  insert into public.feedback_form (id, released_at, updated_at)
+  values ('main', case when p_released then now() else null end, now())
+  on conflict (id) do update
+    set released_at = case when p_released then now() else null end,
+        updated_at = now()
+  returning to_jsonb(public.feedback_form.*);
+$$;
+
+grant execute on function public.set_feedback_released(boolean) to anon;
+
+-- Realtime, damit die Freigabe sofort auf allen Geräten ankommt und nicht
+-- erst beim nächsten Laden.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'feedback_form'
+  ) then
+    alter publication supabase_realtime add table public.feedback_form;
+  end if;
+end $$;
 
 create table if not exists public.feedback_responses (
   id uuid primary key default gen_random_uuid(),
