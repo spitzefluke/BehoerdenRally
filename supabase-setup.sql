@@ -601,18 +601,33 @@ begin
 end $$;
 
 -- Anonymes Feedback: EIN Formular (Singleton-Zeile 'main') mit einem
--- Fragenkatalog (je Frage 'choice' mit Optionen oder 'text' für Freitext)
--- und einer Stundenzahl, nach der das Feedback-Popup bei jedem Team
--- erscheint (gerechnet ab dem globalen Rallye-Start, siehe COUNTDOWN_TARGET
--- im HTML). feedback_responses speichert bewusst NUR die Antworten - es
+-- Fragenkatalog (je Frage 'choice' mit Optionen, 'scale' oder 'text' für
+-- Freitext). feedback_responses speichert bewusst NUR die Antworten - es
 -- gibt absichtlich keine Spalte für Gruppe, Gerät oder Teilnehmer:in, damit
 -- Rückmeldungen strukturell anonym bleiben.
+--
+-- released_at steuert, ob das Popup bei den Teams erscheint: NULL = noch
+-- nicht freigegeben, ein Zeitstempel = das Orga-Team hat im Admin-Panel auf
+-- "Feedback jetzt freigeben" gedrückt. Bewusst eine gespeicherte Spalte und
+-- kein bloßer Realtime-Broadcast: so bekommt auch ein Gerät den Fragebogen,
+-- das im Moment des Knopfdrucks gesperrt, offline oder noch nicht angemeldet
+-- war - es sieht die Freigabe beim nächsten Laden.
+--
+-- trigger_hours ist ein Überrest der früheren zeitgesteuerten Anzeige
+-- ("erscheint N Stunden nach Rallye-Start"). Die Spalte bleibt nur stehen,
+-- damit dieses Skript auf einer bestehenden Datenbank weiter durchläuft;
+-- gelesen oder geschrieben wird sie nirgends mehr.
 create table if not exists public.feedback_form (
   id text primary key default 'main',
   questions jsonb not null default '[]'::jsonb,
   trigger_hours numeric not null default 3,
+  released_at timestamptz,
   updated_at timestamptz not null default now()
 );
+
+-- Falls "feedback_form" schon aus einer früheren Version existiert, fehlt
+-- die Spalte - "create table if not exists" oben legt sie dann nicht an.
+alter table public.feedback_form add column if not exists released_at timestamptz;
 
 insert into public.feedback_form (id) values ('main') on conflict (id) do nothing;
 
@@ -626,24 +641,60 @@ create policy "feedback_form public read"
 -- Kein direktes UPDATE für anon - Schreiben läuft nur über die
 -- save_feedback_form()-Funktion (SECURITY DEFINER), gleiches Prinzip wie
 -- save_schedule() oben.
+-- Alte Signatur mit der Stundenzahl ablösen (siehe trigger_hours oben).
 drop function if exists public.save_feedback_form(jsonb, numeric);
+drop function if exists public.save_feedback_form(jsonb);
 
-create or replace function public.save_feedback_form(p_questions jsonb, p_trigger_hours numeric)
+-- Speichert nur den Fragenkatalog. released_at wird hier absichtlich NICHT
+-- angefasst, damit ein Nachbessern am Formular die laufende Freigabe nicht
+-- aufhebt (und ein Speichern vorher sie nicht versehentlich auslöst).
+create or replace function public.save_feedback_form(p_questions jsonb)
 returns jsonb
 language sql
 security definer
 set search_path = public
 as $$
-  insert into public.feedback_form (id, questions, trigger_hours, updated_at)
-  values ('main', p_questions, p_trigger_hours, now())
+  insert into public.feedback_form (id, questions, updated_at)
+  values ('main', p_questions, now())
   on conflict (id) do update
     set questions = excluded.questions,
-        trigger_hours = excluded.trigger_hours,
         updated_at = now()
   returning to_jsonb(public.feedback_form.*);
 $$;
 
-grant execute on function public.save_feedback_form(jsonb, numeric) to anon;
+grant execute on function public.save_feedback_form(jsonb) to anon;
+
+-- Gibt das Feedback frei (p_released = true) oder nimmt die Freigabe
+-- zurück (false) - der Knopf "Feedback jetzt freigeben" im Admin-Panel.
+drop function if exists public.set_feedback_released(boolean);
+
+create or replace function public.set_feedback_released(p_released boolean)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  insert into public.feedback_form (id, released_at, updated_at)
+  values ('main', case when p_released then now() else null end, now())
+  on conflict (id) do update
+    set released_at = case when p_released then now() else null end,
+        updated_at = now()
+  returning to_jsonb(public.feedback_form.*);
+$$;
+
+grant execute on function public.set_feedback_released(boolean) to anon;
+
+-- Realtime, damit die Freigabe sofort auf allen Geräten ankommt und nicht
+-- erst beim nächsten Laden.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'feedback_form'
+  ) then
+    alter publication supabase_realtime add table public.feedback_form;
+  end if;
+end $$;
 
 create table if not exists public.feedback_responses (
   id uuid primary key default gen_random_uuid(),

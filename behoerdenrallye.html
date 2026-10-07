@@ -1236,7 +1236,7 @@
     adminTemplateDraft:null,
     adminRouteGroup:'gruppe-1',
     adminWinnerSent:false,
-    feedbackForm:{questions:[], trigger_hours:3},
+    feedbackForm:{questions:[], released_at:null},
     feedbackSubmitted:false,
     feedbackResponses:[],
     waitStageIndex:null,
@@ -1587,6 +1587,9 @@
       sb.channel('public:group_names')
         .on('postgres_changes', {event:'*', schema:'public', table:'group_names'}, handleRemoteGroupNameChange)
         .subscribe();
+      sb.channel('public:feedback_form')
+        .on('postgres_changes', {event:'*', schema:'public', table:'feedback_form'}, handleRemoteFeedbackFormChange)
+        .subscribe();
       sb.channel('public:announcements')
         .on('postgres_changes', {event:'INSERT', schema:'public', table:'announcements'}, handleRemoteAnnouncementInsert)
         .subscribe();
@@ -1765,6 +1768,17 @@
     // Der Name taucht auch außerhalb des Panels auf (Rangliste, Kopfzeile
     // der Gruppe), deshalb hier breiter neu rendern als bei Passwörtern.
     if(state.screen==='map' || state.screen==='finished' || state.screen==='admin'){ render(); }
+  }
+
+  function handleRemoteFeedbackFormChange(payload){
+    var row = payload.new;
+    if(!row || row.id !== 'main') return;
+    state.feedbackForm = row;
+    cacheCurrentRemoteState();
+    // Drückt das Orga-Team gerade auf "Feedback jetzt freigeben", soll der
+    // Fragebogen sofort aufgehen - ohne dass das Team die Seite neu lädt.
+    maybeShowFeedback();
+    if(state.screen === 'admin'){ render(); }
   }
 
   function handleRemoteAnnouncementInsert(payload){
@@ -2356,14 +2370,18 @@
   }
 
   // ---------------- Anonymes Feedback ----------------
-  // Erscheint für jede Gruppe automatisch, sobald die im Admin-Panel
-  // hinterlegte Stundenzahl seit dem globalen Rallye-Start (COUNTDOWN_TARGET)
-  // erreicht ist. Die Antworten werden ohne jeden Bezug zu Gruppe/Gerät
-  // gespeichert (siehe feedback_responses in supabase-setup.sql) - "erledigt"
-  // wird ausschließlich lokal im Browser gemerkt, nie an den Server gemeldet.
-  function feedbackDueTime(){
-    var hours = (state.feedbackForm && typeof state.feedbackForm.trigger_hours === 'number') ? state.feedbackForm.trigger_hours : 3;
-    return COUNTDOWN_TARGET.getTime() + hours*3600000;
+  // Erscheint bei allen Teams, sobald das Orga-Team im Admin-Panel auf
+  // "Feedback jetzt freigeben" drückt - nicht mehr zeitgesteuert. Die
+  // Freigabe steht als Zeitstempel in feedback_form.released_at und kommt
+  // per Realtime sofort an; weil sie gespeichert ist (und nicht nur
+  // gesendet), sieht ein Gerät, das gerade gesperrt oder offline war, den
+  // Fragebogen beim nächsten Laden nachträglich.
+  //
+  // Die Antworten werden ohne jeden Bezug zu Gruppe/Gerät gespeichert
+  // (siehe feedback_responses in supabase-setup.sql) - "erledigt" wird
+  // ausschließlich lokal im Browser gemerkt, nie an den Server gemeldet.
+  function feedbackReleased(){
+    return !!(state.feedbackForm && state.feedbackForm.released_at);
   }
 
   var feedbackDialogOpen = false;
@@ -2373,7 +2391,7 @@
     if(state.feedbackSubmitted) return;
     var questions = (state.feedbackForm && state.feedbackForm.questions) || [];
     if(!questions.length) return;
-    if(Date.now() < feedbackDueTime()) return;
+    if(!feedbackReleased()) return;
     showFeedbackDialog();
   }
 
@@ -2415,7 +2433,7 @@
     var ov = document.createElement('div');
     ov.className = 'overlay';
     ov.innerHTML = ''+
-      '<div class="quiz-card info-card fb-card" role="dialog" aria-modal="true" aria-labelledby="fbTitle">'+
+      '<div class="quiz-card info-card fb-card" role="dialog" aria-modal="true" aria-labelledby="fbTitle" tabindex="-1">'+
         '<button class="close-x" id="fbCloseBtn" aria-label="Später">'+icon('close')+'</button>'+
         '<h3 id="fbTitle">Kurzes Feedback</h3>'+
         '<p class="muted" style="font-size:13.5px;">Eure Antworten sind komplett anonym - wir können nicht sehen, welches Team sie abgegeben hat.</p>'+
@@ -2432,7 +2450,14 @@
       close();
     });
     ov.querySelector('#fbSubmitBtn').addEventListener('click', function(){ submitFeedback(close); });
-    ov.querySelector('#fbCloseBtn').focus();
+    // Fokus auf die Karte, nicht auf "Später": der Fragebogen geht jetzt
+    // auf Knopfdruck des Orga-Teams auf, also mitten in einer beliebigen
+    // Eingabe. Läge der Fokus auf dem Schließen-Knopf, würde ein gerade
+    // gedrücktes Enter (Login, Quizantwort) ihn auslösen - und "Später"
+    // merkt dauerhaft im Browser, dass dieses Team nichts mehr gefragt
+    // werden soll. trapFocus hört auf der Karte, Escape/Tab bleiben also
+    // erhalten.
+    card.focus();
   }
 
   async function submitFeedback(closeFn){
@@ -2830,11 +2855,59 @@
     }
   }
 
+  // Freigabe-Steuerung im Feedback-Tab: ein Knopf, der das Popup bei allen
+  // Teams auslöst, plus die Möglichkeit, eine versehentliche Freigabe
+  // zurückzunehmen.
+  function renderFeedbackRelease(){
+    var released = feedbackReleased();
+    var questionCount = ((state.feedbackForm && state.feedbackForm.questions) || []).length;
+    var when = '';
+    if(released){
+      var d = new Date(state.feedbackForm.released_at);
+      if(!isNaN(d.getTime())){
+        when = ' um ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ' Uhr';
+      }
+    }
+    var statusHtml = released
+      ? '<p class="admin-note" style="margin:0 0 10px;">✓ Freigegeben'+when+' - der Fragebogen ist bei allen Teams offen.</p>'
+      : '<p class="admin-note" style="margin:0 0 10px;">Noch nicht freigegeben - bei den Teams erscheint nichts.</p>';
+    // Ohne Fragen würde die Freigabe nichts anzeigen (maybeShowFeedback
+    // bricht bei leerem Katalog ab) - deshalb den Knopf dann sperren.
+    var blocked = !released && questionCount === 0;
+    return ''+
+    '<div class="admin-schedule-group" style="margin-bottom:16px;">'+
+      '<div class="admin-schedule-fields" style="padding:14px;">'+
+        statusHtml+
+        (released
+          ? btn('Freigabe zurücknehmen', {attrs:'data-feedback-release="off"'})
+          : btn('📣 Feedback jetzt freigeben', {attrs:'data-feedback-release="on"'+(blocked?' disabled':'')}))+
+        (blocked ? '<p class="admin-note">Erst Fragen anlegen und speichern - sonst gibt es nichts zu zeigen.</p>' : '')+
+      '</div>'+
+    '</div>';
+  }
+
+  async function setFeedbackReleased(on){
+    if(!sb){ showToast('Keine Verbindung zur Datenbank.'); return; }
+    if(!on && !window.confirm('Freigabe zurücknehmen? Bei Teams, die den Fragebogen noch offen haben, bleibt er bis zum Absenden oder Neuladen stehen.')) return;
+    try{
+      var res = await sb.rpc('set_feedback_released', {p_released: !!on});
+      if(res.error){
+        console.warn('Behördenrallye: Feedback-Freigabe fehlgeschlagen.', res.error);
+        showToast('Freigabe fehlgeschlagen: supabase-setup.sql evtl. noch nicht neu eingespielt.');
+        return;
+      }
+      await refreshGroupsState();
+      render();
+      showToast(on ? '✓ Feedback ist bei allen Teams freigegeben.' : '✓ Freigabe zurückgenommen.');
+    }catch(e){
+      console.warn('Behördenrallye: Feedback-Freigabe fehlgeschlagen.', e);
+      showToast('Freigabe fehlgeschlagen: supabase-setup.sql evtl. noch nicht neu eingespielt.');
+    }
+  }
+
   function renderAdminFeedback(){
     ensureFeedbackDraft();
     var questions = state.feedbackDraftQuestions;
-    var hours = (state.feedbackForm && state.feedbackForm.trigger_hours != null) ? state.feedbackForm.trigger_hours : 3;
-
     // Frei vom Orga-Team vergebene Kategorien (z.B. "Verpflegung",
     // "Organisation") - das Datalist schlägt bereits genutzte Kategorien
     // vor, verhindert aber nichts: neue Kategorien lassen sich jederzeit
@@ -2878,11 +2951,8 @@
     return ''+
     '<div class="intro-card">'+
       '<h3 style="margin-top:0;">Feedback-Formular</h3>'+
-      '<p class="muted" style="font-size:13px; margin:0 0 12px;">Erscheint automatisch bei jedem Team, sobald die eingestellte Stundenzahl seit Rallye-Start (07.10.2026) erreicht ist. Antworten sind komplett anonym - es wird nirgends gespeichert, welches Team geantwortet hat.</p>'+
-      '<div class="admin-schedule-row">'+
-        '<label for="fbTriggerHours">Erscheint nach (Stunden seit Rallye-Start)</label>'+
-        '<input type="number" min="0" step="0.5" id="fbTriggerHours" value="'+hours+'">'+
-      '</div>'+
+      '<p class="muted" style="font-size:13px; margin:0 0 12px;">Erscheint bei allen Teams erst, wenn ihr unten auf <b>Feedback jetzt freigeben</b> drückt. Antworten sind komplett anonym - es wird nirgends gespeichert, welches Team geantwortet hat.</p>'+
+      renderFeedbackRelease()+
       categoryListHtml+
       '<div id="fbQuestionBlocks">'+(blocksHtml || '<p class="muted" style="font-size:13px;">Noch keine Fragen - fügt welche hinzu.</p>')+'</div>'+
       '<div class="admin-actions" style="margin-top:14px;">'+
@@ -2907,10 +2977,6 @@
   }
 
   async function saveFeedbackForm(){
-    var hoursEl = document.getElementById('fbTriggerHours');
-    var hours = hoursEl ? parseFloat(hoursEl.value) : 3;
-    if(isNaN(hours) || hours < 0) hours = 0;
-
     var count = document.querySelectorAll('#fbQuestionBlocks .admin-question-block').length;
     var questions = [];
     for(var qi=0; qi<count; qi++){
@@ -2946,13 +3012,14 @@
 
     if(!sb){ showToast('Keine Verbindung zur Datenbank.'); return; }
     try{
-      var res = await sb.rpc('save_feedback_form', {p_questions: questions, p_trigger_hours: hours});
+      var res = await sb.rpc('save_feedback_form', {p_questions: questions});
       if(res.error){
         console.warn('Behördenrallye: Feedback-Formular konnte nicht gespeichert werden.', res.error);
         showToast('Speichern fehlgeschlagen: Tabelle "feedback_form" evtl. noch nicht angelegt (siehe supabase-setup.sql).');
         return;
       }
-      state.feedbackForm = (res.data && res.data.length ? res.data[0] : res.data) || {questions:questions, trigger_hours:hours};
+      state.feedbackForm = (res.data && res.data.length ? res.data[0] : res.data)
+        || {questions:questions, released_at:(state.feedbackForm && state.feedbackForm.released_at) || null};
       state.feedbackDraftQuestions = null;
       render();
       showToast('✓ Feedback-Formular gespeichert.');
@@ -4144,6 +4211,10 @@
 
     document.querySelectorAll('[data-save-password]').forEach(function(btn){
       btn.addEventListener('click', function(){ saveGroupPassword(btn.getAttribute('data-save-password')); });
+    });
+
+    document.querySelectorAll('[data-feedback-release]').forEach(function(btn){
+      btn.addEventListener('click', function(){ setFeedbackReleased(btn.getAttribute('data-feedback-release') === 'on'); });
     });
 
     document.querySelectorAll('[data-save-group-name]').forEach(function(btn){
